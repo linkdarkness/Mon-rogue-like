@@ -434,11 +434,14 @@
         let legacyData = JSON.parse(localStorage.getItem('rogue_legacy')) || null;
 
         window.onload = function() {
+            // Correction affichage héritage (vérification de la structure des données)
             if (legacyData) {
                 const legacyBox = document.getElementById('legacy-info');
                 const legacyText = document.getElementById('legacy-text');
                 legacyBox.classList.remove('hidden');
-                legacyText.innerText = `✨ Héritage actif : +${legacyData.bonusPrimary} Stat Principale | +${legacyData.bonusCons} Constitution`;
+                let bPrimary = legacyData.bonusPrimary || 0;
+                let bCons = legacyData.bonusCons || 0;
+                legacyText.innerText = `✨ Héritage actif : +${bPrimary} Stat Principale | +${bCons} Constitution`;
             }
 
             if (localStorage.getItem('rogue_save_game')) {
@@ -464,12 +467,18 @@
             dungeonState = savedData.dungeonState;
             isBossEncounter = savedData.isBossEncounter || false;
 
-            // Sécurité pour s'assurer que primaryStatName existe toujours après chargement
-            if (!player.primaryStatName) {
-                if (player.class === 'Guerrier') player.primaryStatName = 'Force';
-                else if (player.class === 'Mage') player.primaryStatName = 'Magie';
-                else player.primaryStatName = 'Dextérité';
+            // Restauration des propriétés manquantes ou corrompues pour éviter les "undefined" ou "null"
+            if (!classes[player.class]) {
+                player.class = 'Guerrier';
             }
+            let base = classes[player.class];
+
+            if (!player.primaryStatName) player.primaryStatName = base.primaryStatName;
+            if (player.basePrimary === undefined || isNaN(player.basePrimary)) player.basePrimary = base.basePrimary;
+            if (player.baseCons === undefined || isNaN(player.baseCons)) player.baseCons = base.baseCons;
+            if (player.baseArmor === undefined || isNaN(player.baseArmor)) player.baseArmor = base.baseArmor;
+            if (player.baseAgi === undefined || isNaN(player.baseAgi)) player.baseAgi = base.baseAgi;
+            if (player.hp === undefined || isNaN(player.hp) || player.hp <= 0) player.hp = player.baseCons;
 
             document.getElementById('screen-class-select').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
@@ -481,8 +490,8 @@
 
         function startGame(className) {
             let base = classes[className];
-            let bonusPrimary = legacyData ? legacyData.bonusPrimary : 0;
-            let bonusCons = legacyData ? legacyData.bonusCons : 0;
+            let bonusPrimary = (legacyData && legacyData.bonusPrimary) ? legacyData.bonusPrimary : 0;
+            let bonusCons = (legacyData && legacyData.bonusCons) ? legacyData.bonusCons : 0;
 
             player = { 
                 class: className,
@@ -548,13 +557,15 @@
                 }
             }
 
-            let oldMax = player.maxHp;
+            let oldMax = player.maxHp || player.baseCons;
             player.maxHp = player.baseCons + bonusCons;
             player.primaryStat = player.basePrimary + bonusPrimary;
             player.armor = player.baseArmor + bonusArmor;
             player.agility = player.baseAgi + bonusAgi;
 
-            if (player.maxHp > oldMax) {
+            if (player.hp === undefined || isNaN(player.hp)) {
+                player.hp = player.maxHp;
+            } else if (player.maxHp > oldMax) {
                 player.hp += (player.maxHp - oldMax);
             }
             if (player.hp > player.maxHp) {
@@ -805,7 +816,6 @@
         }
 
         function spawnMonster() {
-            // Échelle de progression progressive et équilibrée
             let scaleFactor = 1 + (dungeonState.floor - 1) * 0.6;
 
             const baseMonsters = [
