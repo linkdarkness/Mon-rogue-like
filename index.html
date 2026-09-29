@@ -67,6 +67,7 @@
             padding: 8px 10px;
             border-radius: 8px;
             border: 1px solid #2f2f35;
+            flex-shrink: 0;
         }
         
         .stats-grid {
@@ -160,15 +161,17 @@
             border-color: #bb86fc;
         }
 
+        /* INVENTAIRE ADAPTATIF ET SANS SCROLL LATÉRAL */
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 4px;
-            overflow-y: auto;
-            padding: 2px;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .inventory-slot {
+            width: 100%;
             aspect-ratio: 1;
             background: #27272a;
             border: 2px solid #3f3f46;
@@ -178,7 +181,7 @@
             align-items: center;
             position: relative;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             transition: background 0.2s, transform 0.1s;
         }
         .inventory-slot:hover { background: #3f3f46; transform: scale(1.02); }
@@ -195,8 +198,8 @@
             position: absolute;
             bottom: 1px;
             right: 2px;
-            font-size: 0.55rem;
-            background: rgba(0, 0, 0, 0.8);
+            font-size: 0.5rem;
+            background: rgba(0, 0, 0, 0.85);
             color: #03dac6;
             padding: 0px 2px;
             border-radius: 2px;
@@ -442,7 +445,9 @@
             <div id="tab-inventory" class="tab-content hidden">
                 <div class="section-box flex-fill" style="display: flex; flex-direction: column;">
                     <h3>🎒 Inventaire</h3>
-                    <div class="inventory-grid" id="inventory-buttons" style="flex: 1; overflow-y: auto;"></div>
+                    <div style="flex: 1; overflow-y: auto; padding: 2px;">
+                        <div class="inventory-grid" id="inventory-buttons"></div>
+                    </div>
                 </div>
             </div>
 
@@ -833,8 +838,8 @@
             const invContainer = document.getElementById('inventory-buttons');
             invContainer.innerHTML = '';
 
-            const minSlots = 15; 
-            let totalSlots = Math.max(minSlots, Math.ceil(player.inventory.length / 5) * 5);
+            const minSlots = 18; 
+            let totalSlots = Math.max(minSlots, Math.ceil(player.inventory.length / 6) * 6);
 
             for (let i = 0; i < totalSlots; i++) {
                 let slotDiv = document.createElement('div');
@@ -1038,17 +1043,14 @@
             updateFloorUI();
             saveGame();
             
-            // Si on est à un étage de boss (multiple de 5)
             if (dungeonState.floor % 5 === 0) {
                 if (!dungeonState.bossDefeatedOnFloor) {
-                    // Le boss n'a pas encore été vaincu à cet étage
                     if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor) {
                         document.getElementById('encounter-text').innerText = `⚠ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
                         document.getElementById('action-buttons').innerHTML = `<button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>`;
                         return;
                     }
                 } else {
-                    // Le boss a déjà été vaincu, l'étage est ouvert : l'utilisateur peut choisir de continuer à farmer ou de monter
                     document.getElementById('encounter-text').innerText = `Étage ${dungeonState.floor} (Boss vaincu) : Continuez à explorer ou montez.`;
                     document.getElementById('action-buttons').innerHTML = `
                         <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
@@ -1058,7 +1060,6 @@
                 }
             }
 
-            // Étages normaux
             document.getElementById('encounter-text').innerText = `Exploration en cours...`;
             document.getElementById('action-buttons').innerHTML = `
                 <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
@@ -1241,7 +1242,7 @@
             dungeonState.floor++;
             dungeonState.roomsCleared = 0;
             dungeonState.maxRoomsPerFloor += 1; 
-            dungeonState.bossDefeatedOnFloor = false; // Réinitialise l'état du boss pour le nouvel étage
+            dungeonState.bossDefeatedOnFloor = false;
             log(`🌟 Étage ${dungeonState.floor} atteint.`);
             updateStatus();
             setExplorationMode();
