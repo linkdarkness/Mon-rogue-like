@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Système de Stats</title>
+    <title>Mon Roguelike Mobile - Corrigé</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -145,10 +145,10 @@
         }
 
         /* Couleurs des contours selon la rareté */
-        .rarity-commun { border-color: #94a3b8; }     /* Gris */
-        .rarity-rare { border-color: #3b82f6; }       /* Bleu */
-        .rarity-epique { border-color: #a855f7; }     /* Violet */
-        .rarity-legendaire { border-color: #eab308; } /* Or / Jaune */
+        .rarity-commun { border-color: #94a3b8; }     
+        .rarity-rare { border-color: #3b82f6; }       
+        .rarity-epique { border-color: #a855f7; }     
+        .rarity-legendaire { border-color: #eab308; } 
 
         .item-count {
             position: absolute;
@@ -286,7 +286,7 @@
                 <span>Magie: 22 | Cons: 80 | Armure: 2 | Agilité: 8</span>
             </button>
             <button class="class-btn" onclick="startGame('Voleur')">
-                🗡️️ Voleur
+                🗡️ Voleur
                 <span>Dextérité: 18 | Cons: 100 | Armure: 3 | Agilité: 15</span>
             </button>
         </div>
@@ -420,9 +420,9 @@
 
         const rarities = [
             { name: 'Commun', class: 'rarity-commun', multiplier: 1.0, chance: 0.60, color: '#94a3b8' },
-            { name: 'Rare', class: 'rarity-rare', multiplier: 2.0, chance: 0.25, color: '#3b82f6' },
-            { name: 'Épique', class: 'rarity-epique', multiplier: 3.5, chance: 0.12, color: '#a855f7' },
-            { name: 'Légendaire', class: 'rarity-legendaire', multiplier: 6.0, chance: 0.03, color: '#eab308' }
+            { name: 'Rare', class: 'rarity-rare', multiplier: 1.8, chance: 0.25, color: '#3b82f6' },
+            { name: 'Épique', class: 'rarity-epique', multiplier: 2.8, chance: 0.12, color: '#a855f7' },
+            { name: 'Légendaire', class: 'rarity-legendaire', multiplier: 4.5, chance: 0.03, color: '#eab308' }
         ];
 
         const classes = {
@@ -463,6 +463,13 @@
             player = savedData.player;
             dungeonState = savedData.dungeonState;
             isBossEncounter = savedData.isBossEncounter || false;
+
+            // Sécurité pour s'assurer que primaryStatName existe toujours après chargement
+            if (!player.primaryStatName) {
+                if (player.class === 'Guerrier') player.primaryStatName = 'Force';
+                else if (player.class === 'Mage') player.primaryStatName = 'Magie';
+                else player.primaryStatName = 'Dextérité';
+            }
 
             document.getElementById('screen-class-select').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
@@ -561,7 +568,6 @@
         function updateStatus() {
             recalculateStats();
             
-            // Mise à jour des libellés et des blocs statistiques du personnage
             let labelName = player.primaryStatName || 'Attaque';
             document.getElementById('stat-primary-label').innerText = `${labelName} (ATK)`;
             document.getElementById('stat-class').innerText = player.class;
@@ -571,12 +577,10 @@
             document.getElementById('stat-agi').innerText = player.agility + '%';
             document.getElementById('stat-floor').innerText = dungeonState.floor;
             
-            // Mise à jour de la barre de PV (rouge)
             let hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
             document.getElementById('hp-bar').style.width = hpPercent + '%';
             document.getElementById('hp-text').innerText = `${player.hp}/${player.maxHp}`;
 
-            // Mise à jour de la barre d'XP (verte)
             let xpPercent = Math.max(0, Math.min(100, (player.xp / player.maxXp) * 100));
             document.getElementById('xp-bar').style.width = xpPercent + '%';
             document.getElementById('xp-text').innerText = `${player.xp}/${player.maxXp}`;
@@ -791,7 +795,7 @@
                 log(`Vous découvrez : <strong style="color: ${item.rarityColor}">[${item.rarityName}] ${item.name}</strong> !`);
                 finishRoom();
             } else {
-                let heal = 25 * dungeonState.floor;
+                let heal = 25 + (dungeonState.floor * 5);
                 player.hp = Math.min(player.maxHp, player.hp + heal);
                 document.getElementById('encounter-text').innerText = `💧 Source magique...`;
                 log(`Vous buvez l'eau claire et récupérez ${heal} PV.`);
@@ -801,22 +805,23 @@
         }
 
         function spawnMonster() {
-            let difficultyMultiplier = Math.pow(10, dungeonState.floor - 1);
+            // Échelle de progression progressive et équilibrée
+            let scaleFactor = 1 + (dungeonState.floor - 1) * 0.6;
 
             const baseMonsters = [
-                { name: 'Gobelin', hp: 25, atk: 7, xpValue: 12 },
-                { name: 'Squelette', hp: 40, atk: 11, xpValue: 20 },
-                { name: 'Orc des Cavernes', hp: 60, atk: 15, xpValue: 35 }
+                { name: 'Gobelin', hp: 30, atk: 8, xpValue: 12 },
+                { name: 'Squelette', hp: 45, atk: 12, xpValue: 20 },
+                { name: 'Orc des Cavernes', hp: 65, atk: 16, xpValue: 35 }
             ];
 
             let template = baseMonsters[Math.floor(Math.random() * baseMonsters.length)];
             
             currentMonster = {
                 name: template.name,
-                hp: Math.floor(template.hp * difficultyMultiplier),
-                maxHp: Math.floor(template.hp * difficultyMultiplier),
-                atk: Math.floor(template.atk * difficultyMultiplier),
-                xpValue: Math.floor(template.xpValue * difficultyMultiplier)
+                hp: Math.floor(template.hp * scaleFactor),
+                maxHp: Math.floor(template.hp * scaleFactor),
+                atk: Math.floor(template.atk * scaleFactor),
+                xpValue: Math.floor(template.xpValue * scaleFactor)
             };
 
             document.getElementById('encounter-text').innerText = `⚔️ ${currentMonster.name} (PV: ${currentMonster.hp})`;
@@ -831,7 +836,7 @@
 
         function spawnBoss() {
             isBossEncounter = true;
-            let difficultyMultiplier = Math.pow(10, dungeonState.floor - 1);
+            let scaleFactor = 1 + (dungeonState.floor - 1) * 0.8;
             
             const bossNames = {
                 5: 'Seigneur des Abysses',
@@ -843,10 +848,10 @@
 
             currentMonster = {
                 name: bName,
-                hp: Math.floor(150 * difficultyMultiplier),
-                maxHp: Math.floor(150 * difficultyMultiplier),
-                atk: Math.floor(20 * difficultyMultiplier),
-                xpValue: Math.floor(100 * difficultyMultiplier)
+                hp: Math.floor(180 * scaleFactor),
+                maxHp: Math.floor(180 * scaleFactor),
+                atk: Math.floor(25 * scaleFactor),
+                xpValue: Math.floor(100 * scaleFactor)
             };
 
             document.getElementById('encounter-text').innerText = `👹 BOSS : ${currentMonster.name} (PV: ${currentMonster.hp})`;
@@ -860,7 +865,6 @@
 
         function combatAction(action) {
             if (action === 'fight' && currentMonster) {
-                // Tour du joueur
                 currentMonster.hp -= player.primaryStat;
                 log(`Vous infligez ${player.primaryStat} dégâts (${player.primaryStatName}).`);
 
@@ -870,14 +874,14 @@
                         gainXp(currentMonster.xpValue);
                         
                         let legRarity = rarities.find(r => r.name === 'Légendaire');
-                        let baseScale = Math.pow(10, dungeonState.floor - 1);
+                        let scaleFactor = 1 + (dungeonState.floor - 1) * 0.5;
                         let bossGear = { 
                             name: '✨ Épée du Destin', 
                             slot: 'arme', 
-                            primaryStat: Math.floor(15 * baseScale * legRarity.multiplier), 
-                            cons: Math.floor(30 * baseScale * legRarity.multiplier),
-                            armor: Math.floor(5 * baseScale * legRarity.multiplier),
-                            agi: Math.floor(5 * baseScale * legRarity.multiplier),
+                            primaryStat: Math.floor(15 * scaleFactor * legRarity.multiplier), 
+                            cons: Math.floor(30 * scaleFactor * legRarity.multiplier),
+                            armor: Math.floor(5 * scaleFactor * legRarity.multiplier),
+                            agi: Math.floor(5 * scaleFactor * legRarity.multiplier),
                             rarityName: legRarity.name,
                             rarityClass: legRarity.class,
                             rarityColor: legRarity.color
@@ -896,12 +900,10 @@
                     return;
                 }
 
-                // Tour du monstre (gestion de l'esquive par l'agilité)
-                let dodgeChance = Math.min(60, player.agility * 0.8); // Plafonné à 60% max d'esquive
+                let dodgeChance = Math.min(50, player.agility * 0.8); 
                 if (Math.random() * 100 < dodgeChance) {
                     log(`✨ Vous esquivez l'attaque du monstre grâce à votre Agilité !`);
                 } else {
-                    // Calcul des dégâts subis atténués par l'Armure (Défense)
                     let mitigatedDamage = Math.max(1, currentMonster.atk - player.armor);
                     player.hp -= mitigatedDamage;
                     log(`Le monstre riposte et inflige ${mitigatedDamage} dégâts (Réduit de ${player.armor} par l'Armure).`);
@@ -912,7 +914,7 @@
                     handlePlayerDeath();
                 }
             } else if (action === 'flee') {
-                if (Math.random() < (0.5 + (player.agility * 0.01))) {
+                if (Math.random() < (0.4 + (player.agility * 0.01))) {
                     log(`Fuite réussie, mais la salle est perdue.`);
                     finishRoom();
                 } else {
@@ -930,8 +932,8 @@
         function handlePlayerDeath() {
             log(`Vous êtes mort au combat...`);
             
-            let savedBonusPrimary = Math.floor(player.level * 1.5);
-            let savedBonusCons = player.level * 10;
+            let savedBonusPrimary = Math.floor(player.level * 2);
+            let savedBonusCons = player.level * 15;
 
             localStorage.setItem('rogue_legacy', JSON.stringify({
                 level: player.level,
@@ -952,7 +954,7 @@
             
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor) {
                 if (dungeonState.floor % 5 === 0) {
-                    log(`⚠️️ Le gardien de l'étage bloque l'accès aux escaliers !`);
+                    log(`⚠️ Le gardien de l'étage bloque l'accès aux escaliers !`);
                 } else {
                     log(`🚪 L'escalier vers l'étage supérieur est débloqué !`);
                 }
@@ -965,7 +967,7 @@
             dungeonState.roomsCleared = 0;
             dungeonState.maxRoomsPerFloor += 1; 
 
-            log(`🌟 Vous montez à l'étage ${dungeonState.floor} (Difficulté x10).`);
+            log(`🌟 Vous montez à l'étage ${dungeonState.floor}.`);
             updateStatus();
             setExplorationMode();
         }
@@ -982,20 +984,20 @@
 
         function getRandomEquipmentOrPotion() {
             const itemsPool = [
-                { name: '🧪 Potion de Soin', type: 'potion', value: 50 },
+                { name: '🧪 Potion de Soin', type: 'potion', value: 40 },
                 { name: '🪖 Casque en Cuir', slot: 'casque', cons: 15, armor: 1 },
-                { name: '🪖 Casque en Fer', slot: 'casque', cons: 30, primaryStat: 2, armor: 3 },
+                { name: '🪖 Casque en Fer', slot: 'casque', cons: 25, primaryStat: 2, armor: 3 },
                 { name: '🗡️ Dague Légère', slot: 'arme', primaryStat: 4, agi: 2 },
-                { name: '⚔️ Épée Longue', slot: 'arme', primaryStat: 9 },
-                { name: '🛡️ Armure en Cuir', slot: 'torse', cons: 25, armor: 2 },
-                { name: '🛡️ Plastron de Plates', slot: 'torse', cons: 50, armor: 6 },
+                { name: '⚔️ Épée Longue', slot: 'arme', primaryStat: 8 },
+                { name: '🛡️ Armure en Cuir', slot: 'torse', cons: 20, armor: 2 },
+                { name: '🛡️ Plastron de Plates', slot: 'torse', cons: 40, armor: 5 },
                 { name: '🧤 Gants en Tissu', slot: 'gants', primaryStat: 2, cons: 5 },
-                { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 6 },
-                { name: '🥾 Bottes Souples', slot: 'bottes', cons: 10, agi: 4 },
-                { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 20, armor: 2 },
-                { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 10 },
-                { name: '💍 Anneau d\'Agilité', slot: 'anneau', agi: 5 },
-                { name: '💍 Anneau de Garde', slot: 'anneau', armor: 3, cons: 10 }
+                { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 5 },
+                { name: '🥾 Bottes Souples', slot: 'bottes', cons: 10, agi: 3 },
+                { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 15, armor: 2 },
+                { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 8 },
+                { name: '💍 Anneau d\'Agilité', slot: 'anneau', agi: 4 },
+                { name: '💍 Anneau de Garde', slot: 'anneau', armor: 2, cons: 8 }
             ];
 
             let template = itemsPool[Math.floor(Math.random() * itemsPool.length)];
@@ -1007,13 +1009,14 @@
             item.rarityColor = rarity.color;
 
             if (item.type !== 'potion') {
-                let scale = Math.pow(10, dungeonState.floor - 1) * rarity.multiplier;
+                let scale = (1 + (dungeonState.floor - 1) * 0.4) * rarity.multiplier;
                 if (item.primaryStat) item.primaryStat = Math.max(1, Math.floor(item.primaryStat * scale));
                 if (item.cons) item.cons = Math.max(5, Math.floor(item.cons * scale));
                 if (item.armor) item.armor = Math.max(1, Math.floor(item.armor * scale));
                 if (item.agi) item.agi = Math.max(1, Math.floor(item.agi * scale));
             } else {
-                item.value = Math.floor(50 * Math.pow(10, dungeonState.floor - 1) * rarity.multiplier);
+                let scale = (1 + (dungeonState.floor - 1) * 0.4) * rarity.multiplier;
+                item.value = Math.floor(40 * scale);
             }
             return item;
         }
@@ -1031,12 +1034,12 @@
             while (player.xp >= player.maxXp) {
                 player.xp -= player.maxXp;
                 player.level++;
-                player.baseCons += 20 * Math.pow(10, dungeonState.floor - 1);
+                player.baseCons += 15;
                 player.hp = player.baseCons;
-                player.basePrimary += 4 * Math.pow(10, dungeonState.floor - 1);
-                player.maxXp = Math.floor(player.maxXp * 1.5);
+                player.basePrimary += 3;
+                player.maxXp = Math.floor(player.maxXp * 1.4);
 
-                log(`✨ **NIVEAU ${player.level} ATTEINT !** (Constitution et ${player.primaryStatName} améliorées)`);
+                log(`✨ **NIVEAU ${player.level} ATTEINT !** (Constitution et ${player.primaryStatName} augmentées)`);
             }
             updateStatus();
         }
