@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile</title>
+    <title>Mon Roguelike Mobile - Équipement</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -30,17 +30,17 @@
         }
 
         h1 { font-size: 1.5rem; text-align: center; margin-top: 5px; color: #bb86fc; }
-        h2 { font-size: 1.1rem; text-align: center; background: #27272a; padding: 10px; border-radius: 8px; margin: 10px 0; color: #03dac6; }
+        h2 { font-size: 1rem; text-align: center; background: #27272a; padding: 10px; border-radius: 8px; margin: 10px 0; color: #03dac6; line-height: 1.4; }
         
         button { 
             background: #6200ee; 
             color: white; 
             border: none; 
-            padding: 14px; 
-            margin: 6px 0; 
+            padding: 12px; 
+            margin: 4px 0; 
             border-radius: 8px; 
             cursor: pointer; 
-            font-size: 1rem; 
+            font-size: 0.95rem; 
             font-weight: bold;
             width: 100%;
             transition: background 0.2s, transform 0.1s;
@@ -53,42 +53,44 @@
         .class-btn { background: #27272a; border: 1px solid #bb86fc; text-align: left; padding: 15px; }
         .class-btn span { display: block; font-size: 0.85rem; color: #a1a1aa; font-weight: normal; margin-top: 4px; }
 
-        .inventory-btn { 
-            background: #0f766e; 
-            padding: 10px; 
-            font-size: 0.9rem; 
-            margin: 4px 0; 
+        .item-btn { 
+            background: #27272a; 
+            border: 1px solid #3f3f46;
+            padding: 8px; 
+            font-size: 0.85rem; 
+            text-align: left;
+            margin: 3px 0;
         }
-        .inventory-btn:hover { background: #14b8a6; color: #000; }
+        .item-btn:hover { background: #3f3f46; }
 
         .log-box { 
             background: #09090b; 
-            padding: 12px; 
-            height: 130px; 
+            padding: 10px; 
+            height: 110px; 
             overflow-y: auto; 
             text-align: left; 
             font-family: monospace; 
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             border: 1px solid #27272a; 
             border-radius: 8px; 
-            margin-top: 15px; 
-            line-height: 1.4;
+            margin-top: 10px; 
+            line-height: 1.3;
         }
 
         .section-box { 
             background: #202024; 
-            padding: 12px; 
+            padding: 10px; 
             border-radius: 8px; 
-            margin-top: 12px; 
+            margin-top: 10px; 
             border: 1px solid #2f2f35;
         }
 
-        .section-box h3 { margin: 0 0 8px 0; font-size: 0.95rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; }
+        .section-box h3 { margin: 0 0 6px 0; font-size: 0.85rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; }
         
         #encounter-text { 
-            font-size: 1rem; 
+            font-size: 0.95rem; 
             text-align: center; 
-            margin: 10px 0; 
+            margin: 8px 0; 
             font-weight: 500;
             color: #ffb74d; 
         }
@@ -101,6 +103,17 @@
             border-radius: 8px; 
             font-size: 0.9rem;
             text-align: center;
+        }
+
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            font-size: 0.8rem;
+            background: #18181b;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -133,7 +146,19 @@
         <div id="screen-game" class="hidden">
             <h2 id="player-status">Statut</h2>
             
-            <div class="section-box" style="text-align: center; min-height: 60px; display: flex; align-items: center; justify-content: center;">
+            <!-- ÉQUIPEMENT ACTUEL -->
+            <div class="section-box">
+                <h3>Équipement Actuel</h3>
+                <div class="equipment-grid" id="equipment-display">
+                    <div>Casque: Aucun</div>
+                    <div>Arme: Aucune</div>
+                    <div>Torse: Aucun</div>
+                    <div>Gants: Aucun</div>
+                    <div style="grid-column: span 2;">Bottes: Aucune</div>
+                </div>
+            </div>
+
+            <div class="section-box" style="text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center;">
                 <p id="encounter-text">Vous entrez dans le donjon...</p>
             </div>
 
@@ -146,9 +171,9 @@
             </div>
 
             <div class="section-box">
-                <h3>Inventaire</h3>
-                <div id="inventory-buttons" style="max-height: 100px; overflow-y: auto;">
-                    <span id="no-item" style="color: #71717a; font-size: 0.9rem; display: block; text-align: center; padding: 5px;">Vide</span>
+                <h3>Inventaire (Objets non équipés)</h3>
+                <div id="inventory-buttons" style="max-height: 90px; overflow-y: auto;">
+                    <span id="no-item" style="color: #71717a; font-size: 0.85rem; display: block; text-align: center; padding: 5px;">Vide</span>
                 </div>
             </div>
 
@@ -159,6 +184,7 @@
     <script>
         let player = {};
         let currentMonster = null;
+        let isBossEncounter = false;
         let dungeonState = {
             floor: 1,
             roomsCleared: 0,
@@ -192,9 +218,18 @@
                 level: 1, 
                 xp: 0, 
                 maxXp: 30,
+                baseMaxHp: base.maxHp + bonusHp,
+                baseAtk: base.atk + bonusAtk,
                 maxHp: base.maxHp + bonusHp,
                 hp: base.maxHp + bonusHp,
                 atk: base.atk + bonusAtk,
+                equipment: {
+                    casque: null,
+                    arme: null,
+                    torse: null,
+                    gants: null,
+                    bottes: null
+                },
                 inventory: [] 
             };
             
@@ -207,10 +242,50 @@
             setExplorationMode();
         }
 
+        function recalculateStats() {
+            let bonusHp = 0;
+            let bonusAtk = 0;
+
+            for (let slot in player.equipment) {
+                let eq = player.equipment[slot];
+                if (eq) {
+                    bonusHp += (eq.hp || 0);
+                    bonusAtk += (eq.atk || 0);
+                }
+            }
+
+            let oldMax = player.maxHp;
+            player.maxHp = player.baseMaxHp + bonusHp;
+            player.atk = player.baseAtk + bonusAtk;
+
+            // Ajuster les PV actuels si le max augmente
+            if (player.maxHp > oldMax) {
+                player.hp += (player.maxHp - oldMax);
+            }
+            if (player.hp > player.maxHp) {
+                player.hp = player.maxHp;
+            }
+        }
+
         function updateStatus() {
+            recalculateStats();
             document.getElementById('player-status').innerText = 
                 `${player.class} (Nv.${player.level}) | Étage ${dungeonState.floor}\nPV: ${player.hp}/${player.maxHp} | ATK: ${player.atk} | XP: ${player.xp}/${player.maxXp}`;
+            
+            updateEquipmentUI();
             updateInventoryUI();
+        }
+
+        function updateEquipmentUI() {
+            const eqDisplay = document.getElementById('equipment-display');
+            let eq = player.equipment;
+            eqDisplay.innerHTML = `
+                <div>Casque: ${eq.casque ? eq.casque.name : 'Aucun'}</div>
+                <div>Arme: ${eq.arme ? eq.arme.name : 'Aucune'}</div>
+                <div>Torse: ${eq.torse ? eq.torse.name : 'Aucun'}</div>
+                <div>Gants: ${eq.gants ? eq.gants.name : 'Aucun'}</div>
+                <div style="grid-column: span 2;">Bottes: ${eq.bottes ? eq.bottes.name : 'Aucune'}</div>
+            `;
         }
 
         function updateInventoryUI() {
@@ -218,15 +293,16 @@
             invContainer.innerHTML = '';
 
             if (player.inventory.length === 0) {
-                invContainer.innerHTML = '<span id="no-item" style="color: #71717a; font-size: 0.9rem; display: block; text-align: center; padding: 5px;">Vide</span>';
+                invContainer.innerHTML = '<span id="no-item" style="color: #71717a; font-size: 0.85rem; display: block; text-align: center; padding: 5px;">Vide</span>';
                 return;
             }
 
             player.inventory.forEach((item, index) => {
                 let btn = document.createElement('button');
-                btn.className = 'inventory-btn';
-                btn.innerText = item.name;
-                btn.onclick = () => useItem(index);
+                btn.className = 'item-btn';
+                let statsText = item.type === 'potion' ? `(+${item.value} PV)` : `(${item.slot.toUpperCase()} : ${item.atk ? '+' + item.atk + ' ATK ' : ''}${item.hp ? '+' + item.hp + ' PV' : ''})`;
+                btn.innerText = `${item.name} ${statsText}`;
+                btn.onclick = () => useOrEquipItem(index);
                 invContainer.appendChild(btn);
             });
         }
@@ -239,6 +315,17 @@
 
         function setExplorationMode() {
             currentMonster = null;
+            isBossEncounter = false;
+            
+            if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
+                document.getElementById('encounter-text').innerText = `⚠️ SALLE DU BOSS DE L'ÉTAGE ${dungeonState.floor} !`;
+                let actionDiv = document.getElementById('action-buttons');
+                actionDiv.innerHTML = `
+                    <button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>
+                `;
+                return;
+            }
+
             document.getElementById('encounter-text').innerText = `Étage ${dungeonState.floor} — Salles : ${dungeonState.roomsCleared}/${dungeonState.maxRoomsPerFloor}`;
             
             let actionDiv = document.getElementById('action-buttons');
@@ -254,9 +341,9 @@
             if (eventRoll < 0.6) {
                 spawnMonster();
             } else if (eventRoll < 0.85) {
-                let item = getRandomItem();
+                let item = getRandomEquipmentOrPotion();
                 player.inventory.push(item);
-                document.getElementById('encounter-text').innerText = `✨ Coffre trouvé !`;
+                document.getElementById('encounter-text').innerText = `✨ Trésor trouvé !`;
                 log(`Vous découvrez : **${item.name}** !`);
                 finishRoom();
             } else {
@@ -298,16 +385,54 @@
             `;
         }
 
+        function spawnBoss() {
+            isBossEncounter = true;
+            const bossNames = {
+                5: 'Seigneur des Abysses',
+                10: 'Dragon des Cendres',
+                15: 'Roi Liche Immortel',
+                20: 'Titan du Chaos'
+            };
+            let bName = bossNames[dungeonState.floor] || `Seigneur des Ténèbres (Étage ${dungeonState.floor})`;
+
+            currentMonster = {
+                name: bName,
+                hp: 150 + (dungeonState.floor * 40),
+                maxHp: 150 + (dungeonState.floor * 40),
+                atk: 20 + (dungeonState.floor * 8),
+                xpValue: 100 + (dungeonState.floor * 25)
+            };
+
+            document.getElementById('encounter-text').innerText = `👹 BOSS : ${currentMonster.name} (PV: ${currentMonster.hp})`;
+            log(`🔥 Le redoutable **${currentMonster.name}** se dresse devant vous !`);
+
+            let actionDiv = document.getElementById('action-buttons');
+            actionDiv.innerHTML = `
+                <button onclick="combatAction('fight')" style="background: #e11d48;">Combattre le Boss</button>
+            `;
+        }
+
         function combatAction(action) {
             if (action === 'fight' && currentMonster) {
                 currentMonster.hp -= player.atk;
                 log(`Vous infligez ${player.atk} dégâts.`);
 
                 if (currentMonster.hp <= 0) {
-                    log(`Victoire ! (+${currentMonster.xpValue} XP)`);
-                    gainXp(currentMonster.xpValue);
-                    dropLoot();
-                    finishRoom();
+                    if (isBossEncounter) {
+                        log(`🏆 **VICTOIRE ÉPIQUE !** Vous avez terrassé le ${currentMonster.name} ! (+${currentMonster.xpValue} XP)`);
+                        gainXp(currentMonster.xpValue);
+                        let bossGear = { name: '✨ Épée Légendaire', slot: 'arme', atk: 15, hp: 30 };
+                        player.inventory.push(bossGear);
+                        log(`🎁 Butin de boss obtenu : **${bossGear.name}** !`);
+                        
+                        dungeonState.roomsCleared = dungeonState.maxRoomsPerFloor;
+                        setExplorationMode();
+                    } else {
+                        log(`Victoire ! (+${currentMonster.xpValue} XP)`);
+                        gainXp(currentMonster.xpValue);
+                        dropLoot();
+                        finishRoom();
+                    }
                     return;
                 }
 
@@ -355,7 +480,11 @@
             updateStatus();
             
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor) {
-                log(`🚪 L'escalier vers l'étage supérieur est débloqué !`);
+                if (dungeonState.floor % 5 === 0) {
+                    log(`⚠️ Le gardien de l'étage bloque l'accès aux escaliers !`);
+                } else {
+                    log(`🚪 L'escalier vers l'étage supérieur est débloqué !`);
+                }
             }
             setExplorationMode();
         }
@@ -370,39 +499,62 @@
             setExplorationMode();
         }
 
-        function getRandomItem() {
-            const possibleItems = [
-                { name: '🧪 Potion de Soin', type: 'heal', value: 45 },
-                { name: '⚔️ Pierre d\'Affûtage (+4 ATK)', type: 'buffAtk', value: 4 },
-                { name: '🛡️ Charme de Vitalité (+20 PV)', type: 'buffHp', value: 20 }
+        function getRandomEquipmentOrPotion() {
+            const itemsPool = [
+                { name: '🧪 Potion de Soin', type: 'potion', value: 50 },
+                { name: '🪖 Casque en Cuir', slot: 'casque', hp: 15 },
+                { name: '🪖 Casque en Fer', slot: 'casque', hp: 30, atk: 2 },
+                { name: '🗡️ Dague Rouillée', slot: 'arme', atk: 4 },
+                { name: '⚔️ Épée Longue', slot: 'arme', atk: 9 },
+                { name: '🛡️ Armure en Cuir', slot: 'torse', hp: 25 },
+                { name: '🛡️ Plastron de Plates', slot: 'torse', hp: 50 },
+                { name: '🧤 Gants en Tissu', slot: 'gants', atk: 2, hp: 5 },
+                { name: '🧤 Gants Barbelés', slot: 'gants', atk: 6 },
+                { name: '🥾 Bottes Souples', slot: 'bottes', hp: 10 },
+                { name: '🥾 Bottes de Fer', slot: 'bottes', hp: 20 }
             ];
-            return possibleItems[Math.floor(Math.random() * possibleItems.length)];
+            // Adapter les stats selon l'étage actuel
+            let template = itemsPool[Math.floor(Math.random() * itemsPool.length)];
+            let item = { ...template };
+            if (item.type !== 'potion') {
+                let scale = 1 + (dungeonState.floor - 1) * 0.2;
+                if (item.atk) item.atk = Math.max(1, Math.floor(item.atk * scale));
+                if (item.hp) item.hp = Math.max(5, Math.floor(item.hp * scale));
+            }
+            return item;
         }
 
         function dropLoot() {
-            if (Math.random() < 0.50) {
-                let loot = getRandomItem();
+            if (Math.random() < 0.55) {
+                let loot = getRandomEquipmentOrPotion();
                 player.inventory.push(loot);
                 log(`🎁 Butin obtenu : **${loot.name}** !`);
             }
         }
 
-        function useItem(index) {
+        function useOrEquipItem(index) {
             let item = player.inventory[index];
 
-            if (item.type === 'heal') {
+            if (item.type === 'potion') {
                 player.hp = Math.min(player.maxHp, player.hp + item.value);
-                log(`Potion utilisée (+${item.value} PV).`);
-            } else if (item.type === 'buffAtk') {
-                player.atk += item.value;
-                log(`Attaque augmentée (+${item.value}) !`);
-            } else if (item.type === 'buffHp') {
-                player.maxHp += item.value;
-                player.hp += item.value;
-                log(`PV Max augmentés (+${item.value}) !`);
-            }
+                log(`Potion bue (+${item.value} PV).`);
+                player.inventory.splice(index, 1);
+            } else {
+                // Équiper l'objet (Casque, Arme, Torse, Gants, Bottes)
+                let slot = item.slot;
+                let previousItem = player.equipment[slot];
 
-            player.inventory.splice(index, 1);
+                // Mettre l'ancien équipement dans l'inventaire s'il y en avait un
+                if (previousItem) {
+                    player.inventory[index] = previousItem;
+                    log(`Vous déséquipez ${previousItem.name} et équipez ${item.name}.`);
+                } else {
+                    player.inventory.splice(index, 1);
+                    log(`Vous équipez ${item.name}.`);
+                }
+
+                player.equipment[slot] = item;
+            }
             updateStatus();
         }
 
@@ -411,12 +563,12 @@
             while (player.xp >= player.maxXp) {
                 player.xp -= player.maxXp;
                 player.level++;
-                player.maxHp += 25;
-                player.hp = player.maxHp;
-                player.atk += 5;
+                player.baseMaxHp += 20;
+                player.hp = player.baseMaxHp;
+                player.baseAtk += 4;
                 player.maxXp = Math.floor(player.maxXp * 1.5);
 
-                log(`✨ **NIVEAU ${player.level} ATTEINT !**`);
+                log(`✨ **NIVEAU ${player.level} ATTEINT !** (Base Stats Améliorées)`);
             }
             updateStatus();
         }
