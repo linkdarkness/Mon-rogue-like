@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Barres de Progression</title>
+    <title>Mon Roguelike Mobile - Raretés & Contours</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -32,7 +32,7 @@
         h1 { font-size: 1.5rem; text-align: center; margin-top: 5px; color: #bb86fc; }
         h2 { font-size: 1rem; text-align: center; background: #27272a; padding: 10px; border-radius: 8px; margin: 10px 0; color: #03dac6; line-height: 1.4; }
         
-        /* Styles des barres de progression */
+        /* Barres de progression */
         .bars-container {
             background: #202024;
             padding: 10px;
@@ -67,8 +67,8 @@
             width: 0%;
             transition: width 0.3s ease;
         }
-        #hp-bar { background: #ef4444; } /* Rouge pour les PV */
-        #xp-bar { background: #22c55e; } /* Vert pour l'XP */
+        #hp-bar { background: #ef4444; }
+        #xp-bar { background: #22c55e; }
 
         button { 
             background: #6200ee; 
@@ -91,7 +91,7 @@
         .class-btn { background: #27272a; border: 1px solid #bb86fc; text-align: left; padding: 15px; }
         .class-btn span { display: block; font-size: 0.85rem; color: #a1a1aa; font-weight: normal; margin-top: 4px; }
 
-        /* Grille d'inventaire en emplacements carrés */
+        /* Grille d'inventaire avec contours de rareté */
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -104,7 +104,7 @@
         .inventory-slot {
             aspect-ratio: 1;
             background: #27272a;
-            border: 1px solid #3f3f46;
+            border: 2px solid #3f3f46; /* Épaisseur du contour */
             border-radius: 6px;
             display: flex;
             justify-content: center;
@@ -112,17 +112,23 @@
             position: relative;
             cursor: pointer;
             font-size: 1.5rem;
-            transition: background 0.2s, border-color 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
         .inventory-slot:hover {
             background: #3f3f46;
-            border-color: #bb86fc;
+            transform: scale(1.02);
         }
         .inventory-slot.empty {
             cursor: default;
             background: #141416;
-            border-color: #222226;
+            border: 1px solid #222226;
         }
+
+        /* Couleurs des contours selon la rareté */
+        .rarity-commun { border-color: #94a3b8; }     /* Gris */
+        .rarity-rare { border-color: #3b82f6; }       /* Bleu */
+        .rarity-epique { border-color: #a855f7; }     /* Violet */
+        .rarity-legendaire { border-color: #eab308; } /* Or / Jaune */
 
         .item-count {
             position: absolute;
@@ -365,6 +371,13 @@
             potion: '🧪'
         };
 
+        const rarities = [
+            { name: 'Commun', class: 'rarity-commun', multiplier: 1.0, chance: 0.60, color: '#94a3b8' },
+            { name: 'Rare', class: 'rarity-rare', multiplier: 2.0, chance: 0.25, color: '#3b82f6' },
+            { name: 'Épique', class: 'rarity-epique', multiplier: 3.5, chance: 0.12, color: '#a855f7' },
+            { name: 'Légendaire', class: 'rarity-legendaire', multiplier: 6.0, chance: 0.03, color: '#eab308' }
+        ];
+
         const classes = {
             'Guerrier': { hp: 120, maxHp: 120, atk: 15, class: 'Guerrier' },
             'Mage': { hp: 80, maxHp: 80, atk: 22, class: 'Mage' },
@@ -450,7 +463,8 @@
         }
 
         function addItemToInventory(newItem) {
-            let existingItem = player.inventory.find(i => i.name === newItem.name);
+            // Empiler uniquement les potions ou objets identiques par nom et rareté
+            let existingItem = player.inventory.find(i => i.name === newItem.name && i.rarityName === newItem.rarityName);
             if (existingItem) {
                 existingItem.quantity = (existingItem.quantity || 1) + 1;
             } else {
@@ -490,16 +504,13 @@
         function updateStatus() {
             recalculateStats();
             
-            // Mise à jour du texte de statut global
             document.getElementById('player-status').innerText = 
                 `${player.class} (Nv.${player.level}) | Étage ${dungeonState.floor}\nATK: ${player.atk}`;
             
-            // Mise à jour de la barre de PV (rouge)
             let hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
             document.getElementById('hp-bar').style.width = hpPercent + '%';
             document.getElementById('hp-text').innerText = `${player.hp}/${player.maxHp}`;
 
-            // Mise à jour de la barre d'XP (verte)
             let xpPercent = Math.max(0, Math.min(100, (player.xp / player.maxXp) * 100));
             document.getElementById('xp-bar').style.width = xpPercent + '%';
             document.getElementById('xp-text').innerText = `${player.xp}/${player.maxXp}`;
@@ -525,7 +536,7 @@
             eqDisplay.innerHTML = '';
             slotsConfig.forEach(s => {
                 let item = eq[s.key];
-                let text = item ? `${item.name}<br><span style="color:#a1a1aa; font-size:0.7rem;">${item.atk ? '+' + item.atk + ' ATK ' : ''}${item.hp ? '+' + item.hp + ' PV' : ''}</span>` : 'Aucun';
+                let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.7rem;">${item.atk ? '+' + item.atk + ' ATK ' : ''}${item.hp ? '+' + item.hp + ' PV' : ''}</span>` : 'Aucun';
                 let div = document.createElement('div');
                 div.className = 'eq-slot';
                 div.innerHTML = `<span style="font-size: 1.2rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
@@ -548,8 +559,8 @@
                     let icon = icons[item.type] || icons[item.slot] || '📦';
                     let qtyBadge = item.quantity > 1 ? `<span class="item-count">x${item.quantity}</span>` : '';
                     
-                    slotDiv.className = 'inventory-slot';
-                    slotDiv.title = `${item.name}${item.quantity > 1 ? ' (x' + item.quantity + ')' : ''}`;
+                    slotDiv.className = `inventory-slot ${item.rarityClass || 'rarity-commun'}`;
+                    slotDiv.title = `[${item.rarityName}] ${item.name}${item.quantity > 1 ? ' (x' + item.quantity + ')' : ''}`;
                     slotDiv.innerHTML = `${icon}${qtyBadge}`;
                     slotDiv.onclick = () => handleItemClick(i);
                 } else {
@@ -583,11 +594,11 @@
             let slot = newItem.slot;
             let currentItem = player.equipment[slot];
 
-            document.getElementById('modal-title').innerText = `Équiper : ${newItem.name}`;
+            document.getElementById('modal-title').innerHTML = `Équiper : <span style="color: ${newItem.rarityColor}">${newItem.name}</span>`;
 
             let currentDiv = document.getElementById('current-gear-info');
             if (currentItem) {
-                currentDiv.innerHTML = `<strong>${currentItem.name}</strong><br>ATK: ${currentItem.atk || 0}<br>PV: ${currentItem.hp || 0}`;
+                currentDiv.innerHTML = `<strong style="color: ${currentItem.rarityColor}">${currentItem.name}</strong><br><span style="font-size:0.7rem; color:#a1a1aa;">[${currentItem.rarityName}]</span><br>ATK: ${currentItem.atk || 0}<br>PV: ${currentItem.hp || 0}`;
             } else {
                 currentDiv.innerHTML = `<em>Emplacement vide</em>`;
             }
@@ -602,7 +613,7 @@
             let atkStr = `ATK: ${newItem.atk || 0} <span class="${atkClass}">(${diffAtk >= 0 ? '+' : ''}${diffAtk})</span>`;
             let hpStr = `PV: ${newItem.hp || 0} <span class="${hpClass}">(${diffHp >= 0 ? '+' : ''}${diffHp})</span>`;
 
-            newDiv.innerHTML = `<strong>${newItem.name}</strong><br>${atkStr}<br>${hpStr}`;
+            newDiv.innerHTML = `<strong style="color: ${newItem.rarityColor}">${newItem.name}</strong><br><span style="font-size:0.7rem; color:#a1a1aa;">[${newItem.rarityName}]</span><br>${atkStr}<br>${hpStr}`;
 
             document.getElementById('modal-compare').classList.remove('hidden');
         }
@@ -698,7 +709,7 @@
                 let item = getRandomEquipmentOrPotion();
                 addItemToInventory(item);
                 document.getElementById('encounter-text').innerText = `✨ Trésor trouvé !`;
-                log(`Vous découvrez : **${item.name}** !`);
+                log(`Vous découvrez : <strong style="color: ${item.rarityColor}">[${item.rarityName}] ${item.name}</strong> !`);
                 finishRoom();
             } else {
                 let heal = 25 * dungeonState.floor;
@@ -777,9 +788,21 @@
                     if (isBossEncounter) {
                         log(`🏆 **VICTOIRE ÉPIQUE !** Vous avez terrassé le ${currentMonster.name} ! (+${currentMonster.xpValue} XP)`);
                         gainXp(currentMonster.xpValue);
-                        let bossGear = { name: '✨ Épée Légendaire', slot: 'arme', atk: Math.floor(15 * Math.pow(10, dungeonState.floor - 1)), hp: Math.floor(30 * Math.pow(10, dungeonState.floor - 1)) };
+                        
+                        // Butin garanti Légendaire sur le Boss
+                        let legRarity = rarities.find(r => r.name === 'Légendaire');
+                        let baseScale = Math.pow(10, dungeonState.floor - 1);
+                        let bossGear = { 
+                            name: '✨ Épée du Destin', 
+                            slot: 'arme', 
+                            atk: Math.floor(15 * baseScale * legRarity.multiplier), 
+                            hp: Math.floor(30 * baseScale * legRarity.multiplier),
+                            rarityName: legRarity.name,
+                            rarityClass: legRarity.class,
+                            rarityColor: legRarity.color
+                        };
                         addItemToInventory(bossGear);
-                        log(`🎁 Butin de boss obtenu : **${bossGear.name}** !`);
+                        log(`🎁 Butin de boss obtenu : <strong style="color: ${legRarity.color}">[${legRarity.name}] ${bossGear.name}</strong> !`);
                         
                         dungeonState.roomsCleared = dungeonState.maxRoomsPerFloor;
                         setExplorationMode();
@@ -857,6 +880,16 @@
             setExplorationMode();
         }
 
+        function getRandomRarity() {
+            let roll = Math.random();
+            let cumulative = 0;
+            for (let r of rarities) {
+                cumulative += r.chance;
+                if (roll <= cumulative) return r;
+            }
+            return rarities[0];
+        }
+
         function getRandomEquipmentOrPotion() {
             const itemsPool = [
                 { name: '🧪 Potion de Soin', type: 'potion', value: 50 },
@@ -874,14 +907,21 @@
                 { name: '💍 Anneau de Vitalité', slot: 'anneau', hp: 15 },
                 { name: '💍 Anneau de Puissance', slot: 'anneau', atk: 5, hp: 10 }
             ];
+
             let template = itemsPool[Math.floor(Math.random() * itemsPool.length)];
             let item = { ...template };
+            
+            let rarity = getRandomRarity();
+            item.rarityName = rarity.name;
+            item.rarityClass = rarity.class;
+            item.rarityColor = rarity.color;
+
             if (item.type !== 'potion') {
-                let scale = Math.pow(10, dungeonState.floor - 1);
+                let scale = Math.pow(10, dungeonState.floor - 1) * rarity.multiplier;
                 if (item.atk) item.atk = Math.max(1, Math.floor(item.atk * scale));
                 if (item.hp) item.hp = Math.max(5, Math.floor(item.hp * scale));
             } else {
-                item.value = Math.floor(50 * Math.pow(10, dungeonState.floor - 1));
+                item.value = Math.floor(50 * Math.pow(10, dungeonState.floor - 1) * rarity.multiplier);
             }
             return item;
         }
@@ -890,7 +930,7 @@
             if (Math.random() < 0.55) {
                 let loot = getRandomEquipmentOrPotion();
                 addItemToInventory(loot);
-                log(`🎁 Butin obtenu : **${loot.name}** !`);
+                log(`🎁 Butin obtenu : <strong style="color: ${loot.rarityColor}">[${loot.rarityName}] ${loot.name}</strong> !`);
             }
         }
 
