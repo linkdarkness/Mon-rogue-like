@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Stats & Raretés</title>
+    <title>Mon Roguelike Mobile - Système de Stats</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -279,15 +279,15 @@
             
             <button class="class-btn" onclick="startGame('Guerrier')">
                 🛡️ Guerrier
-                <span>PV: 120 | Force: 15</span>
+                <span>Force: 15 | Cons: 120 | Armure: 5 | Agilité: 5</span>
             </button>
             <button class="class-btn" onclick="startGame('Mage')">
                 🔮 Mage
-                <span>PV: 80 | Magie: 22</span>
+                <span>Magie: 22 | Cons: 80 | Armure: 2 | Agilité: 8</span>
             </button>
             <button class="class-btn" onclick="startGame('Voleur')">
-                🗡️ Voleur
-                <span>PV: 100 | Agilité: 18</span>
+                🗡️️ Voleur
+                <span>Dextérité: 18 | Cons: 100 | Armure: 3 | Agilité: 15</span>
             </button>
         </div>
 
@@ -305,8 +305,16 @@
                         <span id="stat-level" class="stat-value">1</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Attaque (ATK)</span>
+                        <span class="stat-label" id="stat-primary-label">Attaque</span>
                         <span id="stat-atk" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Armure (DEF)</span>
+                        <span id="stat-def" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Agilité (Esquive)</span>
+                        <span id="stat-agi" class="stat-value">0%</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Étage</span>
@@ -317,7 +325,7 @@
                 <!-- Barre de PV -->
                 <div class="bar-wrapper">
                     <div class="bar-label">
-                        <span>PV (Points de Vie)</span>
+                        <span>PV (Constitution)</span>
                         <span id="hp-text">120/120</span>
                     </div>
                     <div class="progress-bar-bg">
@@ -418,9 +426,9 @@
         ];
 
         const classes = {
-            'Guerrier': { hp: 120, maxHp: 120, atk: 15, class: 'Guerrier' },
-            'Mage': { hp: 80, maxHp: 80, atk: 22, class: 'Mage' },
-            'Voleur': { hp: 100, maxHp: 100, atk: 18, class: 'Voleur' }
+            'Guerrier': { primaryStatName: 'Force', basePrimary: 15, baseCons: 120, baseArmor: 5, baseAgi: 5 },
+            'Mage': { primaryStatName: 'Magie', basePrimary: 22, baseCons: 80, baseArmor: 2, baseAgi: 8 },
+            'Voleur': { primaryStatName: 'Dextérité', basePrimary: 18, baseCons: 100, baseArmor: 3, baseAgi: 15 }
         };
 
         let legacyData = JSON.parse(localStorage.getItem('rogue_legacy')) || null;
@@ -430,7 +438,7 @@
                 const legacyBox = document.getElementById('legacy-info');
                 const legacyText = document.getElementById('legacy-text');
                 legacyBox.classList.remove('hidden');
-                legacyText.innerText = `✨ Héritage actif : +${legacyData.bonusAtk} ATK | +${legacyData.bonusHp} PV Max`;
+                legacyText.innerText = `✨ Héritage actif : +${legacyData.bonusPrimary} Stat Principale | +${legacyData.bonusCons} Constitution`;
             }
 
             if (localStorage.getItem('rogue_save_game')) {
@@ -466,19 +474,24 @@
 
         function startGame(className) {
             let base = classes[className];
-            let bonusAtk = legacyData ? legacyData.bonusAtk : 0;
-            let bonusHp = legacyData ? legacyData.bonusHp : 0;
+            let bonusPrimary = legacyData ? legacyData.bonusPrimary : 0;
+            let bonusCons = legacyData ? legacyData.bonusCons : 0;
 
             player = { 
                 class: className,
+                primaryStatName: base.primaryStatName,
                 level: 1, 
                 xp: 0, 
                 maxXp: 30,
-                baseMaxHp: base.maxHp + bonusHp,
-                baseAtk: base.atk + bonusAtk,
-                maxHp: base.maxHp + bonusHp,
-                hp: base.maxHp + bonusHp,
-                atk: base.atk + bonusAtk,
+                basePrimary: base.basePrimary + bonusPrimary,
+                baseCons: base.baseCons + bonusCons,
+                baseArmor: base.baseArmor,
+                baseAgi: base.baseAgi,
+                maxHp: base.baseCons + bonusCons,
+                hp: base.baseCons + bonusCons,
+                primaryStat: base.basePrimary + bonusPrimary,
+                armor: base.baseArmor,
+                agility: base.baseAgi,
                 equipment: {
                     casque: null,
                     arme: null,
@@ -513,20 +526,26 @@
         }
 
         function recalculateStats() {
-            let bonusHp = 0;
-            let bonusAtk = 0;
+            let bonusPrimary = 0;
+            let bonusCons = 0;
+            let bonusArmor = 0;
+            let bonusAgi = 0;
 
             for (let slot in player.equipment) {
                 let eq = player.equipment[slot];
                 if (eq) {
-                    bonusHp += (eq.hp || 0);
-                    bonusAtk += (eq.atk || 0);
+                    bonusPrimary += (eq.primaryStat || 0);
+                    bonusCons += (eq.cons || 0);
+                    bonusArmor += (eq.armor || 0);
+                    bonusAgi += (eq.agi || 0);
                 }
             }
 
             let oldMax = player.maxHp;
-            player.maxHp = player.baseMaxHp + bonusHp;
-            player.atk = player.baseAtk + bonusAtk;
+            player.maxHp = player.baseCons + bonusCons;
+            player.primaryStat = player.basePrimary + bonusPrimary;
+            player.armor = player.baseArmor + bonusArmor;
+            player.agility = player.baseAgi + bonusAgi;
 
             if (player.maxHp > oldMax) {
                 player.hp += (player.maxHp - oldMax);
@@ -542,10 +561,14 @@
         function updateStatus() {
             recalculateStats();
             
-            // Mise à jour des blocs statistiques du personnage
+            // Mise à jour des libellés et des blocs statistiques du personnage
+            let labelName = player.primaryStatName || 'Attaque';
+            document.getElementById('stat-primary-label').innerText = `${labelName} (ATK)`;
             document.getElementById('stat-class').innerText = player.class;
             document.getElementById('stat-level').innerText = player.level;
-            document.getElementById('stat-atk').innerText = player.atk;
+            document.getElementById('stat-atk').innerText = player.primaryStat;
+            document.getElementById('stat-def').innerText = player.armor;
+            document.getElementById('stat-agi').innerText = player.agility + '%';
             document.getElementById('stat-floor').innerText = dungeonState.floor;
             
             // Mise à jour de la barre de PV (rouge)
@@ -579,7 +602,14 @@
             eqDisplay.innerHTML = '';
             slotsConfig.forEach(s => {
                 let item = eq[s.key];
-                let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.7rem;">${item.atk ? '+' + item.atk + ' ATK ' : ''}${item.hp ? '+' + item.hp + ' PV' : ''}</span>` : 'Aucun';
+                let statDetails = [];
+                if (item) {
+                    if (item.primaryStat) statDetails.push(`+${item.primaryStat} ${player.primaryStatName}`);
+                    if (item.cons) statDetails.push(`+${item.cons} Cons`);
+                    if (item.armor) statDetails.push(`+${item.armor} Déf`);
+                    if (item.agi) statDetails.push(`+${item.agi} Agi`);
+                }
+                let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.7rem;">${statDetails.join(' | ')}</span>` : 'Aucun';
                 let div = document.createElement('div');
                 div.className = 'eq-slot';
                 div.innerHTML = `<span style="font-size: 1.2rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
@@ -641,22 +671,28 @@
 
             let currentDiv = document.getElementById('current-gear-info');
             if (currentItem) {
-                currentDiv.innerHTML = `<strong style="color: ${currentItem.rarityColor}">${currentItem.name}</strong><br><span style="font-size:0.7rem; color:#a1a1aa;">[${currentItem.rarityName}]</span><br>ATK: ${currentItem.atk || 0}<br>PV: ${currentItem.hp || 0}`;
+                currentDiv.innerHTML = `<strong style="color: ${currentItem.rarityColor}">${currentItem.name}</strong><br><span style="font-size:0.7rem; color:#a1a1aa;">[${currentItem.rarityName}]</span><br>${player.primaryStatName}: ${currentItem.primaryStat || 0}<br>Cons: ${currentItem.cons || 0}<br>Défense: ${currentItem.armor || 0}<br>Agilité: ${currentItem.agi || 0}`;
             } else {
                 currentDiv.innerHTML = `<em>Emplacement vide</em>`;
             }
 
             let newDiv = document.getElementById('new-gear-info');
-            let diffAtk = (newItem.atk || 0) - (currentItem ? (currentItem.atk || 0) : 0);
-            let diffHp = (newItem.hp || 0) - (currentItem ? (currentItem.hp || 0) : 0);
+            let diffPrimary = (newItem.primaryStat || 0) - (currentItem ? (currentItem.primaryStat || 0) : 0);
+            let diffCons = (newItem.cons || 0) - (currentItem ? (currentItem.cons || 0) : 0);
+            let diffArmor = (newItem.armor || 0) - (currentItem ? (currentItem.armor || 0) : 0);
+            let diffAgi = (newItem.agi || 0) - (currentItem ? (currentItem.agi || 0) : 0);
 
-            let atkClass = diffAtk > 0 ? 'stat-diff-pos' : (diffAtk < 0 ? 'stat-diff-neg' : '');
-            let hpClass = diffHp > 0 ? 'stat-diff-pos' : (diffHp < 0 ? 'stat-diff-neg' : '');
+            let primaryClass = diffPrimary > 0 ? 'stat-diff-pos' : (diffPrimary < 0 ? 'stat-diff-neg' : '');
+            let consClass = diffCons > 0 ? 'stat-diff-pos' : (diffCons < 0 ? 'stat-diff-neg' : '');
+            let armorClass = diffArmor > 0 ? 'stat-diff-pos' : (diffArmor < 0 ? 'stat-diff-neg' : '');
+            let agiClass = diffAgi > 0 ? 'stat-diff-pos' : (diffAgi < 0 ? 'stat-diff-neg' : '');
 
-            let atkStr = `ATK: ${newItem.atk || 0} <span class="${atkClass}">(${diffAtk >= 0 ? '+' : ''}${diffAtk})</span>`;
-            let hpStr = `PV: ${newItem.hp || 0} <span class="${hpClass}">(${diffHp >= 0 ? '+' : ''}${diffHp})</span>`;
+            let primaryStr = `${player.primaryStatName}: ${newItem.primaryStat || 0} <span class="${primaryClass}">(${diffPrimary >= 0 ? '+' : ''}${diffPrimary})</span>`;
+            let consStr = `Cons: ${newItem.cons || 0} <span class="${consClass}">(${diffCons >= 0 ? '+' : ''}${diffCons})</span>`;
+            let armorStr = `Déf: ${newItem.armor || 0} <span class="${armorClass}">(${diffArmor >= 0 ? '+' : ''}${diffArmor})</span>`;
+            let agiStr = `Agi: ${newItem.agi || 0} <span class="${agiClass}">(${diffAgi >= 0 ? '+' : ''}${diffAgi})</span>`;
 
-            newDiv.innerHTML = `<strong style="color: ${newItem.rarityColor}">${newItem.name}</strong><br><span style="font-size:0.7rem; color:#a1a1aa;">[${newItem.rarityName}]</span><br>${atkStr}<br>${hpStr}`;
+            newDiv.innerHTML = `<strong style="color: ${newItem.rarityColor}">${newItem.name}</strong><br><span style="font-size:0.7rem; color:#a1a1aa;">[${newItem.rarityName}]</span><br>${primaryStr}<br>${consStr}<br>${armorStr}<br>${agiStr}`;
 
             document.getElementById('modal-compare').classList.remove('hidden');
         }
@@ -824,8 +860,9 @@
 
         function combatAction(action) {
             if (action === 'fight' && currentMonster) {
-                currentMonster.hp -= player.atk;
-                log(`Vous infligez ${player.atk} dégâts.`);
+                // Tour du joueur
+                currentMonster.hp -= player.primaryStat;
+                log(`Vous infligez ${player.primaryStat} dégâts (${player.primaryStatName}).`);
 
                 if (currentMonster.hp <= 0) {
                     if (isBossEncounter) {
@@ -837,8 +874,10 @@
                         let bossGear = { 
                             name: '✨ Épée du Destin', 
                             slot: 'arme', 
-                            atk: Math.floor(15 * baseScale * legRarity.multiplier), 
-                            hp: Math.floor(30 * baseScale * legRarity.multiplier),
+                            primaryStat: Math.floor(15 * baseScale * legRarity.multiplier), 
+                            cons: Math.floor(30 * baseScale * legRarity.multiplier),
+                            armor: Math.floor(5 * baseScale * legRarity.multiplier),
+                            agi: Math.floor(5 * baseScale * legRarity.multiplier),
                             rarityName: legRarity.name,
                             rarityClass: legRarity.class,
                             rarityColor: legRarity.color
@@ -857,20 +896,29 @@
                     return;
                 }
 
-                player.hp -= currentMonster.atk;
-                log(`Le monstre riposte et inflige ${currentMonster.atk} dégâts.`);
+                // Tour du monstre (gestion de l'esquive par l'agilité)
+                let dodgeChance = Math.min(60, player.agility * 0.8); // Plafonné à 60% max d'esquive
+                if (Math.random() * 100 < dodgeChance) {
+                    log(`✨ Vous esquivez l'attaque du monstre grâce à votre Agilité !`);
+                } else {
+                    // Calcul des dégâts subis atténués par l'Armure (Défense)
+                    let mitigatedDamage = Math.max(1, currentMonster.atk - player.armor);
+                    player.hp -= mitigatedDamage;
+                    log(`Le monstre riposte et inflige ${mitigatedDamage} dégâts (Réduit de ${player.armor} par l'Armure).`);
+                }
                 updateStatus();
 
                 if (player.hp <= 0) {
                     handlePlayerDeath();
                 }
             } else if (action === 'flee') {
-                if (Math.random() < 0.5) {
+                if (Math.random() < (0.5 + (player.agility * 0.01))) {
                     log(`Fuite réussie, mais la salle est perdue.`);
                     finishRoom();
                 } else {
                     log(`Échec de la fuite ! Le monstre frappe.`);
-                    player.hp -= currentMonster.atk;
+                    let mitigatedDamage = Math.max(1, currentMonster.atk - player.armor);
+                    player.hp -= mitigatedDamage;
                     updateStatus();
                     if (player.hp <= 0) {
                         handlePlayerDeath();
@@ -882,13 +930,13 @@
         function handlePlayerDeath() {
             log(`Vous êtes mort au combat...`);
             
-            let savedBonusAtk = Math.floor(player.level * 1.5);
-            let savedBonusHp = player.level * 10;
+            let savedBonusPrimary = Math.floor(player.level * 1.5);
+            let savedBonusCons = player.level * 10;
 
             localStorage.setItem('rogue_legacy', JSON.stringify({
                 level: player.level,
-                bonusAtk: savedBonusAtk,
-                bonusHp: savedBonusHp
+                bonusPrimary: savedBonusPrimary,
+                bonusCons: savedBonusCons
             }));
 
             localStorage.removeItem('rogue_save_game');
@@ -904,7 +952,7 @@
             
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor) {
                 if (dungeonState.floor % 5 === 0) {
-                    log(`⚠️ Le gardien de l'étage bloque l'accès aux escaliers !`);
+                    log(`⚠️️ Le gardien de l'étage bloque l'accès aux escaliers !`);
                 } else {
                     log(`🚪 L'escalier vers l'étage supérieur est débloqué !`);
                 }
@@ -935,19 +983,19 @@
         function getRandomEquipmentOrPotion() {
             const itemsPool = [
                 { name: '🧪 Potion de Soin', type: 'potion', value: 50 },
-                { name: '🪖 Casque en Cuir', slot: 'casque', hp: 15 },
-                { name: '🪖 Casque en Fer', slot: 'casque', hp: 30, atk: 2 },
-                { name: '🗡️ Dague Rouillée', slot: 'arme', atk: 4 },
-                { name: '⚔️ Épée Longue', slot: 'arme', atk: 9 },
-                { name: '🛡️ Armure en Cuir', slot: 'torse', hp: 25 },
-                { name: '🛡️ Plastron de Plates', slot: 'torse', hp: 50 },
-                { name: '🧤 Gants en Tissu', slot: 'gants', atk: 2, hp: 5 },
-                { name: '🧤 Gants Barbelés', slot: 'gants', atk: 6 },
-                { name: '🥾 Bottes Souples', slot: 'bottes', hp: 10 },
-                { name: '🥾 Bottes de Fer', slot: 'bottes', hp: 20 },
-                { name: '💍 Anneau de Force', slot: 'anneau', atk: 3 },
-                { name: '💍 Anneau de Vitalité', slot: 'anneau', hp: 15 },
-                { name: '💍 Anneau de Puissance', slot: 'anneau', atk: 5, hp: 10 }
+                { name: '🪖 Casque en Cuir', slot: 'casque', cons: 15, armor: 1 },
+                { name: '🪖 Casque en Fer', slot: 'casque', cons: 30, primaryStat: 2, armor: 3 },
+                { name: '🗡️ Dague Légère', slot: 'arme', primaryStat: 4, agi: 2 },
+                { name: '⚔️ Épée Longue', slot: 'arme', primaryStat: 9 },
+                { name: '🛡️ Armure en Cuir', slot: 'torse', cons: 25, armor: 2 },
+                { name: '🛡️ Plastron de Plates', slot: 'torse', cons: 50, armor: 6 },
+                { name: '🧤 Gants en Tissu', slot: 'gants', primaryStat: 2, cons: 5 },
+                { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 6 },
+                { name: '🥾 Bottes Souples', slot: 'bottes', cons: 10, agi: 4 },
+                { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 20, armor: 2 },
+                { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 10 },
+                { name: '💍 Anneau d\'Agilité', slot: 'anneau', agi: 5 },
+                { name: '💍 Anneau de Garde', slot: 'anneau', armor: 3, cons: 10 }
             ];
 
             let template = itemsPool[Math.floor(Math.random() * itemsPool.length)];
@@ -960,8 +1008,10 @@
 
             if (item.type !== 'potion') {
                 let scale = Math.pow(10, dungeonState.floor - 1) * rarity.multiplier;
-                if (item.atk) item.atk = Math.max(1, Math.floor(item.atk * scale));
-                if (item.hp) item.hp = Math.max(5, Math.floor(item.hp * scale));
+                if (item.primaryStat) item.primaryStat = Math.max(1, Math.floor(item.primaryStat * scale));
+                if (item.cons) item.cons = Math.max(5, Math.floor(item.cons * scale));
+                if (item.armor) item.armor = Math.max(1, Math.floor(item.armor * scale));
+                if (item.agi) item.agi = Math.max(1, Math.floor(item.agi * scale));
             } else {
                 item.value = Math.floor(50 * Math.pow(10, dungeonState.floor - 1) * rarity.multiplier);
             }
@@ -981,12 +1031,12 @@
             while (player.xp >= player.maxXp) {
                 player.xp -= player.maxXp;
                 player.level++;
-                player.baseMaxHp += 20 * Math.pow(10, dungeonState.floor - 1);
-                player.hp = player.baseMaxHp;
-                player.baseAtk += 4 * Math.pow(10, dungeonState.floor - 1);
+                player.baseCons += 20 * Math.pow(10, dungeonState.floor - 1);
+                player.hp = player.baseCons;
+                player.basePrimary += 4 * Math.pow(10, dungeonState.floor - 1);
                 player.maxXp = Math.floor(player.maxXp * 1.5);
 
-                log(`✨ **NIVEAU ${player.level} ATTEINT !** (Base Stats Améliorées)`);
+                log(`✨ **NIVEAU ${player.level} ATTEINT !** (Constitution et ${player.primaryStatName} améliorées)`);
             }
             updateStatus();
         }
