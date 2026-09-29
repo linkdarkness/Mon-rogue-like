@@ -104,10 +104,10 @@
         .class-btn { background: #27272a; border: 1px solid #bb86fc; text-align: left; padding: 15px; }
         .class-btn span { display: block; font-size: 0.85rem; color: #a1a1aa; font-weight: normal; margin-top: 4px; }
 
-        /* Navigation par onglets */
+        /* Navigation par onglets (4 onglets désormais) */
         .nav-tabs {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             margin-top: 10px;
             margin-bottom: 5px;
         }
@@ -115,8 +115,8 @@
             flex: 1;
             background: #27272a;
             color: #a1a1aa;
-            padding: 8px 4px;
-            font-size: 0.75rem;
+            padding: 8px 2px;
+            font-size: 0.7rem;
             border: 1px solid #3f3f46;
             box-shadow: none;
             text-align: center;
@@ -386,21 +386,54 @@
                 <div class="log-box" id="log-box"></div>
             </div>
 
-            <!-- ONGLET 2 : ÉQUIPEMENT & INVENTAIRE -->
-            <div id="tab-inventory" class="tab-content hidden">
+            <!-- ONGLET 2 : HÉROS (STATS & ÉQUIPEMENT) -->
+            <div id="tab-hero" class="tab-content hidden">
                 <div class="section-box">
-                    <h3>Équipement Actuel</h3>
-                    <div class="equipment-grid" id="equipment-display"></div>
-                    <div id="set-bonus-container"></div>
+                    <h3>🛡️ Fiche du Héros</h3>
+                    <div class="stats-grid" style="margin-bottom: 0;">
+                        <div class="stat-item">
+                            <span class="stat-label">Classe</span>
+                            <span id="hero-stat-class" class="stat-value">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Niveau</span>
+                            <span id="hero-stat-level" class="stat-value">1</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label" id="hero-stat-primary-label">Attaque</span>
+                            <span id="hero-stat-atk" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Or</span>
+                            <span id="hero-stat-gold" class="gold-value">0 🪙</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Armure (DEF)</span>
+                            <span id="hero-stat-def" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Agilité</span>
+                            <span id="hero-stat-agility" class="stat-value">0</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="section-box">
-                    <h3>Inventaire</h3>
+                    <h3>⚡ Équipement Actuel</h3>
+                    <div class="equipment-grid" id="equipment-display"></div>
+                    <div id="set-bonus-container"></div>
+                </div>
+            </div>
+
+            <!-- ONGLET 3 : INVENTAIRE -->
+            <div id="tab-inventory" class="tab-content hidden">
+                <div class="section-box">
+                    <h3>🎒 Inventaire</h3>
                     <div class="inventory-grid" id="inventory-buttons"></div>
                 </div>
             </div>
 
-            <!-- ONGLET 3 : ENTRAÎNEMENT -->
+            <!-- ONGLET 4 : ENTRAÎNEMENT -->
             <div id="tab-training" class="tab-content hidden">
                 <div class="section-box">
                     <h3>🏋️ Sanctuaire d'Entraînement</h3>
@@ -426,6 +459,7 @@
             <!-- BOUTONS DE NAVIGATION ENTRE LES ONGLETS -->
             <div class="nav-tabs">
                 <button id="btn-tab-dungeon" class="tab-btn active" onclick="switchTab('dungeon')">🏰 Donjon</button>
+                <button id="btn-tab-hero" class="tab-btn" onclick="switchTab('hero')">🛡️ Héros</button>
                 <button id="btn-tab-inventory" class="tab-btn" onclick="switchTab('inventory')">🎒 Inventaire</button>
                 <button id="btn-tab-training" class="tab-btn" onclick="switchTab('training')">🏋️ Entraînement</button>
             </div>
@@ -539,7 +573,7 @@
         };
 
         function switchTab(tabName) {
-            const tabs = ['dungeon', 'inventory', 'training'];
+            const tabs = ['dungeon', 'hero', 'inventory', 'training'];
             tabs.forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
                 document.getElementById(`btn-tab-${t}`).classList.remove('active');
@@ -703,6 +737,7 @@
             
             let labelName = player.primaryStatName || 'Attaque';
 
+            // Top status panel stats
             document.getElementById('stat-primary-label').innerText = `${labelName} (ATK)`;
             document.getElementById('stat-class').innerText = player.class;
             document.getElementById('stat-level').innerText = player.level;
@@ -710,6 +745,15 @@
             document.getElementById('stat-gold').innerText = `${player.gold || 0} 🪙`;
             document.getElementById('stat-def').innerText = player.armor;
             document.getElementById('stat-agility').innerText = player.agility;
+
+            // Hero Tab stats
+            document.getElementById('hero-stat-primary-label').innerText = `${labelName} (ATK)`;
+            document.getElementById('hero-stat-class').innerText = player.class;
+            document.getElementById('hero-stat-level').innerText = player.level;
+            document.getElementById('hero-stat-atk').innerText = player.primaryStat;
+            document.getElementById('hero-stat-gold').innerText = `${player.gold || 0} 🪙`;
+            document.getElementById('hero-stat-def').innerText = player.armor;
+            document.getElementById('hero-stat-agility').innerText = player.agility;
             
             let hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
             document.getElementById('hp-bar').style.width = hpPercent + '%';
@@ -991,7 +1035,6 @@
             updateFloorUI();
             saveGame();
             
-            // Un boss apparaît tous les 5 étages (étage 5, 10, 15, 20, 25, etc.)
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
                 document.getElementById('encounter-text').innerText = `⚠️ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
                 document.getElementById('action-buttons').innerHTML = `<button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>`;
@@ -1063,7 +1106,6 @@
             isBossEncounter = true;
             let floorScale = 1 + (dungeonState.floor - 1) * 0.6;
             
-            // Génération de noms de boss infinis adaptés selon la tranche d'étage
             const bossTitles = ['Seigneur des Abysses', 'Dragon des Cendres', 'Roi Liche Immortel', 'Titan du Chaos', 'Seigneur des Ténèbres', 'Colosse du Néant', 'Démon Ancestral', 'Seigneur du Temps'];
             let tierIndex = Math.floor((dungeonState.floor - 1) / 5) - 1;
             let bName = bossTitles[tierIndex % bossTitles.length] + ` (Niveau ${dungeonState.floor})`;
@@ -1113,7 +1155,6 @@
                         log(`🏆 **VICTOIRE DU BOSS !** (+${currentMonster.xpValue} XP)`);
                         gainXp(currentMonster.xpValue);
                         
-                        // Récompense exclusive du Boss : Objet Mythique garanti
                         let bossRewardItem = generateBossRewardItem();
                         addItemToInventory(bossRewardItem);
                         log(`🎁 Butin exclusif de Boss : <strong style="color: ${bossRewardItem.rarityColor}">[${bossRewardItem.rarityName}] ${bossRewardItem.name}</strong> !`);
@@ -1187,7 +1228,6 @@
             setExplorationMode();
         }
 
-        // Fonction dédiée au butin des Boss : donne UNIQUEMENT du Mythique
         function generateBossRewardItem() {
             let rarity = rarities.find(r => r.name === 'Mythique');
 
@@ -1220,7 +1260,6 @@
             return item;
         }
 
-        // Génération d'équipement standard (exploration / monstres normaux) incluant désormais les Set
         function generateScaledItem() {
             const itemsPool = [
                 { name: '🧪 Potion de Soin', type: 'potion', value: 40, goldVal: 15 },
@@ -1239,7 +1278,6 @@
                 return template;
             }
 
-            // Exclut uniquement le Mythique (les Set et raretés inférieures peuvent tomber)
             let roll = Math.random();
             let cumulative = 0;
             let standardOrSetRarities = rarities.filter(r => r.name !== 'Mythique');
