@@ -991,6 +991,7 @@
             updateFloorUI();
             saveGame();
             
+            // Un boss apparaît tous les 5 étages (étage 5, 10, 15, 20, 25, etc.)
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
                 document.getElementById('encounter-text').innerText = `⚠️ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
                 document.getElementById('action-buttons').innerHTML = `<button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>`;
@@ -1061,8 +1062,11 @@
         function spawnBoss() {
             isBossEncounter = true;
             let floorScale = 1 + (dungeonState.floor - 1) * 0.6;
-            const bossNames = { 5: 'Seigneur des Abysses', 10: 'Dragon des Cendres', 15: 'Roi Liche Immortel', 20: 'Titan du Chaos' };
-            let bName = bossNames[dungeonState.floor] || `Seigneur des Ténèbres`;
+            
+            // Génération de noms de boss infinis adaptés selon la tranche d'étage
+            const bossTitles = ['Seigneur des Abysses', 'Dragon des Cendres', 'Roi Liche Immortel', 'Titan du Chaos', 'Seigneur des Ténèbres', 'Colosse du Néant', 'Démon Ancestral', 'Seigneur du Temps'];
+            let tierIndex = Math.floor((dungeonState.floor - 1) / 5) - 1;
+            let bName = bossTitles[tierIndex % bossTitles.length] + ` (Niveau ${dungeonState.floor})`;
 
             currentMonster = {
                 name: bName,
@@ -1072,7 +1076,7 @@
                 xpValue: Math.floor(100 * floorScale)
             };
 
-            document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS`;
+            document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS (Étage ${dungeonState.floor})`;
             updateMonsterUI();
             log(`🔥 **${currentMonster.name}** bloque le passage !`);
 
