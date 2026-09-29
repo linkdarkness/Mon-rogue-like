@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Raretés & Contours</title>
+    <title>Mon Roguelike Mobile - Stats & Raretés</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -30,16 +30,36 @@
         }
 
         h1 { font-size: 1.5rem; text-align: center; margin-top: 5px; color: #bb86fc; }
-        h2 { font-size: 1rem; text-align: center; background: #27272a; padding: 10px; border-radius: 8px; margin: 10px 0; color: #03dac6; line-height: 1.4; }
         
-        /* Barres de progression */
-        .bars-container {
+        /* Bloc de Statistiques et Barres */
+        .status-panel {
             background: #202024;
             padding: 10px;
             border-radius: 8px;
             margin-bottom: 10px;
             border: 1px solid #2f2f35;
         }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .stat-item {
+            background: #18181b;
+            border: 1px solid #2f2f35;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stat-label { color: #a1a1aa; }
+        .stat-value { color: #03dac6; font-weight: bold; }
+
         .bar-wrapper {
             margin-bottom: 8px;
         }
@@ -104,7 +124,7 @@
         .inventory-slot {
             aspect-ratio: 1;
             background: #27272a;
-            border: 2px solid #3f3f46; /* Épaisseur du contour */
+            border: 2px solid #3f3f46;
             border-radius: 6px;
             display: flex;
             justify-content: center;
@@ -273,10 +293,28 @@
 
         <!-- ÉCRAN DE JEU -->
         <div id="screen-game" class="hidden">
-            <h2 id="player-status">Statut</h2>
-            
-            <!-- BARRES DE PROGRESSION (PV & XP) -->
-            <div class="bars-container">
+            <!-- PANNEAU DE STATISTIQUES & BARRES DE PROGRESSION -->
+            <div class="status-panel">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Classe</span>
+                        <span id="stat-class" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Niveau</span>
+                        <span id="stat-level" class="stat-value">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Attaque (ATK)</span>
+                        <span id="stat-atk" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Étage</span>
+                        <span id="stat-floor" class="stat-value">1</span>
+                    </div>
+                </div>
+
+                <!-- Barre de PV -->
                 <div class="bar-wrapper">
                     <div class="bar-label">
                         <span>PV (Points de Vie)</span>
@@ -286,6 +324,7 @@
                         <div id="hp-bar" class="progress-bar-fill"></div>
                     </div>
                 </div>
+                <!-- Barre d'XP -->
                 <div class="bar-wrapper" style="margin-top: 6px;">
                     <div class="bar-label">
                         <span>XP (Expérience)</span>
@@ -463,7 +502,6 @@
         }
 
         function addItemToInventory(newItem) {
-            // Empiler uniquement les potions ou objets identiques par nom et rareté
             let existingItem = player.inventory.find(i => i.name === newItem.name && i.rarityName === newItem.rarityName);
             if (existingItem) {
                 existingItem.quantity = (existingItem.quantity || 1) + 1;
@@ -504,13 +542,18 @@
         function updateStatus() {
             recalculateStats();
             
-            document.getElementById('player-status').innerText = 
-                `${player.class} (Nv.${player.level}) | Étage ${dungeonState.floor}\nATK: ${player.atk}`;
+            // Mise à jour des blocs statistiques du personnage
+            document.getElementById('stat-class').innerText = player.class;
+            document.getElementById('stat-level').innerText = player.level;
+            document.getElementById('stat-atk').innerText = player.atk;
+            document.getElementById('stat-floor').innerText = dungeonState.floor;
             
+            // Mise à jour de la barre de PV (rouge)
             let hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
             document.getElementById('hp-bar').style.width = hpPercent + '%';
             document.getElementById('hp-text').innerText = `${player.hp}/${player.maxHp}`;
 
+            // Mise à jour de la barre d'XP (verte)
             let xpPercent = Math.max(0, Math.min(100, (player.xp / player.maxXp) * 100));
             document.getElementById('xp-bar').style.width = xpPercent + '%';
             document.getElementById('xp-text').innerText = `${player.xp}/${player.maxXp}`;
@@ -789,7 +832,6 @@
                         log(`🏆 **VICTOIRE ÉPIQUE !** Vous avez terrassé le ${currentMonster.name} ! (+${currentMonster.xpValue} XP)`);
                         gainXp(currentMonster.xpValue);
                         
-                        // Butin garanti Légendaire sur le Boss
                         let legRarity = rarities.find(r => r.name === 'Légendaire');
                         let baseScale = Math.pow(10, dungeonState.floor - 1);
                         let bossGear = { 
