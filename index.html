@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Équipement</title>
+    <title>Mon Roguelike Mobile - Inventaire Empilable</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -60,6 +60,11 @@
             font-size: 0.85rem; 
             text-align: left;
             margin: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 6px;
+            cursor: pointer;
         }
         .item-btn:hover { background: #3f3f46; }
 
@@ -108,13 +113,58 @@
         .equipment-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 5px;
+            gap: 6px;
             font-size: 0.8rem;
+        }
+
+        .eq-slot {
             background: #18181b;
+            border: 1px solid #2f2f35;
+            padding: 6px 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Modal de Comparaison */
+        #modal-compare {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 15px;
+        }
+        .modal-content {
+            background: #18181b;
+            border: 1px solid #bb86fc;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        .compare-box-container {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+            text-align: left;
+        }
+        .compare-card {
+            flex: 1;
+            background: #27272a;
             padding: 8px;
             border-radius: 6px;
-            margin-bottom: 8px;
+            font-size: 0.78rem;
+            border: 1px solid #3f3f46;
         }
+        .compare-card h4 { margin: 0 0 4px 0; color: #03dac6; font-size: 0.82rem; }
+        
+        .stat-diff-pos { color: #4ade80; font-weight: bold; }
+        .stat-diff-neg { color: #f87171; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -150,11 +200,7 @@
             <div class="section-box">
                 <h3>Équipement Actuel</h3>
                 <div class="equipment-grid" id="equipment-display">
-                    <div>Casque: Aucun</div>
-                    <div>Arme: Aucune</div>
-                    <div>Torse: Aucun</div>
-                    <div>Gants: Aucun</div>
-                    <div style="grid-column: span 2;">Bottes: Aucune</div>
+                    <!-- Généré dynamiquement -->
                 </div>
             </div>
 
@@ -171,7 +217,7 @@
             </div>
 
             <div class="section-box">
-                <h3>Inventaire (Objets non équipés)</h3>
+                <h3>Inventaire</h3>
                 <div id="inventory-buttons" style="max-height: 90px; overflow-y: auto;">
                     <span id="no-item" style="color: #71717a; font-size: 0.85rem; display: block; text-align: center; padding: 5px;">Vide</span>
                 </div>
@@ -181,14 +227,46 @@
         </div>
     </div>
 
+    <!-- MODALE DE COMPARAISON D'OBJET -->
+    <div id="modal-compare" class="hidden">
+        <div class="modal-content">
+            <h3 id="modal-title" style="margin-top:0; color:#bb86fc;">Comparaison d'équipement</h3>
+            <div class="compare-box-container">
+                <div class="compare-card" id="card-current">
+                    <h4>Actuel</h4>
+                    <div id="current-gear-info">Aucun</div>
+                </div>
+                <div class="compare-card" id="card-new" style="border-color: #bb86fc;">
+                    <h4>Nouveau</h4>
+                    <div id="new-gear-info">Objet</div>
+                </div>
+            </div>
+            <div id="modal-action-buttons">
+                <button onclick="confirmEquip()" style="background: #10b981; margin-bottom: 4px;">Équiper</button>
+                <button onclick="discardItem()" style="background: #ef4444; margin-bottom: 4px;">Jeter l'objet</button>
+                <button onclick="closeModal()" style="background: #52525b;">Fermer</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let player = {};
         let currentMonster = null;
         let isBossEncounter = false;
+        let selectedInventoryIndex = null;
         let dungeonState = {
             floor: 1,
             roomsCleared: 0,
             maxRoomsPerFloor: 4
+        };
+
+        const icons = {
+            casque: '🪖',
+            arme: '⚔️',
+            torse: '🛡️',
+            gants: '🧤',
+            bottes: '🥾',
+            potion: '🧪'
         };
 
         const classes = {
@@ -242,6 +320,17 @@
             setExplorationMode();
         }
 
+        function addItemToInventory(newItem) {
+            // Chercher si un objet identique existe déjà dans l'inventaire
+            let existingItem = player.inventory.find(i => i.name === newItem.name);
+            if (existingItem) {
+                existingItem.quantity = (existingItem.quantity || 1) + 1;
+            } else {
+                newItem.quantity = 1;
+                player.inventory.push(newItem);
+            }
+        }
+
         function recalculateStats() {
             let bonusHp = 0;
             let bonusAtk = 0;
@@ -258,7 +347,6 @@
             player.maxHp = player.baseMaxHp + bonusHp;
             player.atk = player.baseAtk + bonusAtk;
 
-            // Ajuster les PV actuels si le max augmente
             if (player.maxHp > oldMax) {
                 player.hp += (player.maxHp - oldMax);
             }
@@ -279,13 +367,25 @@
         function updateEquipmentUI() {
             const eqDisplay = document.getElementById('equipment-display');
             let eq = player.equipment;
-            eqDisplay.innerHTML = `
-                <div>Casque: ${eq.casque ? eq.casque.name : 'Aucun'}</div>
-                <div>Arme: ${eq.arme ? eq.arme.name : 'Aucune'}</div>
-                <div>Torse: ${eq.torse ? eq.torse.name : 'Aucun'}</div>
-                <div>Gants: ${eq.gants ? eq.gants.name : 'Aucun'}</div>
-                <div style="grid-column: span 2;">Bottes: ${eq.bottes ? eq.bottes.name : 'Aucune'}</div>
-            `;
+            
+            const slotsConfig = [
+                { key: 'casque', label: 'Casque' },
+                { key: 'arme', label: 'Arme' },
+                { key: 'torse', label: 'Torse' },
+                { key: 'gants', label: 'Gants' },
+                { key: 'bottes', label: 'Bottes' }
+            ];
+
+            eqDisplay.innerHTML = '';
+            slotsConfig.forEach(s => {
+                let item = eq[s.key];
+                let text = item ? `${item.name}<br><span style="color:#a1a1aa; font-size:0.7rem;">${item.atk ? '+' + item.atk + ' ATK ' : ''}${item.hp ? '+' + item.hp + ' PV' : ''}</span>` : 'Aucun';
+                let div = document.createElement('div');
+                div.className = 'eq-slot';
+                div.style.gridColumn = s.key === 'bottes' ? 'span 2' : 'auto';
+                div.innerHTML = `<span style="font-size: 1.2rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
+                eqDisplay.appendChild(div);
+            });
         }
 
         function updateInventoryUI() {
@@ -298,13 +398,122 @@
             }
 
             player.inventory.forEach((item, index) => {
-                let btn = document.createElement('button');
+                let btn = document.createElement('div');
                 btn.className = 'item-btn';
+                let icon = icons[item.type] || icons[item.slot] || '📦';
                 let statsText = item.type === 'potion' ? `(+${item.value} PV)` : `(${item.slot.toUpperCase()} : ${item.atk ? '+' + item.atk + ' ATK ' : ''}${item.hp ? '+' + item.hp + ' PV' : ''})`;
-                btn.innerText = `${item.name} ${statsText}`;
-                btn.onclick = () => useOrEquipItem(index);
+                let qtyText = item.quantity > 1 ? ` <span style="color:#03dac6; font-weight:bold;">(x${item.quantity})</span>` : '';
+                
+                btn.innerHTML = `<span style="font-size: 1.2rem;">${icon}</span> <div style="flex:1; overflow:hidden; text-overflow:ellipsis;"><strong>${item.name}</strong>${qtyText}<br><span style="color:#a1a1aa; font-size:0.75rem;">${statsText}</span></div>`;
+                btn.onclick = () => handleItemClick(index);
                 invContainer.appendChild(btn);
             });
+        }
+
+        function handleItemClick(index) {
+            let item = player.inventory[index];
+            
+            // Si c'est une potion, on l'utilise directement en décrémentant la pile
+            if (item.type === 'potion') {
+                player.hp = Math.min(player.maxHp, player.hp + item.value);
+                log(`Potion bue (+${item.value} PV).`);
+                
+                item.quantity--;
+                if (item.quantity <= 0) {
+                    player.inventory.splice(index, 1);
+                }
+                updateStatus();
+                return;
+            }
+
+            // Sinon, ouverture de la modale de comparaison d'équipement
+            selectedInventoryIndex = index;
+            openCompareModal(item);
+        }
+
+        function openCompareModal(newItem) {
+            let slot = newItem.slot;
+            let currentItem = player.equipment[slot];
+
+            document.getElementById('modal-title').innerText = `Comparer : ${newItem.name}`;
+
+            let currentDiv = document.getElementById('current-gear-info');
+            if (currentItem) {
+                currentDiv.innerHTML = `<strong>${currentItem.name}</strong><br>ATK: ${currentItem.atk || 0}<br>PV: ${currentItem.hp || 0}`;
+            } else {
+                currentDiv.innerHTML = `<em>Emplacement vide</em>`;
+            }
+
+            let newDiv = document.getElementById('new-gear-info');
+            let diffAtk = (newItem.atk || 0) - (currentItem ? (currentItem.atk || 0) : 0);
+            let diffHp = (newItem.hp || 0) - (currentItem ? (currentItem.hp || 0) : 0);
+
+            let atkClass = diffAtk > 0 ? 'stat-diff-pos' : (diffAtk < 0 ? 'stat-diff-neg' : '');
+            let hpClass = diffHp > 0 ? 'stat-diff-pos' : (diffHp < 0 ? 'stat-diff-neg' : '');
+
+            let atkStr = `ATK: ${newItem.atk || 0} <span class="${atkClass}">(${diffAtk >= 0 ? '+' : ''}${diffAtk})</span>`;
+            let hpStr = `PV: ${newItem.hp || 0} <span class="${hpClass}">(${diffHp >= 0 ? '+' : ''}${diffHp})</span>`;
+
+            newDiv.innerHTML = `<strong>${newItem.name}</strong><br>${atkStr}<br>${hpStr}`;
+
+            document.getElementById('modal-compare').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-compare').classList.add('hidden');
+            selectedInventoryIndex = null;
+        }
+
+        function confirmEquip() {
+            if (selectedInventoryIndex === null) return;
+            let itemStack = player.inventory[selectedInventoryIndex];
+            
+            // Créer une copie propre de l'objet unique à équiper (quantité 1)
+            let newItem = { ...itemStack };
+            delete newItem.quantity;
+
+            let slot = newItem.slot;
+            let previousItem = player.equipment[slot];
+
+            // Équiper l'objet
+            player.equipment[slot] = newItem;
+
+            // Gérer le stock dans la pile
+            if (itemStack.quantity > 1) {
+                itemStack.quantity--;
+                if (previousItem) {
+                    // S'il y avait un ancien équipement, on l'ajoute séparément ou on gère sa pile
+                    addItemToInventory(previousItem);
+                }
+                log(`Vous équipez ${newItem.name} depuis la pile.`);
+            } else {
+                if (previousItem) {
+                    player.inventory[selectedInventoryIndex] = previousItem;
+                    previousItem.quantity = 1;
+                    log(`Vous remplacez ${previousItem.name} par ${newItem.name}.`);
+                } else {
+                    player.inventory.splice(selectedInventoryIndex, 1);
+                    log(`Vous équipez ${newItem.name}.`);
+                }
+            }
+
+            closeModal();
+            updateStatus();
+        }
+
+        function discardItem() {
+            if (selectedInventoryIndex === null) return;
+            let itemStack = player.inventory[selectedInventoryIndex];
+            
+            itemStack.quantity--;
+            log(`Vous avez jeté un exemplaire de ${itemStack.name}.`);
+            
+            if (itemStack.quantity <= 0) {
+                player.inventory.splice(selectedInventoryIndex, 1);
+            }
+            
+            closeModal();
+            updateStatus();
         }
 
         function log(message) {
@@ -342,7 +551,7 @@
                 spawnMonster();
             } else if (eventRoll < 0.85) {
                 let item = getRandomEquipmentOrPotion();
-                player.inventory.push(item);
+                addItemToInventory(item);
                 document.getElementById('encounter-text').innerText = `✨ Trésor trouvé !`;
                 log(`Vous découvrez : **${item.name}** !`);
                 finishRoom();
@@ -422,7 +631,7 @@
                         log(`🏆 **VICTOIRE ÉPIQUE !** Vous avez terrassé le ${currentMonster.name} ! (+${currentMonster.xpValue} XP)`);
                         gainXp(currentMonster.xpValue);
                         let bossGear = { name: '✨ Épée Légendaire', slot: 'arme', atk: 15, hp: 30 };
-                        player.inventory.push(bossGear);
+                        addItemToInventory(bossGear);
                         log(`🎁 Butin de boss obtenu : **${bossGear.name}** !`);
                         
                         dungeonState.roomsCleared = dungeonState.maxRoomsPerFloor;
@@ -513,7 +722,6 @@
                 { name: '🥾 Bottes Souples', slot: 'bottes', hp: 10 },
                 { name: '🥾 Bottes de Fer', slot: 'bottes', hp: 20 }
             ];
-            // Adapter les stats selon l'étage actuel
             let template = itemsPool[Math.floor(Math.random() * itemsPool.length)];
             let item = { ...template };
             if (item.type !== 'potion') {
@@ -527,35 +735,9 @@
         function dropLoot() {
             if (Math.random() < 0.55) {
                 let loot = getRandomEquipmentOrPotion();
-                player.inventory.push(loot);
+                addItemToInventory(loot);
                 log(`🎁 Butin obtenu : **${loot.name}** !`);
             }
-        }
-
-        function useOrEquipItem(index) {
-            let item = player.inventory[index];
-
-            if (item.type === 'potion') {
-                player.hp = Math.min(player.maxHp, player.hp + item.value);
-                log(`Potion bue (+${item.value} PV).`);
-                player.inventory.splice(index, 1);
-            } else {
-                // Équiper l'objet (Casque, Arme, Torse, Gants, Bottes)
-                let slot = item.slot;
-                let previousItem = player.equipment[slot];
-
-                // Mettre l'ancien équipement dans l'inventaire s'il y en avait un
-                if (previousItem) {
-                    player.inventory[index] = previousItem;
-                    log(`Vous déséquipez ${previousItem.name} et équipez ${item.name}.`);
-                } else {
-                    player.inventory.splice(index, 1);
-                    log(`Vous équipez ${item.name}.`);
-                }
-
-                player.equipment[slot] = item;
-            }
-            updateStatus();
         }
 
         function gainXp(amount) {
