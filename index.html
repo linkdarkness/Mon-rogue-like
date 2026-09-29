@@ -327,8 +327,8 @@
                         <span id="stat-def" class="stat-value">0</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Étage</span>
-                        <span id="stat-floor" class="stat-value">1</span>
+                        <span class="stat-label">Évasion</span>
+                        <span id="stat-evasion" class="stat-value">0%</span>
                     </div>
                 </div>
 
@@ -356,16 +356,6 @@
             <div id="tab-dungeon" class="tab-content">
                 <div class="section-box" style="text-align: center;">
                     <p id="encounter-text">Vous entrez dans le donjon...</p>
-                    <!-- BARRE DE PV DU MONSTRE -->
-                    <div id="monster-container" class="hidden" style="margin-top: 8px;">
-                        <div class="bar-label">
-                            <span id="monster-name-label">Monstre</span>
-                            <span id="monster-hp-text">0/0</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div id="monster-hp-bar" class="progress-bar-fill"></div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="section-box">
@@ -373,6 +363,16 @@
                     <div id="action-buttons">
                         <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
                         <button id="btn-next-floor" onclick="nextFloor()" disabled>Monter l'escalier</button>
+                    </div>
+                    <!-- BARRE DE PV DU MONSTRE (Déplacée en dessous des actions) -->
+                    <div id="monster-container" class="hidden" style="margin-top: 10px; border-top: 1px solid #2f2f35; padding-top: 8px;">
+                        <div class="bar-label">
+                            <span id="monster-name-label" style="color: #f97316;">Monstre</span>
+                            <span id="monster-hp-text">0/0</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="monster-hp-bar" class="progress-bar-fill"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -693,13 +693,15 @@
             recalculateStats();
             
             let labelName = player.primaryStatName || 'Attaque';
+            let evasionVal = Math.min(50, Math.floor(player.agility * 0.8));
+
             document.getElementById('stat-primary-label').innerText = `${labelName} (ATK)`;
             document.getElementById('stat-class').innerText = player.class;
             document.getElementById('stat-level').innerText = player.level;
             document.getElementById('stat-atk').innerText = player.primaryStat;
             document.getElementById('stat-gold').innerText = `${player.gold || 0} 🪙`;
             document.getElementById('stat-def').innerText = player.armor;
-            document.getElementById('stat-floor').innerText = dungeonState.floor;
+            document.getElementById('stat-evasion').innerText = `${evasionVal}%`;
             
             let hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
             document.getElementById('hp-bar').style.width = hpPercent + '%';
@@ -931,7 +933,6 @@
             updateStatus();
         }
 
-        // --- ACHAT D'AMÉLIORATIONS D'ENTRAÎNEMENT ---
         function buyUpgrade(statType) {
             let cost = player.costs[statType];
             if ((player.gold || 0) < cost) {
