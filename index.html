@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Corrigé</title>
+    <title>Mon Roguelike Mobile - Multiplicateur x10</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -145,10 +145,10 @@
         }
 
         /* Couleurs des contours selon la rareté */
-        .rarity-commun { border-color: #94a3b8; }     
-        .rarity-rare { border-color: #3b82f6; }       
-        .rarity-epique { border-color: #a855f7; }     
-        .rarity-legendaire { border-color: #eab308; } 
+        .rarity-commun { border-color: #94a3b8 !important; }     
+        .rarity-rare { border-color: #3b82f6 !important; }       
+        .rarity-epique { border-color: #a855f7 !important; }     
+        .rarity-legendaire { border-color: #eab308 !important; } 
 
         .item-count {
             position: absolute;
@@ -213,12 +213,13 @@
 
         .eq-slot {
             background: #18181b;
-            border: 1px solid #2f2f35;
+            border: 2px solid #2f2f35;
             padding: 6px 8px;
             border-radius: 6px;
             display: flex;
             align-items: center;
             gap: 6px;
+            transition: border-color 0.2s;
         }
 
         /* Modal de Comparaison */
@@ -266,7 +267,7 @@
     <div id="game-container">
         <!-- ÉCRAN DE SÉLECTION DE CLASSE -->
         <div id="screen-class-select">
-            <h1>Roguelite Mobile</h1>
+            <h1>Roguelite Mobile (Mode x10)</h1>
             <div id="legacy-info" class="legacy-box hidden">
                 <p id="legacy-text" style="margin: 0; color: #e8d7ff;"></p>
             </div>
@@ -434,7 +435,6 @@
         let legacyData = JSON.parse(localStorage.getItem('rogue_legacy')) || null;
 
         window.onload = function() {
-            // Correction affichage héritage (vérification de la structure des données)
             if (legacyData) {
                 const legacyBox = document.getElementById('legacy-info');
                 const legacyText = document.getElementById('legacy-text');
@@ -467,7 +467,6 @@
             dungeonState = savedData.dungeonState;
             isBossEncounter = savedData.isBossEncounter || false;
 
-            // Restauration des propriétés manquantes ou corrompues pour éviter les "undefined" ou "null"
             if (!classes[player.class]) {
                 player.class = 'Guerrier';
             }
@@ -618,15 +617,24 @@
             slotsConfig.forEach(s => {
                 let item = eq[s.key];
                 let statDetails = [];
+                let rarityClass = '';
+
                 if (item) {
                     if (item.primaryStat) statDetails.push(`+${item.primaryStat} ${player.primaryStatName}`);
                     if (item.cons) statDetails.push(`+${item.cons} Cons`);
                     if (item.armor) statDetails.push(`+${item.armor} Déf`);
                     if (item.agi) statDetails.push(`+${item.agi} Agi`);
+                    
+                    if (item.rarityClass) {
+                        rarityClass = item.rarityClass;
+                    }
                 }
+
                 let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.7rem;">${statDetails.join(' | ')}</span>` : 'Aucun';
+                
                 let div = document.createElement('div');
-                div.className = 'eq-slot';
+                div.className = item ? `eq-slot ${rarityClass}` : 'eq-slot';
+                
                 div.innerHTML = `<span style="font-size: 1.2rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
                 eqDisplay.appendChild(div);
             });
@@ -806,7 +814,9 @@
                 log(`Vous découvrez : <strong style="color: ${item.rarityColor}">[${item.rarityName}] ${item.name}</strong> !`);
                 finishRoom();
             } else {
-                let heal = 25 + (dungeonState.floor * 5);
+                // Échelle de soin également influencée par le multiplicateur d'étage
+                let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
+                let heal = Math.floor((25 + (dungeonState.floor * 5)) * floorMultiplier);
                 player.hp = Math.min(player.maxHp, player.hp + heal);
                 document.getElementById('encounter-text').innerText = `💧 Source magique...`;
                 log(`Vous buvez l'eau claire et récupérez ${heal} PV.`);
@@ -816,7 +826,8 @@
         }
 
         function spawnMonster() {
-            let scaleFactor = 1 + (dungeonState.floor - 1) * 0.6;
+            // Multiplicateur x10 par étage : 10^(étage - 1)
+            let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
 
             const baseMonsters = [
                 { name: 'Gobelin', hp: 30, atk: 8, xpValue: 12 },
@@ -828,10 +839,10 @@
             
             currentMonster = {
                 name: template.name,
-                hp: Math.floor(template.hp * scaleFactor),
-                maxHp: Math.floor(template.hp * scaleFactor),
-                atk: Math.floor(template.atk * scaleFactor),
-                xpValue: Math.floor(template.xpValue * scaleFactor)
+                hp: Math.floor(template.hp * floorMultiplier),
+                maxHp: Math.floor(template.hp * floorMultiplier),
+                atk: Math.floor(template.atk * floorMultiplier),
+                xpValue: Math.floor(template.xpValue * floorMultiplier)
             };
 
             document.getElementById('encounter-text').innerText = `⚔️ ${currentMonster.name} (PV: ${currentMonster.hp})`;
@@ -846,7 +857,7 @@
 
         function spawnBoss() {
             isBossEncounter = true;
-            let scaleFactor = 1 + (dungeonState.floor - 1) * 0.8;
+            let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
             
             const bossNames = {
                 5: 'Seigneur des Abysses',
@@ -858,10 +869,10 @@
 
             currentMonster = {
                 name: bName,
-                hp: Math.floor(180 * scaleFactor),
-                maxHp: Math.floor(180 * scaleFactor),
-                atk: Math.floor(25 * scaleFactor),
-                xpValue: Math.floor(100 * scaleFactor)
+                hp: Math.floor(180 * floorMultiplier),
+                maxHp: Math.floor(180 * floorMultiplier),
+                atk: Math.floor(25 * floorMultiplier),
+                xpValue: Math.floor(100 * floorMultiplier)
             };
 
             document.getElementById('encounter-text').innerText = `👹 BOSS : ${currentMonster.name} (PV: ${currentMonster.hp})`;
@@ -884,14 +895,14 @@
                         gainXp(currentMonster.xpValue);
                         
                         let legRarity = rarities.find(r => r.name === 'Légendaire');
-                        let scaleFactor = 1 + (dungeonState.floor - 1) * 0.5;
+                        let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
                         let bossGear = { 
                             name: '✨ Épée du Destin', 
                             slot: 'arme', 
-                            primaryStat: Math.floor(15 * scaleFactor * legRarity.multiplier), 
-                            cons: Math.floor(30 * scaleFactor * legRarity.multiplier),
-                            armor: Math.floor(5 * scaleFactor * legRarity.multiplier),
-                            agi: Math.floor(5 * scaleFactor * legRarity.multiplier),
+                            primaryStat: Math.floor(15 * floorMultiplier * legRarity.multiplier), 
+                            cons: Math.floor(30 * floorMultiplier * legRarity.multiplier),
+                            armor: Math.floor(5 * floorMultiplier * legRarity.multiplier),
+                            agi: Math.floor(5 * floorMultiplier * legRarity.multiplier),
                             rarityName: legRarity.name,
                             rarityClass: legRarity.class,
                             rarityColor: legRarity.color
@@ -977,7 +988,7 @@
             dungeonState.roomsCleared = 0;
             dungeonState.maxRoomsPerFloor += 1; 
 
-            log(`🌟 Vous montez à l'étage ${dungeonState.floor}.`);
+            log(`🌟 Vous montez à l'étage ${dungeonState.floor} (Difficulté x10).`);
             updateStatus();
             setExplorationMode();
         }
@@ -1018,14 +1029,16 @@
             item.rarityClass = rarity.class;
             item.rarityColor = rarity.color;
 
+            let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
+
             if (item.type !== 'potion') {
-                let scale = (1 + (dungeonState.floor - 1) * 0.4) * rarity.multiplier;
+                let scale = floorMultiplier * rarity.multiplier;
                 if (item.primaryStat) item.primaryStat = Math.max(1, Math.floor(item.primaryStat * scale));
                 if (item.cons) item.cons = Math.max(5, Math.floor(item.cons * scale));
                 if (item.armor) item.armor = Math.max(1, Math.floor(item.armor * scale));
                 if (item.agi) item.agi = Math.max(1, Math.floor(item.agi * scale));
             } else {
-                let scale = (1 + (dungeonState.floor - 1) * 0.4) * rarity.multiplier;
+                let scale = floorMultiplier * rarity.multiplier;
                 item.value = Math.floor(40 * scale);
             }
             return item;
