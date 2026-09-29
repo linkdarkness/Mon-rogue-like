@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Inventaire Empilable</title>
+    <title>Mon Roguelike Mobile - Inventaire Grille</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -53,20 +53,50 @@
         .class-btn { background: #27272a; border: 1px solid #bb86fc; text-align: left; padding: 15px; }
         .class-btn span { display: block; font-size: 0.85rem; color: #a1a1aa; font-weight: normal; margin-top: 4px; }
 
-        .item-btn { 
-            background: #27272a; 
-            border: 1px solid #3f3f46;
-            padding: 8px; 
-            font-size: 0.85rem; 
-            text-align: left;
-            margin: 3px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-radius: 6px;
-            cursor: pointer;
+        /* Grille d'inventaire en emplacements carrés */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            max-height: 130px;
+            overflow-y: auto;
+            padding: 2px;
         }
-        .item-btn:hover { background: #3f3f46; }
+
+        .inventory-slot {
+            aspect-ratio: 1;
+            background: #27272a;
+            border: 1px solid #3f3f46;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .inventory-slot:hover {
+            background: #3f3f46;
+            border-color: #bb86fc;
+        }
+        .inventory-slot.empty {
+            cursor: default;
+            background: #141416;
+            border-color: #222226;
+        }
+
+        .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 0.7rem;
+            background: rgba(0, 0, 0, 0.75);
+            color: #03dac6;
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
 
         .log-box { 
             background: #09090b; 
@@ -218,8 +248,8 @@
 
             <div class="section-box">
                 <h3>Inventaire</h3>
-                <div id="inventory-buttons" style="max-height: 90px; overflow-y: auto;">
-                    <span id="no-item" style="color: #71717a; font-size: 0.85rem; display: block; text-align: center; padding: 5px;">Vide</span>
+                <div class="inventory-grid" id="inventory-buttons">
+                    <!-- Généré dynamiquement sous forme de grille -->
                 </div>
             </div>
 
@@ -321,7 +351,6 @@
         }
 
         function addItemToInventory(newItem) {
-            // Chercher si un objet identique existe déjà dans l'inventaire
             let existingItem = player.inventory.find(i => i.name === newItem.name);
             if (existingItem) {
                 existingItem.quantity = (existingItem.quantity || 1) + 1;
@@ -392,28 +421,33 @@
             const invContainer = document.getElementById('inventory-buttons');
             invContainer.innerHTML = '';
 
-            if (player.inventory.length === 0) {
-                invContainer.innerHTML = '<span id="no-item" style="color: #71717a; font-size: 0.85rem; display: block; text-align: center; padding: 5px;">Vide</span>';
-                return;
-            }
+            // Affichage d'une grille fixe (par exemple 8 emplacements minimum pour faire joli)
+            const minSlots = 8;
+            let totalSlots = Math.max(minSlots, Math.ceil(player.inventory.length / 4) * 4);
 
-            player.inventory.forEach((item, index) => {
-                let btn = document.createElement('div');
-                btn.className = 'item-btn';
-                let icon = icons[item.type] || icons[item.slot] || '📦';
-                let statsText = item.type === 'potion' ? `(+${item.value} PV)` : `(${item.slot.toUpperCase()} : ${item.atk ? '+' + item.atk + ' ATK ' : ''}${item.hp ? '+' + item.hp + ' PV' : ''})`;
-                let qtyText = item.quantity > 1 ? ` <span style="color:#03dac6; font-weight:bold;">(x${item.quantity})</span>` : '';
+            for (let i = 0; i < totalSlots; i++) {
+                let slotDiv = document.createElement('div');
                 
-                btn.innerHTML = `<span style="font-size: 1.2rem;">${icon}</span> <div style="flex:1; overflow:hidden; text-overflow:ellipsis;"><strong>${item.name}</strong>${qtyText}<br><span style="color:#a1a1aa; font-size:0.75rem;">${statsText}</span></div>`;
-                btn.onclick = () => handleItemClick(index);
-                invContainer.appendChild(btn);
-            });
+                if (i < player.inventory.length) {
+                    let item = player.inventory[i];
+                    let icon = icons[item.type] || icons[item.slot] || '📦';
+                    let qtyBadge = item.quantity > 1 ? `<span class="item-count">x${item.quantity}</span>` : '';
+                    
+                    slotDiv.className = 'inventory-slot';
+                    slotDiv.title = `${item.name}${item.quantity > 1 ? ' (x' + item.quantity + ')' : ''}`;
+                    slotDiv.innerHTML = `${icon}${qtyBadge}`;
+                    slotDiv.onclick = () => handleItemClick(i);
+                } else {
+                    slotDiv.className = 'inventory-slot empty';
+                }
+                
+                invContainer.appendChild(slotDiv);
+            }
         }
 
         function handleItemClick(index) {
             let item = player.inventory[index];
             
-            // Si c'est une potion, on l'utilise directement en décrémentant la pile
             if (item.type === 'potion') {
                 player.hp = Math.min(player.maxHp, player.hp + item.value);
                 log(`Potion bue (+${item.value} PV).`);
@@ -426,7 +460,6 @@
                 return;
             }
 
-            // Sinon, ouverture de la modale de comparaison d'équipement
             selectedInventoryIndex = index;
             openCompareModal(item);
         }
@@ -435,7 +468,7 @@
             let slot = newItem.slot;
             let currentItem = player.equipment[slot];
 
-            document.getElementById('modal-title').innerText = `Comparer : ${newItem.name}`;
+            document.getElementById('modal-title').innerText = `Équiper : ${newItem.name}`;
 
             let currentDiv = document.getElementById('current-gear-info');
             if (currentItem) {
@@ -468,21 +501,17 @@
             if (selectedInventoryIndex === null) return;
             let itemStack = player.inventory[selectedInventoryIndex];
             
-            // Créer une copie propre de l'objet unique à équiper (quantité 1)
             let newItem = { ...itemStack };
             delete newItem.quantity;
 
             let slot = newItem.slot;
             let previousItem = player.equipment[slot];
 
-            // Équiper l'objet
             player.equipment[slot] = newItem;
 
-            // Gérer le stock dans la pile
             if (itemStack.quantity > 1) {
                 itemStack.quantity--;
                 if (previousItem) {
-                    // S'il y avait un ancien équipement, on l'ajoute séparément ou on gère sa pile
                     addItemToInventory(previousItem);
                 }
                 log(`Vous équipez ${newItem.name} depuis la pile.`);
