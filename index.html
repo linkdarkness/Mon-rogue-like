@@ -364,8 +364,14 @@
                         <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
                         <button id="btn-next-floor" onclick="nextFloor()" disabled>Monter l'escalier</button>
                     </div>
-                    <!-- BARRE DE PV DU MONSTRE (Déplacée en dessous des actions) -->
-                    <div id="monster-container" class="hidden" style="margin-top: 10px; border-top: 1px solid #2f2f35; padding-top: 8px;">
+
+                    <!-- ÉTAGE ET PROGRESSION -->
+                    <div id="floor-indicator" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #2f2f35; font-size: 0.8rem; color: #a1a1aa; text-align: center; font-weight: bold;">
+                        Étage 1 — Salles : <span id="floor-rooms-text" style="color: #03dac6;">0/4</span>
+                    </div>
+
+                    <!-- BARRE DE PV DU MONSTRE -->
+                    <div id="monster-container" class="hidden" style="margin-top: 8px; border-top: 1px solid #2f2f35; padding-top: 8px;">
                         <div class="bar-label">
                             <span id="monster-name-label" style="color: #f97316;">Monstre</span>
                             <span id="monster-hp-text">0/0</span>
@@ -404,7 +410,7 @@
                             📈 <span id="train-primary-label">Attaque</span> (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-primary">25 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('cons')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
-                            ❤️ Constitution / PV (+25) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-cons">25 🪙</span>
+                            ❤️️ Constitution / PV (+25) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-cons">25 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('armor')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
                             🛡️ Armure (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-armor">35 🪙</span>
@@ -833,10 +839,13 @@
             let btnEquip = document.getElementById('btn-equip-action');
             let btnSell = document.getElementById('btn-sell-action');
             
-            let goldValue = calculateItemGoldValue(newItem);
-            btnSell.innerText = `Vendre (+${goldValue} 🪙)`;
+            let singleGoldVal = calculateItemGoldValue(newItem);
+            let qty = newItem.quantity || 1;
+            let totalGoldVal = singleGoldVal * qty;
 
-            document.getElementById('modal-title').innerHTML = `Gérer : <span style="color: ${newItem.rarityColor}">${newItem.name}</span>`;
+            btnSell.innerText = `Vendre la pile x${qty} (+${totalGoldVal} 🪙)`;
+
+            document.getElementById('modal-title').innerHTML = `Gérer : <span style="color: ${newItem.rarityColor}">${newItem.name}</span> (x${qty})`;
 
             if (newItem.type === 'potion') {
                 compareSection.classList.add('hidden');
@@ -909,15 +918,15 @@
         function sellItem() {
             if (selectedInventoryIndex === null) return;
             let itemStack = player.inventory[selectedInventoryIndex];
-            let goldVal = calculateItemGoldValue(itemStack);
+            let qty = itemStack.quantity || 1;
+            let singleGoldVal = calculateItemGoldValue(itemStack);
+            let totalGoldVal = singleGoldVal * qty;
 
-            player.gold = (player.gold || 0) + goldVal;
-            itemStack.quantity--;
-            log(`Vendu : <strong style="color: ${itemStack.rarityColor || '#fff'}">${itemStack.name}</strong> pour ${goldVal} 🪙.`);
+            player.gold = (player.gold || 0) + totalGoldVal;
+            log(`Vendu : <strong style="color: ${itemStack.rarityColor || '#fff'}">${itemStack.name}</strong> (x${qty}) pour ${totalGoldVal} 🪙.`);
 
-            if (itemStack.quantity <= 0) {
-                player.inventory.splice(selectedInventoryIndex, 1);
-            }
+            // Supprime toute la pile d'un coup
+            player.inventory.splice(selectedInventoryIndex, 1);
 
             closeModal();
             updateStatus();
@@ -968,10 +977,17 @@
             box.scrollTop = box.scrollHeight;
         }
 
+        function updateFloorUI() {
+            document.getElementById('floor-rooms-text').innerText = `${dungeonState.roomsCleared}/${dungeonState.maxRoomsPerFloor}`;
+            let floorIndicator = document.getElementById('floor-indicator');
+            floorIndicator.innerHTML = `Étage ${dungeonState.floor} — Salles : <span id="floor-rooms-text" style="color: #03dac6;">${dungeonState.roomsCleared}/${dungeonState.maxRoomsPerFloor}</span>`;
+        }
+
         function setExplorationMode() {
             currentMonster = null;
             updateMonsterUI();
             isBossEncounter = false;
+            updateFloorUI();
             saveGame();
             
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
@@ -980,7 +996,7 @@
                 return;
             }
 
-            document.getElementById('encounter-text').innerText = `Étage ${dungeonState.floor} — Salles : ${dungeonState.roomsCleared}/${dungeonState.maxRoomsPerFloor}`;
+            document.getElementById('encounter-text').innerText = `Exploration en cours...`;
             document.getElementById('action-buttons').innerHTML = `
                 <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
                 <button id="btn-next-floor" onclick="nextFloor()" ${dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor ? '' : 'disabled'}>Monter l'escalier</button>
@@ -1065,6 +1081,7 @@
         }
 
         function restoreCombatUI() {
+            updateFloorUI();
             if (isBossEncounter) {
                 document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS`;
                 document.getElementById('action-buttons').innerHTML = `
