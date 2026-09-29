@@ -573,7 +573,7 @@
         }
 
         function addItemToInventory(newItem) {
-            let existingItem = player.inventory.find(i => i.name === newItem.name && i.rarityName === newItem.rarityName);
+            let existingItem = player.inventory.find(i => i.name === newItem.name && i.rarityName === newItem.rarityName && i.floorSource === newItem.floorSource);
             if (existingItem) {
                 existingItem.quantity = (existingItem.quantity || 1) + 1;
             } else {
@@ -910,10 +910,9 @@
                 log(`Entraînement réussi : +2% en Agilité !`);
             }
 
-            // Augmente le coût de 30% pour la prochaine fois
             player.costs[statType] = Math.floor(cost * 1.3);
 
-            openTrainingModal(); // Rafraîchir l'affichage des coûts
+            openTrainingModal();
             updateStatus();
         }
 
@@ -954,16 +953,14 @@
                 log(`Trouvé : <strong style="color: ${item.rarityColor}">[${item.rarityName}] ${item.name}</strong> !`);
                 finishRoom();
             } else if (eventRoll < 0.93) {
-                let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
-                let foundGold = Math.floor((15 + Math.random() * 25) * floorMultiplier);
+                let foundGold = Math.floor((15 + Math.random() * 25) * dungeonState.floor);
                 player.gold = (player.gold || 0) + foundGold;
                 document.getElementById('encounter-text').innerText = `💰 Bourse d'or trouvée !`;
                 log(`Vous trouvez une bourse contenant ${foundGold} 🪙 !`);
                 updateStatus();
                 finishRoom();
             } else {
-                let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
-                let heal = Math.floor(30 * floorMultiplier);
+                let heal = Math.floor(30 * dungeonState.floor);
                 player.hp = Math.min(player.maxHp, player.hp + heal);
                 document.getElementById('encounter-text').innerText = `💧 Source magique...`;
                 log(`Source d'eau claire : +${heal} PV.`);
@@ -973,20 +970,20 @@
         }
 
         function spawnMonster() {
-            let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
             const baseMonsters = [
                 { name: 'Gobelin', hp: 30, atk: 8, xpValue: 12 },
                 { name: 'Squelette', hp: 45, atk: 12, xpValue: 20 },
                 { name: 'Orc des Cavernes', hp: 65, atk: 16, xpValue: 35 }
             ];
             let template = baseMonsters[Math.floor(Math.random() * baseMonsters.length)];
+            let floorScale = 1 + (dungeonState.floor - 1) * 0.5;
             
             currentMonster = {
                 name: template.name,
-                hp: Math.floor(template.hp * floorMultiplier),
-                maxHp: Math.floor(template.hp * floorMultiplier),
-                atk: Math.floor(template.atk * floorMultiplier),
-                xpValue: Math.floor(template.xpValue * floorMultiplier)
+                hp: Math.floor(template.hp * floorScale),
+                maxHp: Math.floor(template.hp * floorScale),
+                atk: Math.floor(template.atk * floorScale),
+                xpValue: Math.floor(template.xpValue * floorScale)
             };
 
             document.getElementById('encounter-text').innerText = `⚔️ Combat en cours contre un ${currentMonster.name}`;
@@ -1001,16 +998,16 @@
 
         function spawnBoss() {
             isBossEncounter = true;
-            let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
+            let floorScale = 1 + (dungeonState.floor - 1) * 0.6;
             const bossNames = { 5: 'Seigneur des Abysses', 10: 'Dragon des Cendres', 15: 'Roi Liche Immortel', 20: 'Titan du Chaos' };
             let bName = bossNames[dungeonState.floor] || `Seigneur des Ténèbres`;
 
             currentMonster = {
                 name: bName,
-                hp: Math.floor(180 * floorMultiplier),
-                maxHp: Math.floor(180 * floorMultiplier),
-                atk: Math.floor(25 * floorMultiplier),
-                xpValue: Math.floor(100 * floorMultiplier)
+                hp: Math.floor(180 * floorScale),
+                maxHp: Math.floor(180 * floorScale),
+                atk: Math.floor(25 * floorScale),
+                xpValue: Math.floor(100 * floorScale)
             };
 
             document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS`;
@@ -1049,25 +1046,7 @@
                         log(`🏆 **VICTOIRE DU BOSS !** (+${currentMonster.xpValue} XP)`);
                         gainXp(currentMonster.xpValue);
                         
-                        let setInfo = classSets[player.class];
-                        let slotsKeys = Object.keys(setInfo.pieces);
-                        let randomSlotKey = slotsKeys[Math.floor(Math.random() * slotsKeys.length)];
-                        let templatePiece = setInfo.pieces[randomSlotKey];
-                        
-                        let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
-                        let bossSetItem = {
-                            ...templatePiece,
-                            isSet: true,
-                            setName: setInfo.setName,
-                            rarityName: 'Set',
-                            rarityClass: 'rarity-set',
-                            rarityColor: '#10b981',
-                            goldVal: 150,
-                            primaryStat: Math.floor(templatePiece.primaryStat * floorMultiplier),
-                            cons: Math.floor(templatePiece.cons * floorMultiplier),
-                            armor: templatePiece.armor ? Math.floor(templatePiece.armor * floorMultiplier) : 0,
-                            agi: templatePiece.agi ? Math.floor(templatePiece.agi * floorMultiplier) : 0
-                        };
+                        let bossSetItem = generateScaledItem(true);
                         addItemToInventory(bossSetItem);
                         log(`🎁 Pièce de set de boss obtenue : <strong style="color: #10b981">[Set] ${bossSetItem.name}</strong> !`);
                         
@@ -1140,67 +1119,71 @@
             setExplorationMode();
         }
 
-        function getRandomEquipmentOrPotion() {
-            if (Math.random() < 0.20) {
-                let setInfo = classSets[player.class];
+        // --- GÉNÉRATEUR D'OBJETS ADAPTÉ À L'ÉTAGE ET À LA RARETÉ ---
+        function generateScaledItem(forceSet = false) {
+            let setInfo = classSets[player.class];
+            let isSet = forceSet || (Math.random() < 0.20);
+            
+            let template;
+            let rarity;
+
+            if (isSet) {
                 let slotsKeys = Object.keys(setInfo.pieces);
                 let randomSlotKey = slotsKeys[Math.floor(Math.random() * slotsKeys.length)];
-                let templatePiece = setInfo.pieces[randomSlotKey];
-                let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
+                template = { ...setInfo.pieces[randomSlotKey] };
+                rarity = rarities.find(r => r.name === 'Set');
+            } else {
+                const itemsPool = [
+                    { name: '🧪 Potion de Soin', type: 'potion', value: 40, goldVal: 15 },
+                    { name: '🪖 Casque en Fer', slot: 'casque', cons: 25, primaryStat: 2, armor: 3, goldVal: 12 },
+                    { name: '⚔ Épée Longue', slot: 'arme', primaryStat: 8, goldVal: 15 },
+                    { name: '🛡️ Plastron de Plates', slot: 'torse', cons: 40, armor: 5, goldVal: 20 },
+                    { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 5, goldVal: 10 },
+                    { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 15, armor: 2, goldVal: 10 },
+                    { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 8, goldVal: 18 }
+                ];
+                let baseItem = itemsPool[Math.floor(Math.random() * itemsPool.length)];
+                template = { ...baseItem };
 
-                return {
-                    ...templatePiece,
-                    isSet: true,
-                    setName: setInfo.setName,
-                    rarityName: 'Set',
-                    rarityClass: 'rarity-set',
-                    rarityColor: '#10b981',
-                    goldVal: 150,
-                    primaryStat: Math.floor(templatePiece.primaryStat * floorMultiplier),
-                    cons: Math.floor(templatePiece.cons * floorMultiplier),
-                    armor: templatePiece.armor ? Math.floor(templatePiece.armor * floorMultiplier) : 0,
-                    agi: templatePiece.agi ? Math.floor(templatePiece.agi * floorMultiplier) : 0
-                };
+                if (template.type === 'potion') {
+                    // Les potions s'adaptent aussi légèrement aux étages
+                    template.value = Math.floor(40 * (1 + (dungeonState.floor - 1) * 0.4));
+                    return template;
+                }
+
+                let roll = Math.random();
+                let cumulative = 0;
+                let standardRarities = rarities.filter(r => r.name !== 'Set');
+                rarity = standardRarities[0];
+                for (let r of standardRarities) {
+                    cumulative += r.chance;
+                    if (roll <= cumulative) { rarity = r; break; }
+                }
             }
 
-            const itemsPool = [
-                { name: '🧪 Potion de Soin', type: 'potion', value: 40, goldVal: 15 },
-                { name: '🪖 Casque en Fer', slot: 'casque', cons: 25, primaryStat: 2, armor: 3, goldVal: 12 },
-                { name: '⚔ Épée Longue', slot: 'arme', primaryStat: 8, goldVal: 15 },
-                { name: '🛡️ Plastron de Plates', slot: 'torse', cons: 40, armor: 5, goldVal: 20 },
-                { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 5, goldVal: 10 },
-                { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 15, armor: 2, goldVal: 10 },
-                { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 8, goldVal: 18 }
-            ];
-
-            let template = itemsPool[Math.floor(Math.random() * itemsPool.length)];
             let item = { ...template };
-            
-            if (item.type === 'potion') return item;
-
-            let roll = Math.random();
-            let cumulative = 0;
-            let rarity = rarities[0];
-            let standardRarities = rarities.filter(r => r.name !== 'Set');
-            for (let r of standardRarities) {
-                cumulative += r.chance;
-                if (roll <= cumulative) { rarity = r; break; }
-            }
-
             item.rarityName = rarity.name;
             item.rarityClass = rarity.class;
             item.rarityColor = rarity.color;
             item.goldVal = rarity.goldVal;
+            item.isSet = isSet;
+            if (isSet) item.setName = setInfo.setName;
+            item.floorSource = dungeonState.floor;
 
-            let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
-            let scale = floorMultiplier * rarity.multiplier;
+            // Formule d'adaptation par étage : base * (1 + (étage - 1) * 0.6) * multiplicateur de rareté
+            let floorScaling = 1 + (dungeonState.floor - 1) * 0.6;
+            let totalMultiplier = floorScaling * rarity.multiplier;
 
-            if (item.primaryStat) item.primaryStat = Math.max(1, Math.floor(item.primaryStat * scale));
-            if (item.cons) item.cons = Math.max(5, Math.floor(item.cons * scale));
-            if (item.armor) item.armor = Math.max(1, Math.floor(item.armor * scale));
-            if (item.agi) item.agi = Math.max(1, Math.floor(item.agi * scale));
+            if (item.primaryStat) item.primaryStat = Math.max(1, Math.round(item.primaryStat * totalMultiplier));
+            if (item.cons) item.cons = Math.max(5, Math.round(item.cons * totalMultiplier));
+            if (item.armor) item.armor = Math.max(1, Math.round(item.armor * totalMultiplier));
+            if (item.agi) item.agi = Math.max(1, Math.round(item.agi * totalMultiplier));
 
             return item;
+        }
+
+        function getRandomEquipmentOrPotion() {
+            return generateScaledItem(false);
         }
 
         function dropLoot() {
