@@ -352,7 +352,7 @@
                 </div>
             </div>
 
-            <!-- ONGLET 1 : DONJON & ACTIONS -->
+            <!-- ONGLET 1 : DONJON & ACTIONS (Placé juste en dessous des stats) -->
             <div id="tab-dungeon" class="tab-content">
                 <div class="section-box" style="text-align: center;">
                     <p id="encounter-text">Vous entrez dans le donjon...</p>
@@ -410,7 +410,7 @@
                             📈 <span id="train-primary-label">Attaque</span> (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-primary">25 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('cons')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
-                            ❤️️ Constitution / PV (+25) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-cons">25 🪙</span>
+                            ❤ Constitution / PV (+25) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-cons">25 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('armor')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
                             🛡️ Armure (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-armor">35 🪙</span>
@@ -925,7 +925,6 @@
             player.gold = (player.gold || 0) + totalGoldVal;
             log(`Vendu : <strong style="color: ${itemStack.rarityColor || '#fff'}">${itemStack.name}</strong> (x${qty}) pour ${totalGoldVal} 🪙.`);
 
-            // Supprime toute la pile d'un coup
             player.inventory.splice(selectedInventoryIndex, 1);
 
             closeModal();
@@ -1198,7 +1197,7 @@
                     { name: '🧪 Potion de Soin', type: 'potion', value: 40, goldVal: 15 },
                     { name: '🪖 Casque en Fer', slot: 'casque', cons: 25, primaryStat: 2, armor: 3, goldVal: 12 },
                     { name: '⚔ Épée Longue', slot: 'arme', primaryStat: 8, goldVal: 15 },
-                    { name: '🛡️ Plastron de Plates', slot: 'torse', cons: 40, armor: 5, goldVal: 20 },
+                    { name: '🛡️️ Plastron de Plates', slot: 'torse', cons: 40, armor: 5, goldVal: 20 },
                     { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 5, goldVal: 10 },
                     { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 15, armor: 2, goldVal: 10 },
                     { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 8, goldVal: 18 }
