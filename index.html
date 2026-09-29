@@ -347,7 +347,7 @@
 
         <!-- ÉCRAN DE JEU -->
         <div id="screen-game" class="hidden">
-            <!-- ONGLET 1 : HÉROS (STATS & ÉQUIPEMENT) [TOUT À GAUCHE] -->
+            <!-- ONGLET 1 : HÉROS (STATS & ÉQUIPEMENT) -->
             <div id="tab-hero" class="tab-content">
                 <div class="status-panel">
                     <div class="stats-grid">
@@ -469,7 +469,7 @@
                 </div>
             </div>
 
-            <!-- BOUTONS DE NAVIGATION ENTRE LES ONGLETS (Héros en premier à gauche) -->
+            <!-- BOUTONS DE NAVIGATION ENTRE LES ONGLETS -->
             <div class="nav-tabs">
                 <button id="btn-tab-hero" class="tab-btn active" onclick="switchTab('hero')">🛡️ Héros</button>
                 <button id="btn-tab-dungeon" class="tab-btn" onclick="switchTab('dungeon')">🏰 Donjon</button>
@@ -509,7 +509,7 @@
         let currentMonster = null;
         let isBossEncounter = false;
         let selectedInventoryIndex = null;
-        let dungeonState = { floor: 1, roomsCleared: 0, maxRoomsPerFloor: 4 };
+        let dungeonState = { floor: 1, roomsCleared: 0, maxRoomsPerFloor: 4, bossDefeatedOnFloor: false };
 
         const icons = { casque: '🪖', arme: '⚔️', torse: '🛡️', gants: '🧤', bottes: '🥾', anneau: '💍', potion: '🧪' };
 
@@ -611,6 +611,7 @@
             let savedData = JSON.parse(savedDataJSON);
             player = savedData.player;
             dungeonState = savedData.dungeonState;
+            if (dungeonState.bossDefeatedOnFloor === undefined) dungeonState.bossDefeatedOnFloor = false;
             isBossEncounter = savedData.isBossEncounter || false;
             currentMonster = savedData.currentMonster || null;
 
@@ -665,7 +666,7 @@
                 inventory: [] 
             };
             
-            dungeonState = { floor: 1, roomsCleared: 0, maxRoomsPerFloor: 4 };
+            dungeonState = { floor: 1, roomsCleared: 0, maxRoomsPerFloor: 4, bossDefeatedOnFloor: false };
 
             document.getElementById('screen-class-select').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
@@ -749,7 +750,6 @@
             
             let labelName = player.primaryStatName || 'Attaque';
 
-            // Hero Tab stats
             document.getElementById('hero-stat-primary-label').innerText = `${labelName} (ATK)`;
             document.getElementById('hero-stat-class').innerText = player.class;
             document.getElementById('hero-stat-level').innerText = player.level;
@@ -833,7 +833,7 @@
             const invContainer = document.getElementById('inventory-buttons');
             invContainer.innerHTML = '';
 
-            const minSlots = 15; // 3 lignes de 5
+            const minSlots = 15; 
             let totalSlots = Math.max(minSlots, Math.ceil(player.inventory.length / 5) * 5);
 
             for (let i = 0; i < totalSlots; i++) {
@@ -1038,12 +1038,27 @@
             updateFloorUI();
             saveGame();
             
-            if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
-                document.getElementById('encounter-text').innerText = `⚠ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
-                document.getElementById('action-buttons').innerHTML = `<button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>`;
-                return;
+            // Si on est à un étage de boss (multiple de 5)
+            if (dungeonState.floor % 5 === 0) {
+                if (!dungeonState.bossDefeatedOnFloor) {
+                    // Le boss n'a pas encore été vaincu à cet étage
+                    if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor) {
+                        document.getElementById('encounter-text').innerText = `⚠ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
+                        document.getElementById('action-buttons').innerHTML = `<button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>`;
+                        return;
+                    }
+                } else {
+                    // Le boss a déjà été vaincu, l'étage est ouvert : l'utilisateur peut choisir de continuer à farmer ou de monter
+                    document.getElementById('encounter-text').innerText = `Étage ${dungeonState.floor} (Boss vaincu) : Continuez à explorer ou montez.`;
+                    document.getElementById('action-buttons').innerHTML = `
+                        <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
+                        <button id="btn-next-floor" onclick="nextFloor()" style="background: #10b981;">Monter l'étage suivant</button>
+                    `;
+                    return;
+                }
             }
 
+            // Étages normaux
             document.getElementById('encounter-text').innerText = `Exploration en cours...`;
             document.getElementById('action-buttons').innerHTML = `
                 <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
@@ -1110,7 +1125,7 @@
             let floorScale = 1 + (dungeonState.floor - 1) * 0.6;
             
             const bossTitles = ['Seigneur des Abysses', 'Dragon des Cendres', 'Roi Liche Immortel', 'Titan du Chaos', 'Seigneur des Ténèbres', 'Colosse du Néant', 'Démon Ancestral', 'Seigneur du Temps'];
-            let tierIndex = Math.floor((dungeonState.floor - 1) / 5) - 1;
+            let tierIndex = Math.floor((dungeonState.floor - 1) / 5);
             let bName = bossTitles[tierIndex % bossTitles.length] + ` (Niveau ${dungeonState.floor})`;
 
             currentMonster = {
@@ -1162,7 +1177,7 @@
                         addItemToInventory(bossRewardItem);
                         log(`🎁 Butin exclusif de Boss : <strong style="color: ${bossRewardItem.rarityColor}">[${bossRewardItem.rarityName}] ${bossRewardItem.name}</strong> !`);
                         
-                        dungeonState.roomsCleared = dungeonState.maxRoomsPerFloor;
+                        dungeonState.bossDefeatedOnFloor = true;
                         setExplorationMode();
                     } else {
                         log(`Victoire ! (+${currentMonster.xpValue} XP)`);
@@ -1226,6 +1241,7 @@
             dungeonState.floor++;
             dungeonState.roomsCleared = 0;
             dungeonState.maxRoomsPerFloor += 1; 
+            dungeonState.bossDefeatedOnFloor = false; // Réinitialise l'état du boss pour le nouvel étage
             log(`🌟 Étage ${dungeonState.floor} atteint.`);
             updateStatus();
             setExplorationMode();
