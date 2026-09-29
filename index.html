@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Inventaire Grille</title>
+    <title>Mon Roguelike Mobile - Difficulté x10</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -206,6 +206,11 @@
             <div id="legacy-info" class="legacy-box hidden">
                 <p id="legacy-text" style="margin: 0; color: #e8d7ff;"></p>
             </div>
+            
+            <div id="save-game-section" class="hidden" style="margin-bottom: 15px;">
+                <button onclick="loadGame()" style="background: #10b981; margin-bottom: 8px;">Reprendre la partie</button>
+            </div>
+
             <p style="text-align: center; color: #a1a1aa; font-size: 0.9rem;">Choisissez votre archétype :</p>
             
             <button class="class-btn" onclick="startGame('Guerrier')">
@@ -296,6 +301,7 @@
             torse: '🛡️',
             gants: '🧤',
             bottes: '🥾',
+            anneau: '💍',
             potion: '🧪'
         };
 
@@ -314,7 +320,37 @@
                 legacyBox.classList.remove('hidden');
                 legacyText.innerText = `✨ Héritage actif : +${legacyData.bonusAtk} ATK | +${legacyData.bonusHp} PV Max`;
             }
+
+            if (localStorage.getItem('rogue_save_game')) {
+                document.getElementById('save-game-section').classList.remove('hidden');
+            }
         };
+
+        function saveGame() {
+            const saveData = {
+                player: player,
+                dungeonState: dungeonState,
+                isBossEncounter: isBossEncounter
+            };
+            localStorage.setItem('rogue_save_game', JSON.stringify(saveData));
+        }
+
+        function loadGame() {
+            const savedDataJSON = localStorage.getItem('rogue_save_game');
+            if (!savedDataJSON) return;
+
+            let savedData = JSON.parse(savedDataJSON);
+            player = savedData.player;
+            dungeonState = savedData.dungeonState;
+            isBossEncounter = savedData.isBossEncounter || false;
+
+            document.getElementById('screen-class-select').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            
+            log(`Partie chargée avec succès ! Bienvenue à l'étage ${dungeonState.floor}.`);
+            updateStatus();
+            setExplorationMode();
+        }
 
         function startGame(className) {
             let base = classes[className];
@@ -336,7 +372,8 @@
                     arme: null,
                     torse: null,
                     gants: null,
-                    bottes: null
+                    bottes: null,
+                    anneau: null
                 },
                 inventory: [] 
             };
@@ -346,6 +383,8 @@
             document.getElementById('screen-class-select').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
             log(`Vous avez choisi ${className}. Bon courage !`);
+            
+            saveGame();
             updateStatus();
             setExplorationMode();
         }
@@ -358,6 +397,7 @@
                 newItem.quantity = 1;
                 player.inventory.push(newItem);
             }
+            saveGame();
         }
 
         function recalculateStats() {
@@ -391,6 +431,7 @@
             
             updateEquipmentUI();
             updateInventoryUI();
+            saveGame();
         }
 
         function updateEquipmentUI() {
@@ -402,7 +443,8 @@
                 { key: 'arme', label: 'Arme' },
                 { key: 'torse', label: 'Torse' },
                 { key: 'gants', label: 'Gants' },
-                { key: 'bottes', label: 'Bottes' }
+                { key: 'bottes', label: 'Bottes' },
+                { key: 'anneau', label: 'Anneau' }
             ];
 
             eqDisplay.innerHTML = '';
@@ -411,7 +453,6 @@
                 let text = item ? `${item.name}<br><span style="color:#a1a1aa; font-size:0.7rem;">${item.atk ? '+' + item.atk + ' ATK ' : ''}${item.hp ? '+' + item.hp + ' PV' : ''}</span>` : 'Aucun';
                 let div = document.createElement('div');
                 div.className = 'eq-slot';
-                div.style.gridColumn = s.key === 'bottes' ? 'span 2' : 'auto';
                 div.innerHTML = `<span style="font-size: 1.2rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
                 eqDisplay.appendChild(div);
             });
@@ -421,7 +462,6 @@
             const invContainer = document.getElementById('inventory-buttons');
             invContainer.innerHTML = '';
 
-            // Affichage d'une grille fixe (par exemple 8 emplacements minimum pour faire joli)
             const minSlots = 8;
             let totalSlots = Math.max(minSlots, Math.ceil(player.inventory.length / 4) * 4);
 
@@ -554,6 +594,7 @@
         function setExplorationMode() {
             currentMonster = null;
             isBossEncounter = false;
+            saveGame();
             
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
                 document.getElementById('encounter-text').innerText = `⚠️ SALLE DU BOSS DE L'ÉTAGE ${dungeonState.floor} !`;
@@ -585,7 +626,7 @@
                 log(`Vous découvrez : **${item.name}** !`);
                 finishRoom();
             } else {
-                let heal = 25;
+                let heal = 25 * dungeonState.floor;
                 player.hp = Math.min(player.maxHp, player.hp + heal);
                 document.getElementById('encounter-text').innerText = `💧 Source magique...`;
                 log(`Vous buvez l'eau claire et récupérez ${heal} PV.`);
@@ -595,7 +636,8 @@
         }
 
         function spawnMonster() {
-            let difficultyMultiplier = 1 + (dungeonState.floor - 1) * 0.35;
+            // Multiplicateur de difficulté x10 par étage
+            let difficultyMultiplier = Math.pow(10, dungeonState.floor - 1);
 
             const baseMonsters = [
                 { name: 'Gobelin', hp: 25, atk: 7, xpValue: 12 },
@@ -614,7 +656,7 @@
             };
 
             document.getElementById('encounter-text').innerText = `⚔️ ${currentMonster.name} (PV: ${currentMonster.hp})`;
-            log(`Un féroce ${currentMonster.name} surgit !`);
+            log(`Un féroce ${currentMonster.name} (Étage ${dungeonState.floor}) surgit !`);
 
             let actionDiv = document.getElementById('action-buttons');
             actionDiv.innerHTML = `
@@ -625,6 +667,8 @@
 
         function spawnBoss() {
             isBossEncounter = true;
+            let difficultyMultiplier = Math.pow(10, dungeonState.floor - 1);
+            
             const bossNames = {
                 5: 'Seigneur des Abysses',
                 10: 'Dragon des Cendres',
@@ -635,10 +679,10 @@
 
             currentMonster = {
                 name: bName,
-                hp: 150 + (dungeonState.floor * 40),
-                maxHp: 150 + (dungeonState.floor * 40),
-                atk: 20 + (dungeonState.floor * 8),
-                xpValue: 100 + (dungeonState.floor * 25)
+                hp: Math.floor(150 * difficultyMultiplier),
+                maxHp: Math.floor(150 * difficultyMultiplier),
+                atk: Math.floor(20 * difficultyMultiplier),
+                xpValue: Math.floor(100 * difficultyMultiplier)
             };
 
             document.getElementById('encounter-text').innerText = `👹 BOSS : ${currentMonster.name} (PV: ${currentMonster.hp})`;
@@ -659,7 +703,7 @@
                     if (isBossEncounter) {
                         log(`🏆 **VICTOIRE ÉPIQUE !** Vous avez terrassé le ${currentMonster.name} ! (+${currentMonster.xpValue} XP)`);
                         gainXp(currentMonster.xpValue);
-                        let bossGear = { name: '✨ Épée Légendaire', slot: 'arme', atk: 15, hp: 30 };
+                        let bossGear = { name: '✨ Épée Légendaire', slot: 'arme', atk: Math.floor(15 * Math.pow(10, dungeonState.floor - 1)), hp: Math.floor(30 * Math.pow(10, dungeonState.floor - 1)) };
                         addItemToInventory(bossGear);
                         log(`🎁 Butin de boss obtenu : **${bossGear.name}** !`);
                         
@@ -708,6 +752,8 @@
                 bonusHp: savedBonusHp
             }));
 
+            localStorage.removeItem('rogue_save_game');
+
             document.getElementById('action-buttons').innerHTML = `
                 <button onclick="location.reload()" style="background: #e11d48;">Recommencer (Héritage gardé)</button>
             `;
@@ -732,7 +778,7 @@
             dungeonState.roomsCleared = 0;
             dungeonState.maxRoomsPerFloor += 1; 
 
-            log(`🌟 Vous montez à l'étage ${dungeonState.floor}.`);
+            log(`🌟 Vous montez à l'étage ${dungeonState.floor} (Difficulté x10).`);
             updateStatus();
             setExplorationMode();
         }
@@ -749,14 +795,20 @@
                 { name: '🧤 Gants en Tissu', slot: 'gants', atk: 2, hp: 5 },
                 { name: '🧤 Gants Barbelés', slot: 'gants', atk: 6 },
                 { name: '🥾 Bottes Souples', slot: 'bottes', hp: 10 },
-                { name: '🥾 Bottes de Fer', slot: 'bottes', hp: 20 }
+                { name: '🥾 Bottes de Fer', slot: 'bottes', hp: 20 },
+                { name: '💍 Anneau de Force', slot: 'anneau', atk: 3 },
+                { name: '💍 Anneau de Vitalité', slot: 'anneau', hp: 15 },
+                { name: '💍 Anneau de Puissance', slot: 'anneau', atk: 5, hp: 10 }
             ];
             let template = itemsPool[Math.floor(Math.random() * itemsPool.length)];
             let item = { ...template };
             if (item.type !== 'potion') {
-                let scale = 1 + (dungeonState.floor - 1) * 0.2;
+                // Échelle de stats adaptée pour correspondre à la difficulté x10 par étage
+                let scale = Math.pow(10, dungeonState.floor - 1);
                 if (item.atk) item.atk = Math.max(1, Math.floor(item.atk * scale));
                 if (item.hp) item.hp = Math.max(5, Math.floor(item.hp * scale));
+            } else {
+                item.value = Math.floor(50 * Math.pow(10, dungeonState.floor - 1));
             }
             return item;
         }
@@ -774,9 +826,9 @@
             while (player.xp >= player.maxXp) {
                 player.xp -= player.maxXp;
                 player.level++;
-                player.baseMaxHp += 20;
+                player.baseMaxHp += 20 * Math.pow(10, dungeonState.floor - 1);
                 player.hp = player.baseMaxHp;
-                player.baseAtk += 4;
+                player.baseAtk += 4 * Math.pow(10, dungeonState.floor - 1);
                 player.maxXp = Math.floor(player.maxXp * 1.5);
 
                 log(`✨ **NIVEAU ${player.level} ATTEINT !** (Base Stats Améliorées)`);
