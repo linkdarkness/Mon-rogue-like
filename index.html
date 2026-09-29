@@ -157,6 +157,7 @@
         .rarity-epique { border-color: #a855f7 !important; }     
         .rarity-legendaire { border-color: #eab308 !important; } 
         .rarity-set { border-color: #10b981 !important; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4); }
+        .rarity-mythique { border-color: #ef4444 !important; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
 
         .item-count {
             position: absolute;
@@ -327,8 +328,8 @@
                         <span id="stat-def" class="stat-value">0</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Évasion</span>
-                        <span id="stat-evasion" class="stat-value">0%</span>
+                        <span class="stat-label">Agilité</span>
+                        <span id="stat-agility" class="stat-value">0</span>
                     </div>
                 </div>
 
@@ -352,7 +353,7 @@
                 </div>
             </div>
 
-            <!-- ONGLET 1 : DONJON & ACTIONS (Placé juste en dessous des stats) -->
+            <!-- ONGLET 1 : DONJON & ACTIONS -->
             <div id="tab-dungeon" class="tab-content">
                 <div class="section-box" style="text-align: center;">
                     <p id="encounter-text">Vous entrez dans le donjon...</p>
@@ -416,7 +417,7 @@
                             🛡️ Armure (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-armor">35 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('agility')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
-                            ⚡ Agilité (+2%) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-agility">30 🪙</span>
+                            ⚡ Agilité (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-agility">30 🪙</span>
                         </button>
                     </div>
                 </div>
@@ -465,12 +466,14 @@
 
         const icons = { casque: '🪖', arme: '⚔️', torse: '🛡️', gants: '🧤', bottes: '🥾', anneau: '💍', potion: '🧪' };
 
+        // Définition des raretés (Mythique réservé aux boss, Set accessible aux autres ennemis)
         const rarities = [
             { name: 'Commun', class: 'rarity-commun', multiplier: 1.0, chance: 0.55, color: '#94a3b8', goldVal: 10 },
             { name: 'Rare', class: 'rarity-rare', multiplier: 1.8, chance: 0.25, color: '#3b82f6', goldVal: 35 },
             { name: 'Épique', class: 'rarity-epique', multiplier: 2.8, chance: 0.12, color: '#a855f7', goldVal: 90 },
             { name: 'Légendaire', class: 'rarity-legendaire', multiplier: 4.5, chance: 0.05, color: '#eab308', goldVal: 250 },
-            { name: 'Set', class: 'rarity-set', multiplier: 3.5, chance: 0.03, color: '#10b981', goldVal: 150 }
+            { name: 'Set', class: 'rarity-set', multiplier: 3.5, chance: 0.03, color: '#10b981', goldVal: 150 },
+            { name: 'Mythique', class: 'rarity-mythique', multiplier: 7.0, chance: 0.00, color: '#ef4444', goldVal: 600 }
         ];
 
         const classes = {
@@ -502,7 +505,7 @@
                     bottes: { name: "Sandales de l'Archimage", slot: 'bottes', primaryStat: 8, cons: 15, agi: 6 }
                 },
                 bonuses: {
-                    2: { desc: "2P : +15% Agilité & +30 Magie", stats: { primaryStat: 30, agi: 5 } },
+                    2: { desc: "2P : +5 Agilité & +30 Magie", stats: { primaryStat: 30, agi: 5 } },
                     4: { desc: "4P : +60 Magie & +100 Constitution", stats: { primaryStat: 60, cons: 100 } }
                 }
             },
@@ -515,8 +518,8 @@
                     bottes: { name: "Bottes de l'Assassin", slot: 'bottes', primaryStat: 7, cons: 15, agi: 12 }
                 },
                 bonuses: {
-                    2: { desc: '2P : +15% Agilité & +25 Dextérité', stats: { primaryStat: 25, agi: 10 } },
-                    4: { desc: '4P : +50 Dextérité & +20% Agilité', stats: { primaryStat: 50, agi: 15 } }
+                    2: { desc: '2P : +10 Agilité & +25 Dextérité', stats: { primaryStat: 25, agi: 10 } },
+                    4: { desc: '4P : +50 Dextérité & +15 Agilité', stats: { primaryStat: 50, agi: 15 } }
                 }
             }
         };
@@ -699,7 +702,6 @@
             recalculateStats();
             
             let labelName = player.primaryStatName || 'Attaque';
-            let evasionVal = Math.min(50, Math.floor(player.agility * 0.8));
 
             document.getElementById('stat-primary-label').innerText = `${labelName} (ATK)`;
             document.getElementById('stat-class').innerText = player.class;
@@ -707,7 +709,7 @@
             document.getElementById('stat-atk').innerText = player.primaryStat;
             document.getElementById('stat-gold').innerText = `${player.gold || 0} 🪙`;
             document.getElementById('stat-def').innerText = player.armor;
-            document.getElementById('stat-evasion').innerText = `${evasionVal}%`;
+            document.getElementById('stat-agility').innerText = player.agility;
             
             let hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
             document.getElementById('hp-bar').style.width = hpPercent + '%';
@@ -830,7 +832,7 @@
 
         function calculateItemGoldValue(item) {
             let base = item.goldVal || 10;
-            let statBonus = (item.primaryStat || 0) * 3 + (item.cons || 0) * 2 + (item.armor || 0) * 3;
+            let statBonus = (item.primaryStat || 0) * 3 + (item.cons || 0) * 2 + (item.armor || 0) * 3 + (item.agi || 0) * 3;
             return Math.max(5, Math.floor((base + statBonus)));
         }
 
@@ -962,7 +964,7 @@
                 log(`Entraînement réussi : +2 en Armure !`);
             } else if (statType === 'agility') {
                 player.baseAgi += 2;
-                log(`Entraînement réussi : +2% en Agilité !`);
+                log(`Entraînement réussi : +2 en Agilité !`);
             }
 
             player.costs[statType] = Math.floor(cost * 1.3);
@@ -1107,9 +1109,10 @@
                         log(`🏆 **VICTOIRE DU BOSS !** (+${currentMonster.xpValue} XP)`);
                         gainXp(currentMonster.xpValue);
                         
-                        let bossSetItem = generateScaledItem(true);
-                        addItemToInventory(bossSetItem);
-                        log(`🎁 Pièce de set de boss obtenue : <strong style="color: #10b981">[Set] ${bossSetItem.name}</strong> !`);
+                        // Récompense exclusive du Boss : Objet Mythique garanti
+                        let bossRewardItem = generateBossRewardItem();
+                        addItemToInventory(bossRewardItem);
+                        log(`🎁 Butin exclusif de Boss : <strong style="color: ${bossRewardItem.rarityColor}">[${bossRewardItem.rarityName}] ${bossRewardItem.name}</strong> !`);
                         
                         dungeonState.roomsCleared = dungeonState.maxRoomsPerFloor;
                         setExplorationMode();
@@ -1180,53 +1183,85 @@
             setExplorationMode();
         }
 
-        function generateScaledItem(forceSet = false) {
-            let setInfo = classSets[player.class];
-            let isSet = forceSet || (Math.random() < 0.20);
-            
-            let template;
-            let rarity;
+        // Fonction dédiée au butin des Boss : donne UNIQUEMENT du Mythique
+        function generateBossRewardItem() {
+            let rarity = rarities.find(r => r.name === 'Mythique');
 
-            if (isSet) {
-                let slotsKeys = Object.keys(setInfo.pieces);
-                let randomSlotKey = slotsKeys[Math.floor(Math.random() * slotsKeys.length)];
-                template = { ...setInfo.pieces[randomSlotKey] };
-                rarity = rarities.find(r => r.name === 'Set');
-            } else {
-                const itemsPool = [
-                    { name: '🧪 Potion de Soin', type: 'potion', value: 40, goldVal: 15 },
-                    { name: '🪖 Casque en Fer', slot: 'casque', cons: 25, primaryStat: 2, armor: 3, goldVal: 12 },
-                    { name: '⚔ Épée Longue', slot: 'arme', primaryStat: 8, goldVal: 15 },
-                    { name: '🛡️️ Plastron de Plates', slot: 'torse', cons: 40, armor: 5, goldVal: 20 },
-                    { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 5, goldVal: 10 },
-                    { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 15, armor: 2, goldVal: 10 },
-                    { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 8, goldVal: 18 }
-                ];
-                let baseItem = itemsPool[Math.floor(Math.random() * itemsPool.length)];
-                template = { ...baseItem };
-
-                if (template.type === 'potion') {
-                    template.value = Math.floor(40 * (1 + (dungeonState.floor - 1) * 0.4));
-                    return template;
-                }
-
-                let roll = Math.random();
-                let cumulative = 0;
-                let standardRarities = rarities.filter(r => r.name !== 'Set');
-                rarity = standardRarities[0];
-                for (let r of standardRarities) {
-                    cumulative += r.chance;
-                    if (roll <= cumulative) { rarity = r; break; }
-                }
-            }
+            const mythicPool = [
+                { name: 'Blade du Crépuscule', slot: 'arme', primaryStat: 15, agi: 6, goldVal: 300 },
+                { name: 'Cagoule des Anciens', slot: 'casque', primaryStat: 10, cons: 40, armor: 8, goldVal: 250 },
+                { name: 'Plastron des Titans', slot: 'torse', cons: 80, armor: 18, goldVal: 350 },
+                { name: 'Gantelets de Foudre', slot: 'gants', primaryStat: 12, agi: 8, goldVal: 250 },
+                { name: 'Bottes du Vent Solaire', slot: 'bottes', armor: 6, agi: 14, goldVal: 250 },
+                { name: 'Sceau de l’Éternel', slot: 'anneau', primaryStat: 10, cons: 30, agi: 5, goldVal: 280 }
+            ];
+            let template = { ...mythicPool[Math.floor(Math.random() * mythicPool.length)] };
 
             let item = { ...template };
             item.rarityName = rarity.name;
             item.rarityClass = rarity.class;
             item.rarityColor = rarity.color;
             item.goldVal = rarity.goldVal;
-            item.isSet = isSet;
-            if (isSet) item.setName = setInfo.setName;
+            item.isSet = false;
+            item.floorSource = dungeonState.floor;
+
+            let floorScaling = 1 + (dungeonState.floor - 1) * 0.6;
+            let totalMultiplier = floorScaling * rarity.multiplier;
+
+            if (item.primaryStat) item.primaryStat = Math.max(1, Math.round(item.primaryStat * totalMultiplier));
+            if (item.cons) item.cons = Math.max(5, Math.round(item.cons * totalMultiplier));
+            if (item.armor) item.armor = Math.max(1, Math.round(item.armor * totalMultiplier));
+            if (item.agi) item.agi = Math.max(1, Math.round(item.agi * totalMultiplier));
+
+            return item;
+        }
+
+        // Génération d'équipement standard (exploration / monstres normaux) incluant désormais les Set
+        function generateScaledItem() {
+            const itemsPool = [
+                { name: '🧪 Potion de Soin', type: 'potion', value: 40, goldVal: 15 },
+                { name: '🪖 Casque en Fer', slot: 'casque', cons: 25, primaryStat: 2, armor: 3, goldVal: 12 },
+                { name: '⚔ Épée Longue', slot: 'arme', primaryStat: 8, goldVal: 15 },
+                { name: '🛡 Plastron de Plates', slot: 'torse', cons: 40, armor: 5, goldVal: 20 },
+                { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 5, goldVal: 10 },
+                { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 15, armor: 2, goldVal: 10 },
+                { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 8, goldVal: 18 }
+            ];
+            let baseItem = itemsPool[Math.floor(Math.random() * itemsPool.length)];
+            let template = { ...baseItem };
+
+            if (template.type === 'potion') {
+                template.value = Math.floor(40 * (1 + (dungeonState.floor - 1) * 0.4));
+                return template;
+            }
+
+            // Exclut uniquement le Mythique (les Set et raretés inférieures peuvent tomber)
+            let roll = Math.random();
+            let cumulative = 0;
+            let standardOrSetRarities = rarities.filter(r => r.name !== 'Mythique');
+            let rarity = standardOrSetRarities[0];
+            for (let r of standardOrSetRarities) {
+                cumulative += r.chance;
+                if (roll <= cumulative) { rarity = r; break; }
+            }
+
+            let item = {};
+            if (rarity.name === 'Set') {
+                let setInfo = classSets[player.class];
+                let slotsKeys = Object.keys(setInfo.pieces);
+                let randomSlotKey = slotsKeys[Math.floor(Math.random() * slotsKeys.length)];
+                item = { ...setInfo.pieces[randomSlotKey] };
+                item.isSet = true;
+                item.setName = setInfo.setName;
+            } else {
+                item = { ...template };
+                item.isSet = false;
+            }
+
+            item.rarityName = rarity.name;
+            item.rarityClass = rarity.class;
+            item.rarityColor = rarity.color;
+            item.goldVal = rarity.goldVal;
             item.floorSource = dungeonState.floor;
 
             let floorScaling = 1 + (dungeonState.floor - 1) * 0.6;
@@ -1241,7 +1276,7 @@
         }
 
         function getRandomEquipmentOrPotion() {
-            return generateScaledItem(false);
+            return generateScaledItem();
         }
 
         function dropLoot() {
