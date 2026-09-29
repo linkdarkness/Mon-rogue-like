@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon Roguelike Web - Roguelite Progression</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #e0e0e0; text-align: center; margin-top: 30px; }
+        .hidden { display: none !important; }
+        #game-container { max-width: 650px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        button { background: #6200ee; color: white; border: none; padding: 10px 15px; margin: 5px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #3700b3; }
+        button:disabled { background: #444; color: #888; cursor: not-allowed; }
+        .inventory-btn { background: #018786; }
+        .inventory-btn:hover { background: #03dac6; color: black; }
+        .log-box { background: #121212; padding: 10px; height: 160px; overflow-y: auto; text-align: left; font-family: monospace; border: 1px solid #333; margin-top: 15px; }
+        .panel { display: flex; justify-content: space-around; margin-top: 15px; background: #252525; padding: 10px; border-radius: 5px; }
+        .legacy-box { background: #2d132d; border: 1px solid #6200ee; padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- ÉCRAN DE SÉLECTION DE CLASSE -->
+        <div id="screen-class-select">
+            <h1>Choisissez votre Classe</h1>
+            <div id="legacy-info" class="legacy-box hidden">
+                <p id="legacy-text" style="margin: 0; color: #bb86fc; font-weight: bold;"></p>
+            </div>
+            <button onclick="startGame('Guerrier')">Guerrier (PV: 120, Force: 15)</button>
+            <button onclick="startGame('Mage')">Mage (PV: 80, Magie: 22)</button>
+            <button onclick="startGame('Voleur')">Voleur (PV: 100, Agilité: 18)</button>
+        </div>
+
+        <!-- ÉCRAN DE JEU -->
+        <div id="screen-game" class="hidden">
+            <h2 id="player-status">Statut du joueur</h2>
+            
+            <div class="panel">
+                <div>
+                    <h3>Actions</h3>
+                    <div id="action-buttons">
+                        <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
+                        <button id="btn-next-floor" onclick="nextFloor()" disabled>Monter l'escalier</button>
+                    </div>
+                </div>
+                <div>
+                    <h3>Inventaire</h3>
+                    <div id="inventory-buttons">
+                        <span id="no-item" style="color: #888;">Vide</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="encounter-area" style="margin-top: 15px;">
+                <p id="encounter-text">Vous entrez dans le donjon...</p>
+            </div>
+
+            <div class="log-box" id="log-box"></div>
+        </div>
+    </div>
+
+    <script>
+        let player = {};
+        let currentMonster = null;
+        let dungeonState = {
+            floor: 1,
+            roomsCleared: 0,
+            maxRoomsPerFloor: 4
+        };
+
+        const classes = {
+            'Guerrier': { hp: 120, maxHp: 120, atk: 15, class: 'Guerrier' },
+            'Mage': { hp: 80, maxHp: 80, atk: 22, class: 'Mage' },
+            'Voleur': { hp: 100, maxHp: 100, atk: 18, class: 'Voleur' }
+        };
+
+        // Chargement des stats héritées (mémoire du jeu)
+        let legacyData = JSON.parse(localStorage.getItem('rogue_legacy')) || null;
+
+        window.onload = function() {
+            if (legacyData) {
+                const legacyBox = document.getElementById('legacy-info');
+                const legacyText = document.getElementById('legacy-text');
+                legacyBox.classList.remove('hidden');
+                legacyText.innerText = `Héritage trouvé ! Votre dernière incarnation (Nv.${legacyData.level}) vous lègue sa force (Bonus permanent : +${legacyData.bonusAtk} ATK, +${legacyData.bonusHp} PV Max).`;
+            }
+        };
+
+        function startGame(className) {
+            let base = classes[className];
+            
+            // Application de l'héritage si disponible
+            let bonusAtk = legacyData ? legacyData.bonusAtk : 0;
+            let bonusHp = legacyData ? legacyData.bonusHp : 0;
+
+            player = { 
+                class: className,
+                level: 1, 
+                xp: 0, 
+                maxXp: 30,
+                maxHp: base.maxHp + bonusHp,
+                hp: base.maxHp + bonusHp,
+                atk: base.atk + bonusAtk,
+                inventory: [] 
+            };
+            
+            dungeonState = { floor: 1, roomsCleared: 0, maxRoomsPerFloor: 4 };
+
+            document.getElementById('screen-class-select').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            log(`Vous avez choisi ${className}. L'aventure commence !`);
+            updateStatus();
+            setExplorationMode();
+        }
+
+        function updateStatus() {
+            document.getElementById('player-status').innerText = 
+                `${player.class} (Nv.${player.level}) | Étage ${dungeonState.floor} | PV: ${player.hp}/${player.maxHp} | ATK: ${player.atk} | XP: ${player.xp}/${player.maxXp}`;
+            updateInventoryUI();
+        }
+
+        function updateInventoryUI() {
+            const invContainer = document.getElementById('inventory-buttons');
+            invContainer.innerHTML = '';
+
+            if (player.inventory.length === 0) {
+                invContainer.innerHTML = '<span id="no-item" style="color: #888;">Vide</span>';
+                return;
+            }
+
+            player.inventory.forEach((item, index) => {
+                let btn = document.createElement('button');
+                btn.className = 'inventory-btn';
+                btn.innerText = item.name;
+                btn.onclick = () => useItem(index);
+                invContainer.appendChild(btn);
+            });
+        }
+
+        function log(message) {
+            const box = document.getElementById('log-box');
+            box.innerHTML += `> ${message}<br>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function setExplorationMode() {
+            currentMonster = null;
+            document.getElementById('encounter-text').innerText = `Étage ${dungeonState.floor} - Salles explorées : ${dungeonState.roomsCleared}/${dungeonState.maxRoomsPerFloor}`;
+            
+            let actionDiv = document.getElementById('action-buttons');
+            actionDiv.innerHTML = `
+                <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
+                <button id="btn-next-floor" onclick="nextFloor()" ${dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor ? '' : 'disabled'}>Monter l'escalier</button>
+            `;
+        }
+
+        function exploreRoom() {
+            let eventRoll = Math.random();
+
+            if (eventRoll < 0.6) {
+                spawnMonster();
+            } else if (eventRoll < 0.85) {
+                let item = getRandomItem();
+                player.inventory.push(item);
+                document.getElementById('encounter-text').innerText = `Vous trouvez un coffre mystérieux !`;
+                log(`✨ Dans une alcôve sombre, vous découvrez : **${item.name}** !`);
+                finishRoom();
+            } else {
+                let heal = 25;
+                player.hp = Math.min(player.maxHp, player.hp + heal);
+                document.getElementById('encounter-text').innerText = `Vous tombez sur une source magique...`;
+                log(`💧 Vous buvez l'eau claire et récupérez ${heal} PV.`);
+                updateStatus();
+                finishRoom();
+            }
+        }
+
+        function spawnMonster() {
+            let difficultyMultiplier = 1 + (dungeonState.floor - 1) * 0.35;
+
+            const baseMonsters = [
+                { name: 'Gobelin', hp: 25, atk: 7, xpValue: 12 },
+                { name: 'Squelette', hp: 40, atk: 11, xpValue: 20 },
+                { name: 'Orc des Cavernes', hp: 60, atk: 15, xpValue: 35 }
+            ];
+
+            let template = baseMonsters[Math.floor(Math.random() * baseMonsters.length)];
+            
+            currentMonster = {
+                name: template.name,
+                hp: Math.floor(template.hp * difficultyMultiplier),
+                maxHp: Math.floor(template.hp * difficultyMultiplier),
+                atk: Math.floor(template.atk * difficultyMultiplier),
+                xpValue: Math.floor(template.xpValue * difficultyMultiplier)
+            };
+
+            document.getElementById('encounter-text').innerText = `Un ${currentMonster.name} (Étage ${dungeonState.floor}) vous attaque (PV: ${currentMonster.hp}) !`;
+            log(`Un féroce ${currentMonster.name} surgit !`);
+
+            let actionDiv = document.getElementById('action-buttons');
+            actionDiv.innerHTML = `
+                <button onclick="combatAction('fight')">Attaquer</button>
+                <button onclick="combatAction('flee')">Tenter de fuir</button>
+            `;
+        }
+
+        function combatAction(action) {
+            if (action === 'fight' && currentMonster) {
+                currentMonster.hp -= player.atk;
+                log(`Vous infligez ${player.atk} dégâts au ${currentMonster.name}.`);
+
+                if (currentMonster.hp <= 0) {
+                    log(`Vous avez vaincu le ${currentMonster.name} ! (+${currentMonster.xpValue} XP)`);
+                    gainXp(currentMonster.xpValue);
+                    dropLoot();
+                    finishRoom();
+                    return;
+                }
+
+                player.hp -= currentMonster.atk;
+                log(`Le ${currentMonster.name} riposte et inflige ${currentMonster.atk} dégâts.`);
+                updateStatus();
+
+                if (player.hp <= 0) {
+                    handlePlayerDeath();
+                }
+            } else if (action === 'flee') {
+                if (Math.random() < 0.5) {
+                    log(`Vous réussissez à fuir le combat, mais la salle est perdue.`);
+                    finishRoom();
+                } else {
+                    log(`Échec de la fuite ! Le monstre vous attaque.`);
+                    player.hp -= currentMonster.atk;
+                    updateStatus();
+                    if (player.hp <= 0) {
+                        handlePlayerDeath();
+                    }
+                }
+            }
+        }
+
+        function handlePlayerDeath() {
+            log(`Vous êtes mort au combat... Fin de la partie.`);
+            
+            // Sauvegarde d'une fraction des stats atteintes pour la prochaine partie (Héritage)
+            let savedBonusAtk = Math.floor(player.level * 1.5);
+            let savedBonusHp = player.level * 10;
+
+            localStorage.setItem('rogue_legacy', JSON.stringify({
+                level: player.level,
+                bonusAtk: savedBonusAtk,
+                bonusHp: savedBonusHp
+            }));
+
+            document.getElementById('action-buttons').innerHTML = `
+                <p style="color: #ff5252; font-weight: bold;">Vos exploits sont gravés dans l'histoire...</p>
+                <button onclick="location.reload()">Recommencer avec l'héritage</button>
+            `;
+        }
+
+        function finishRoom() {
+            dungeonState.roomsCleared++;
+            updateStatus();
+            
+            if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor) {
+                log(`🚪 Vous sentez un courant d'air frais... L'escalier vers l'étage supérieur est débloqué !`);
+            }
+            setExplorationMode();
+        }
+
+        function nextFloor() {
+            dungeonState.floor++;
+            dungeonState.roomsCleared = 0;
+            dungeonState.maxRoomsPerFloor += 1; 
+
+            log(`🌟 **CHANGEMENT D'ÉTAGE** : Vous montez à l'étage ${dungeonState.floor}.`);
+            updateStatus();
+            setExplorationMode();
+        }
+
+        function getRandomItem() {
+            const possibleItems = [
+                { name: '🧪 Potion de Soin', type: 'heal', value: 45 },
+                { name: '⚔️ Pierre d\'Affûtage (+4 ATK)', type: 'buffAtk', value: 4 },
+                { name: '🛡️ Charme de Vitalité (+20 PV Max)', type: 'buffHp', value: 20 }
+            ];
+            return possibleItems[Math.floor(Math.random() * possibleItems.length)];
+        }
+
+        function dropLoot() {
+            if (Math.random() < 0.50) {
+                let loot = getRandomItem();
+                player.inventory.push(loot);
+                log(`🎁 Le monstre a lâché : **${loot.name}** !`);
+            }
+        }
+
+        function useItem(index) {
+            let item = player.inventory[index];
+
+            if (item.type === 'heal') {
+                player.hp = Math.min(player.maxHp, player.hp + item.value);
+                log(`Vous buvez la ${item.name} et récupérez ${item.value} PV.`);
+            } else if (item.type === 'buffAtk') {
+                player.atk += item.value;
+                log(`Vous utilisez ${item.name}. Votre attaque augmente !`);
+            } else if (item.type === 'buffHp') {
+                player.maxHp += item.value;
+                player.hp += item.value;
+                log(`Vous équipez ${item.name}. Vos PV max augmentent !`);
+            }
+
+            player.inventory.splice(index, 1);
+            updateStatus();
+        }
+
+        function gainXp(amount) {
+            player.xp += amount;
+            while (player.xp >= player.maxXp) {
+                player.xp -= player.maxXp;
+                player.level++;
+                player.maxHp += 25;
+                player.hp = player.maxHp;
+                player.atk += 5;
+                player.maxXp = Math.floor(player.maxXp * 1.5);
+
+                log(`✨ **NIVEAU SUPÉRIEUR !** Vous passez au niveau ${player.level} !`);
+            }
+            updateStatus();
+        }
+    </script>
+</body>
+</html>
