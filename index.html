@@ -104,13 +104,36 @@
         .class-btn { background: #27272a; border: 1px solid #bb86fc; text-align: left; padding: 15px; }
         .class-btn span { display: block; font-size: 0.85rem; color: #a1a1aa; font-weight: normal; margin-top: 4px; }
 
+        /* Navigation par onglets */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: #27272a;
+            color: #a1a1aa;
+            padding: 8px 4px;
+            font-size: 0.75rem;
+            border: 1px solid #3f3f46;
+            box-shadow: none;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background: #6200ee;
+            color: white;
+            border-color: #bb86fc;
+        }
+
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            max-height: 120px;
+            gap: 8px;
+            max-height: 260px;
             overflow-y: auto;
-            padding: 2px;
+            padding: 4px;
         }
 
         .inventory-slot {
@@ -123,7 +146,7 @@
             align-items: center;
             position: relative;
             cursor: pointer;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             transition: background 0.2s, transform 0.1s;
         }
         .inventory-slot:hover { background: #3f3f46; transform: scale(1.02); }
@@ -193,7 +216,7 @@
         .eq-slot {
             background: #18181b;
             border: 2px solid #2f2f35;
-            padding: 5px 7px;
+            padding: 6px 8px;
             border-radius: 6px;
             display: flex;
             align-items: center;
@@ -274,7 +297,7 @@
                 <span>Magie: 22 | Cons: 80 | Armure: 2 | Agilité: 8</span>
             </button>
             <button class="class-btn" onclick="startGame('Voleur')">
-                🗡️ Voleur (Set : Ombre de l'Assassin)
+                🗡 Voleur (Set : Ombre de l'Assassin)
                 <span>Dextérité: 18 | Cons: 100 | Armure: 3 | Agilité: 15</span>
             </button>
         </div>
@@ -329,40 +352,76 @@
                 </div>
             </div>
 
-            <div class="section-box">
-                <h3>Équipement Actuel</h3>
-                <div class="equipment-grid" id="equipment-display"></div>
-                <div id="set-bonus-container"></div>
+            <!-- ONGLET 1 : DONJON & ACTIONS -->
+            <div id="tab-dungeon" class="tab-content">
+                <div class="section-box" style="text-align: center;">
+                    <p id="encounter-text">Vous entrez dans le donjon...</p>
+                    <!-- BARRE DE PV DU MONSTRE -->
+                    <div id="monster-container" class="hidden" style="margin-top: 8px;">
+                        <div class="bar-label">
+                            <span id="monster-name-label">Monstre</span>
+                            <span id="monster-hp-text">0/0</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="monster-hp-bar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box">
+                    <h3>Actions</h3>
+                    <div id="action-buttons">
+                        <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
+                        <button id="btn-next-floor" onclick="nextFloor()" disabled>Monter l'escalier</button>
+                    </div>
+                </div>
+
+                <div class="log-box" id="log-box"></div>
             </div>
 
-            <div class="section-box" style="text-align: center;">
-                <p id="encounter-text">Vous entrez dans le donjon...</p>
-                <!-- BARRE DE PV DU MONSTRE -->
-                <div id="monster-container" class="hidden" style="margin-top: 8px;">
-                    <div class="bar-label">
-                        <span id="monster-name-label">Monstre</span>
-                        <span id="monster-hp-text">0/0</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div id="monster-hp-bar" class="progress-bar-fill"></div>
+            <!-- ONGLET 2 : ÉQUIPEMENT & INVENTAIRE -->
+            <div id="tab-inventory" class="tab-content hidden">
+                <div class="section-box">
+                    <h3>Équipement Actuel</h3>
+                    <div class="equipment-grid" id="equipment-display"></div>
+                    <div id="set-bonus-container"></div>
+                </div>
+
+                <div class="section-box">
+                    <h3>Inventaire</h3>
+                    <div class="inventory-grid" id="inventory-buttons"></div>
+                </div>
+            </div>
+
+            <!-- ONGLET 3 : ENTRAÎNEMENT -->
+            <div id="tab-training" class="tab-content hidden">
+                <div class="section-box">
+                    <h3>🏋️ Sanctuaire d'Entraînement</h3>
+                    <p style="font-size:0.78rem; color:#a1a1aa; margin-bottom:10px;">Dépensez votre or pour augmenter durablement vos statistiques.</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button onclick="buyUpgrade('primary')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
+                            📈 <span id="train-primary-label">Attaque</span> (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-primary">25 🪙</span>
+                        </button>
+                        <button onclick="buyUpgrade('cons')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
+                            ❤️ Constitution / PV (+25) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-cons">25 🪙</span>
+                        </button>
+                        <button onclick="buyUpgrade('armor')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
+                            🛡️ Armure (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-armor">35 🪙</span>
+                        </button>
+                        <button onclick="buyUpgrade('agility')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
+                            ⚡ Agilité (+2%) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-agility">30 🪙</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div class="section-box">
-                <h3>Actions</h3>
-                <div id="action-buttons">
-                    <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
-                    <button id="btn-next-floor" onclick="nextFloor()" disabled>Monter l'escalier</button>
-                </div>
+            <!-- BOUTONS DE NAVIGATION ENTRE LES ONGLETS -->
+            <div class="nav-tabs">
+                <button id="btn-tab-dungeon" class="tab-btn active" onclick="switchTab('dungeon')">🏰 Donjon</button>
+                <button id="btn-tab-inventory" class="tab-btn" onclick="switchTab('inventory')">🎒 Inventaire</button>
+                <button id="btn-tab-training" class="tab-btn" onclick="switchTab('training')">🏋️ Entraînement</button>
             </div>
-
-            <div class="section-box">
-                <h3>Inventaire</h3>
-                <div class="inventory-grid" id="inventory-buttons"></div>
-            </div>
-
-            <div class="log-box" id="log-box"></div>
         </div>
     </div>
 
@@ -388,31 +447,6 @@
                 <button onclick="discardItem()" style="background: #ef4444; margin-bottom: 4px;">Jeter l'objet</button>
                 <button onclick="closeModal()" style="background: #52525b;">Fermer</button>
             </div>
-        </div>
-    </div>
-
-    <!-- MODALE DE LA BOUTIQUE D'ENTRAÎNEMENT -->
-    <div id="modal-training" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3 style="margin-top:0; color:#facc15;">🏋️ Sanctuaire d'Entraînement</h3>
-            <p style="font-size:0.8rem; color:#a1a1aa; margin-bottom:12px;">Dépensez votre or pour augmenter durablement vos statistiques.</p>
-            
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-                <button onclick="buyUpgrade('primary')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
-                    📈 <span id="train-primary-label">Attaque</span> (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-primary">25 🪙</span>
-                </button>
-                <button onclick="buyUpgrade('cons')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
-                    ❤️ Constitution / PV (+25) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-cons">25 🪙</span>
-                </button>
-                <button onclick="buyUpgrade('armor')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
-                    🛡️ Armure (+2) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-armor">35 🪙</span>
-                </button>
-                <button onclick="buyUpgrade('agility')" style="background: #6200ee; font-size:0.85rem; padding: 10px;">
-                    ⚡ Agilité (+2%) <br><span style="font-size:0.7rem; color:#facc15;" id="cost-agility">30 🪙</span>
-                </button>
-            </div>
-
-            <button onclick="closeTrainingModal()" style="background: #52525b;">Quitter</button>
         </div>
     </div>
 
@@ -494,6 +528,21 @@
                 document.getElementById('save-game-section').classList.remove('hidden');
             }
         };
+
+        function switchTab(tabName) {
+            const tabs = ['dungeon', 'inventory', 'training'];
+            tabs.forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`btn-tab-${t}`).classList.remove('active');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`btn-tab-${tabName}`).classList.add('active');
+
+            if (tabName === 'training') {
+                updateTrainingUI();
+            }
+        }
 
         function saveGame() {
             const saveData = { player, dungeonState, isBossEncounter, currentMonster };
@@ -663,6 +712,7 @@
             updateEquipmentUI();
             updateInventoryUI();
             updateMonsterUI();
+            updateTrainingUI();
             saveGame();
         }
 
@@ -726,7 +776,7 @@
             const invContainer = document.getElementById('inventory-buttons');
             invContainer.innerHTML = '';
 
-            const minSlots = 8;
+            const minSlots = 12;
             let totalSlots = Math.max(minSlots, Math.ceil(player.inventory.length / 4) * 4);
 
             for (let i = 0; i < totalSlots; i++) {
@@ -745,6 +795,15 @@
                 }
                 invContainer.appendChild(slotDiv);
             }
+        }
+
+        function updateTrainingUI() {
+            if (!player.costs) return;
+            document.getElementById('train-primary-label').innerText = player.primaryStatName;
+            document.getElementById('cost-primary').innerText = `${player.costs.primary} 🪙`;
+            document.getElementById('cost-cons').innerText = `${player.costs.cons} 🪙`;
+            document.getElementById('cost-armor').innerText = `${player.costs.armor} 🪙`;
+            document.getElementById('cost-agility').innerText = `${player.costs.agility} 🪙`;
         }
 
         function handleItemClick(index) {
@@ -872,20 +931,7 @@
             updateStatus();
         }
 
-        // --- GESTION DU SANCTUAIRE D'ENTRAÎNEMENT ---
-        function openTrainingModal() {
-            document.getElementById('train-primary-label').innerText = player.primaryStatName;
-            document.getElementById('cost-primary').innerText = `${player.costs.primary} 🪙`;
-            document.getElementById('cost-cons').innerText = `${player.costs.cons} 🪙`;
-            document.getElementById('cost-armor').innerText = `${player.costs.armor} 🪙`;
-            document.getElementById('cost-agility').innerText = `${player.costs.agility} 🪙`;
-            document.getElementById('modal-training').classList.remove('hidden');
-        }
-
-        function closeTrainingModal() {
-            document.getElementById('modal-training').classList.add('hidden');
-        }
-
+        // --- ACHAT D'AMÉLIORATIONS D'ENTRAÎNEMENT ---
         function buyUpgrade(statType) {
             let cost = player.costs[statType];
             if ((player.gold || 0) < cost) {
@@ -912,7 +958,6 @@
 
             player.costs[statType] = Math.floor(cost * 1.3);
 
-            openTrainingModal();
             updateStatus();
         }
 
@@ -937,7 +982,6 @@
             document.getElementById('encounter-text').innerText = `Étage ${dungeonState.floor} — Salles : ${dungeonState.roomsCleared}/${dungeonState.maxRoomsPerFloor}`;
             document.getElementById('action-buttons').innerHTML = `
                 <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
-                <button onclick="openTrainingModal()" style="background: #d97706;">🏋️ S'entraîner (Boutique)</button>
                 <button id="btn-next-floor" onclick="nextFloor()" ${dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor ? '' : 'disabled'}>Monter l'escalier</button>
             `;
         }
@@ -1119,7 +1163,6 @@
             setExplorationMode();
         }
 
-        // --- GÉNÉRATEUR D'OBJETS ADAPTÉ À L'ÉTAGE ET À LA RARETÉ ---
         function generateScaledItem(forceSet = false) {
             let setInfo = classSets[player.class];
             let isSet = forceSet || (Math.random() < 0.20);
@@ -1146,7 +1189,6 @@
                 template = { ...baseItem };
 
                 if (template.type === 'potion') {
-                    // Les potions s'adaptent aussi légèrement aux étages
                     template.value = Math.floor(40 * (1 + (dungeonState.floor - 1) * 0.4));
                     return template;
                 }
@@ -1170,7 +1212,6 @@
             if (isSet) item.setName = setInfo.setName;
             item.floorSource = dungeonState.floor;
 
-            // Formule d'adaptation par étage : base * (1 + (étage - 1) * 0.6) * multiplicateur de rareté
             let floorScaling = 1 + (dungeonState.floor - 1) * 0.6;
             let totalMultiplier = floorScaling * rarity.multiplier;
 
