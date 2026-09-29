@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Entraînement & Or</title>
+    <title>Mon Roguelike Mobile - Statut Donjon en Dessous</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -104,7 +104,7 @@
         .class-btn { background: #27272a; border: 1px solid #bb86fc; text-align: left; padding: 15px; }
         .class-btn span { display: block; font-size: 0.85rem; color: #a1a1aa; font-weight: normal; margin-top: 4px; }
 
-        /* Navigation par onglets (4 onglets désormais) */
+        /* Navigation par onglets (Héros placé en premier) */
         .nav-tabs {
             display: flex;
             gap: 3px;
@@ -278,7 +278,7 @@
     <div id="game-container">
         <!-- ÉCRAN DE SÉLECTION DE CLASSE -->
         <div id="screen-class-select">
-            <h1>Roguelite Mobile (Entraînement & Or)</h1>
+            <h1>Roguelite Mobile</h1>
             <div id="legacy-info" class="legacy-box hidden">
                 <p id="legacy-text" style="margin: 0; color: #e8d7ff;"></p>
             </div>
@@ -305,41 +305,8 @@
 
         <!-- ÉCRAN DE JEU -->
         <div id="screen-game" class="hidden">
-            <!-- ONGLET 1 : DONJON & ACTIONS -->
-            <div id="tab-dungeon" class="tab-content">
-                <div class="section-box" style="text-align: center;">
-                    <p id="encounter-text">Vous entrez dans le donjon...</p>
-                </div>
-
-                <div class="section-box">
-                    <h3>Actions</h3>
-                    <div id="action-buttons">
-                        <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
-                        <button id="btn-next-floor" onclick="nextFloor()" disabled>Monter l'escalier</button>
-                    </div>
-
-                    <!-- ÉTAGE ET PROGRESSION -->
-                    <div id="floor-indicator" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #2f2f35; font-size: 0.8rem; color: #a1a1aa; text-align: center; font-weight: bold;">
-                        Étage 1 — Salles : <span id="floor-rooms-text" style="color: #03dac6;">0/4</span>
-                    </div>
-
-                    <!-- BARRE DE PV DU MONSTRE -->
-                    <div id="monster-container" class="hidden" style="margin-top: 8px; border-top: 1px solid #2f2f35; padding-top: 8px;">
-                        <div class="bar-label">
-                            <span id="monster-name-label" style="color: #f97316;">Monstre</span>
-                            <span id="monster-hp-text">0/0</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div id="monster-hp-bar" class="progress-bar-fill"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="log-box" id="log-box"></div>
-            </div>
-
-            <!-- ONGLET 2 : HÉROS (STATS & ÉQUIPEMENT) -->
-            <div id="tab-hero" class="tab-content hidden">
+            <!-- ONGLET 1 : HÉROS (STATS & ÉQUIPEMENT) -->
+            <div id="tab-hero" class="tab-content">
                 <div class="status-panel">
                     <div class="stats-grid">
                         <div class="stat-item">
@@ -395,6 +362,41 @@
                 </div>
             </div>
 
+            <!-- ONGLET 2 : DONJON & ACTIONS (STATUT EN DESSOUS DES ACTIONS) -->
+            <div id="tab-dungeon" class="tab-content hidden">
+                <div class="section-box">
+                    <h3>Actions & Progression</h3>
+                    <!-- Boutons d'actions en premier -->
+                    <div id="action-buttons">
+                        <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
+                        <button id="btn-next-floor" onclick="nextFloor()" disabled>Monter l'escalier</button>
+                    </div>
+
+                    <!-- Étage et progression -->
+                    <div id="floor-indicator" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #2f2f35; font-size: 0.8rem; color: #a1a1aa; text-align: center; font-weight: bold;">
+                        Étage 1 — Salles : <span id="floor-rooms-text" style="color: #03dac6;">0/4</span>
+                    </div>
+
+                    <!-- Barre de PV du monstre (si combat actif) -->
+                    <div id="monster-container" class="hidden" style="margin-top: 8px; border-top: 1px solid #2f2f35; padding-top: 8px;">
+                        <div class="bar-label">
+                            <span id="monster-name-label" style="color: #f97316;">Monstre</span>
+                            <span id="monster-hp-text">0/0</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="monster-hp-bar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+
+                    <!-- Statut du donjon / Texte d'exploration en DESSOUS des actions -->
+                    <div style="margin-top: 12px; border-top: 1px solid #2f2f35; padding-top: 8px; text-align: center;">
+                        <p id="encounter-text">Vous entrez dans le donjon...</p>
+                    </div>
+                </div>
+
+                <div class="log-box" id="log-box"></div>
+            </div>
+
             <!-- ONGLET 3 : INVENTAIRE -->
             <div id="tab-inventory" class="tab-content hidden">
                 <div class="section-box">
@@ -426,10 +428,10 @@
                 </div>
             </div>
 
-            <!-- BOUTONS DE NAVIGATION ENTRE LES ONGLETS -->
+            <!-- BOUTONS DE NAVIGATION ENTRE LES ONGLETS (Héros en premier) -->
             <div class="nav-tabs">
-                <button id="btn-tab-dungeon" class="tab-btn active" onclick="switchTab('dungeon')">🏰 Donjon</button>
-                <button id="btn-tab-hero" class="tab-btn" onclick="switchTab('hero')">🛡️ Héros</button>
+                <button id="btn-tab-hero" class="tab-btn active" onclick="switchTab('hero')">🛡️ Héros</button>
+                <button id="btn-tab-dungeon" class="tab-btn" onclick="switchTab('dungeon')">🏰 Donjon</button>
                 <button id="btn-tab-inventory" class="tab-btn" onclick="switchTab('inventory')">🎒 Inventaire</button>
                 <button id="btn-tab-training" class="tab-btn" onclick="switchTab('training')">🏋️ Entraînement</button>
             </div>
@@ -542,7 +544,7 @@
         };
 
         function switchTab(tabName) {
-            const tabs = ['dungeon', 'hero', 'inventory', 'training'];
+            const tabs = ['hero', 'dungeon', 'inventory', 'training'];
             tabs.forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
                 document.getElementById(`btn-tab-${t}`).classList.remove('active');
@@ -587,6 +589,7 @@
             document.getElementById('screen-game').classList.remove('hidden');
             
             log(`Partie chargée ! Bienvenue à l'étage ${dungeonState.floor}.`);
+            switchTab('hero');
             updateStatus();
             
             if (currentMonster && currentMonster.hp > 0) {
@@ -629,6 +632,7 @@
             log(`Vous commencez en tant que ${className} avec +${bonusPrimary} ATK et +${bonusCons} Cons d'héritage.`);
             
             saveGame();
+            switchTab('hero');
             updateStatus();
             setExplorationMode();
         }
@@ -706,7 +710,6 @@
             
             let labelName = player.primaryStatName || 'Attaque';
 
-            // Hero Tab stats
             document.getElementById('hero-stat-primary-label').innerText = `${labelName} (ATK)`;
             document.getElementById('hero-stat-class').innerText = player.class;
             document.getElementById('hero-stat-level').innerText = player.level;
@@ -996,16 +999,16 @@
             saveGame();
             
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
-                document.getElementById('encounter-text').innerText = `⚠️ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
                 document.getElementById('action-buttons').innerHTML = `<button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>`;
+                document.getElementById('encounter-text').innerText = `⚠️ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
                 return;
             }
 
-            document.getElementById('encounter-text').innerText = `Exploration en cours...`;
             document.getElementById('action-buttons').innerHTML = `
                 <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
                 <button id="btn-next-floor" onclick="nextFloor()" ${dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor ? '' : 'disabled'}>Monter l'escalier</button>
             `;
+            document.getElementById('encounter-text').innerText = `Exploration en cours...`;
         }
 
         function exploreRoom() {
@@ -1052,14 +1055,13 @@
                 xpValue: Math.floor(template.xpValue * floorScale)
             };
 
-            document.getElementById('encounter-text').innerText = `⚔️ Combat en cours contre un ${currentMonster.name}`;
-            updateMonsterUI();
-            log(`Un ${currentMonster.name} surgit !`);
-
             document.getElementById('action-buttons').innerHTML = `
                 <button onclick="combatAction('fight')">Attaquer</button>
                 <button onclick="combatAction('flee')" style="background: #52525b;">Tenter de fuir</button>
             `;
+            document.getElementById('encounter-text').innerText = `⚔️ Combat en cours contre un ${currentMonster.name}`;
+            updateMonsterUI();
+            log(`Un ${currentMonster.name} surgit !`);
         }
 
         function spawnBoss() {
@@ -1078,28 +1080,27 @@
                 xpValue: Math.floor(100 * floorScale)
             };
 
-            document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS (Étage ${dungeonState.floor})`;
-            updateMonsterUI();
-            log(`🔥 **${currentMonster.name}** bloque le passage !`);
-
             document.getElementById('action-buttons').innerHTML = `
                 <button onclick="combatAction('fight')" style="background: #e11d48;">Combattre le Boss</button>
             `;
+            document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS (Étage ${dungeonState.floor})`;
+            updateMonsterUI();
+            log(`🔥 **${currentMonster.name}** bloque le passage !`);
         }
 
         function restoreCombatUI() {
             updateFloorUI();
             if (isBossEncounter) {
-                document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS`;
                 document.getElementById('action-buttons').innerHTML = `
                     <button onclick="combatAction('fight')" style="background: #e11d48;">Combattre le Boss</button>
                 `;
+                document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS`;
             } else {
-                document.getElementById('encounter-text').innerText = `⚔️️ Combat en cours contre un ${currentMonster.name}`;
                 document.getElementById('action-buttons').innerHTML = `
                     <button onclick="combatAction('fight')">Attaquer</button>
                     <button onclick="combatAction('flee')" style="background: #52525b;">Tenter de fuir</button>
                 `;
+                document.getElementById('encounter-text').innerText = `⚔ Combat en cours contre un ${currentMonster.name}`;
             }
             updateMonsterUI();
         }
@@ -1169,6 +1170,7 @@
 
             localStorage.removeItem('rogue_save_game');
             document.getElementById('action-buttons').innerHTML = `<button onclick="location.reload()" style="background: #e11d48;">Recommencer (Héritage sauvegardé !)</button>`;
+            document.getElementById('encounter-text').innerText = `💀 VOUS ÊTES MORT`;
             updateMonsterUI();
         }
 
