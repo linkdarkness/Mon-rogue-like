@@ -305,54 +305,6 @@
 
         <!-- ÉCRAN DE JEU -->
         <div id="screen-game" class="hidden">
-            <div class="status-panel">
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-label">Classe</span>
-                        <span id="stat-class" class="stat-value">-</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Niveau</span>
-                        <span id="stat-level" class="stat-value">1</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label" id="stat-primary-label">Attaque</span>
-                        <span id="stat-atk" class="stat-value">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Or (Pièces)</span>
-                        <span id="stat-gold" class="gold-value">0 🪙</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Armure (DEF)</span>
-                        <span id="stat-def" class="stat-value">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Agilité</span>
-                        <span id="stat-agility" class="stat-value">0</span>
-                    </div>
-                </div>
-
-                <div class="bar-wrapper">
-                    <div class="bar-label">
-                        <span>PV (Constitution)</span>
-                        <span id="hp-text">120/120</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div id="hp-bar" class="progress-bar-fill"></div>
-                    </div>
-                </div>
-                <div class="bar-wrapper" style="margin-top: 5px;">
-                    <div class="bar-label">
-                        <span>XP (Expérience)</span>
-                        <span id="xp-text">0/30</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div id="xp-bar" class="progress-bar-fill"></div>
-                    </div>
-                </div>
-            </div>
-
             <!-- ONGLET 1 : DONJON & ACTIONS -->
             <div id="tab-dungeon" class="tab-content">
                 <div class="section-box" style="text-align: center;">
@@ -388,9 +340,8 @@
 
             <!-- ONGLET 2 : HÉROS (STATS & ÉQUIPEMENT) -->
             <div id="tab-hero" class="tab-content hidden">
-                <div class="section-box">
-                    <h3>🛡️ Fiche du Héros</h3>
-                    <div class="stats-grid" style="margin-bottom: 0;">
+                <div class="status-panel">
+                    <div class="stats-grid">
                         <div class="stat-item">
                             <span class="stat-label">Classe</span>
                             <span id="hero-stat-class" class="stat-value">-</span>
@@ -414,6 +365,25 @@
                         <div class="stat-item">
                             <span class="stat-label">Agilité</span>
                             <span id="hero-stat-agility" class="stat-value">0</span>
+                        </div>
+                    </div>
+
+                    <div class="bar-wrapper">
+                        <div class="bar-label">
+                            <span>PV (Constitution)</span>
+                            <span id="hp-text">120/120</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="hp-bar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                    <div class="bar-wrapper" style="margin-top: 5px;">
+                        <div class="bar-label">
+                            <span>XP (Expérience)</span>
+                            <span id="xp-text">0/30</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="xp-bar" class="progress-bar-fill"></div>
                         </div>
                     </div>
                 </div>
@@ -500,7 +470,6 @@
 
         const icons = { casque: '🪖', arme: '⚔️', torse: '🛡️', gants: '🧤', bottes: '🥾', anneau: '💍', potion: '🧪' };
 
-        // Définition des raretés (Mythique réservé aux boss, Set accessible aux autres ennemis)
         const rarities = [
             { name: 'Commun', class: 'rarity-commun', multiplier: 1.0, chance: 0.55, color: '#94a3b8', goldVal: 10 },
             { name: 'Rare', class: 'rarity-rare', multiplier: 1.8, chance: 0.25, color: '#3b82f6', goldVal: 35 },
@@ -736,15 +705,6 @@
             recalculateStats();
             
             let labelName = player.primaryStatName || 'Attaque';
-
-            // Top status panel stats
-            document.getElementById('stat-primary-label').innerText = `${labelName} (ATK)`;
-            document.getElementById('stat-class').innerText = player.class;
-            document.getElementById('stat-level').innerText = player.level;
-            document.getElementById('stat-atk').innerText = player.primaryStat;
-            document.getElementById('stat-gold').innerText = `${player.gold || 0} 🪙`;
-            document.getElementById('stat-def').innerText = player.armor;
-            document.getElementById('stat-agility').innerText = player.agility;
 
             // Hero Tab stats
             document.getElementById('hero-stat-primary-label').innerText = `${labelName} (ATK)`;
@@ -1135,7 +1095,7 @@
                     <button onclick="combatAction('fight')" style="background: #e11d48;">Combattre le Boss</button>
                 `;
             } else {
-                document.getElementById('encounter-text').innerText = `⚔️ Combat en cours contre un ${currentMonster.name}`;
+                document.getElementById('encounter-text').innerText = `⚔️️ Combat en cours contre un ${currentMonster.name}`;
                 document.getElementById('action-buttons').innerHTML = `
                     <button onclick="combatAction('fight')">Attaquer</button>
                     <button onclick="combatAction('flee')" style="background: #52525b;">Tenter de fuir</button>
