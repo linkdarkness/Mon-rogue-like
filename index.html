@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mon Roguelike Mobile - Multiplicateur x10</title>
+    <title>Mon Roguelike Mobile - Barre de PV des Monstres</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -29,9 +29,8 @@
             border: 1px solid #27272a;
         }
 
-        h1 { font-size: 1.5rem; text-align: center; margin-top: 5px; color: #bb86fc; }
+        h1 { font-size: 1.4rem; text-align: center; margin-top: 5px; color: #bb86fc; }
         
-        /* Bloc de Statistiques et Barres */
         .status-panel {
             background: #202024;
             padding: 10px;
@@ -60,12 +59,8 @@
         .stat-label { color: #a1a1aa; }
         .stat-value { color: #03dac6; font-weight: bold; }
 
-        .bar-wrapper {
-            margin-bottom: 8px;
-        }
-        .bar-wrapper:last-child {
-            margin-bottom: 0;
-        }
+        .bar-wrapper { margin-bottom: 8px; }
+        .bar-wrapper:last-child { margin-bottom: 0; }
         .bar-label {
             display: flex;
             justify-content: space-between;
@@ -82,13 +77,10 @@
             overflow: hidden;
             border: 1px solid #3f3f46;
         }
-        .progress-bar-fill {
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
+        .progress-bar-fill { height: 100%; width: 0%; transition: width 0.3s ease; }
         #hp-bar { background: #ef4444; }
         #xp-bar { background: #22c55e; }
+        #monster-hp-bar { background: #f97316; }
 
         button { 
             background: #6200ee; 
@@ -111,12 +103,11 @@
         .class-btn { background: #27272a; border: 1px solid #bb86fc; text-align: left; padding: 15px; }
         .class-btn span { display: block; font-size: 0.85rem; color: #a1a1aa; font-weight: normal; margin-top: 4px; }
 
-        /* Grille d'inventaire avec contours de rareté */
         .inventory-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            max-height: 130px;
+            max-height: 120px;
             overflow-y: auto;
             padding: 2px;
         }
@@ -131,24 +122,17 @@
             align-items: center;
             position: relative;
             cursor: pointer;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             transition: background 0.2s, transform 0.1s;
         }
-        .inventory-slot:hover {
-            background: #3f3f46;
-            transform: scale(1.02);
-        }
-        .inventory-slot.empty {
-            cursor: default;
-            background: #141416;
-            border: 1px solid #222226;
-        }
+        .inventory-slot:hover { background: #3f3f46; transform: scale(1.02); }
+        .inventory-slot.empty { cursor: default; background: #141416; border: 1px solid #222226; }
 
-        /* Couleurs des contours selon la rareté */
         .rarity-commun { border-color: #94a3b8 !important; }     
         .rarity-rare { border-color: #3b82f6 !important; }       
         .rarity-epique { border-color: #a855f7 !important; }     
         .rarity-legendaire { border-color: #eab308 !important; } 
+        .rarity-set { border-color: #10b981 !important; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4); }
 
         .item-count {
             position: absolute;
@@ -165,11 +149,11 @@
         .log-box { 
             background: #09090b; 
             padding: 10px; 
-            height: 110px; 
+            height: 95px; 
             overflow-y: auto; 
             text-align: left; 
             font-family: monospace; 
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             border: 1px solid #27272a; 
             border-radius: 8px; 
             margin-top: 10px; 
@@ -186,21 +170,15 @@
 
         .section-box h3 { margin: 0 0 6px 0; font-size: 0.85rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; }
         
-        #encounter-text { 
-            font-size: 0.95rem; 
-            text-align: center; 
-            margin: 8px 0; 
-            font-weight: 500;
-            color: #ffb74d; 
-        }
+        #encounter-text { font-size: 0.9rem; text-align: center; margin: 4px 0; font-weight: 500; color: #ffb74d; }
 
         .legacy-box { 
             background: #23122b; 
             border: 1px solid #bb86fc; 
-            padding: 12px; 
-            margin-bottom: 15px; 
+            padding: 10px; 
+            margin-bottom: 12px; 
             border-radius: 8px; 
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-align: center;
         }
 
@@ -208,21 +186,29 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 6px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
         }
 
         .eq-slot {
             background: #18181b;
             border: 2px solid #2f2f35;
-            padding: 6px 8px;
+            padding: 5px 7px;
             border-radius: 6px;
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: border-color 0.2s;
         }
 
-        /* Modal de Comparaison */
+        .set-bonus-box {
+            background: #064e3b;
+            border: 1px solid #10b981;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: #a7f3d0;
+        }
+
         #modal-compare {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -267,34 +253,33 @@
     <div id="game-container">
         <!-- ÉCRAN DE SÉLECTION DE CLASSE -->
         <div id="screen-class-select">
-            <h1>Roguelite Mobile (Mode x10)</h1>
+            <h1>Roguelite Mobile (Sets & Barres PV)</h1>
             <div id="legacy-info" class="legacy-box hidden">
                 <p id="legacy-text" style="margin: 0; color: #e8d7ff;"></p>
             </div>
             
-            <div id="save-game-section" class="hidden" style="margin-bottom: 15px;">
-                <button onclick="loadGame()" style="background: #10b981; margin-bottom: 8px;">Reprendre la partie</button>
+            <div id="save-game-section" class="hidden" style="margin-bottom: 12px;">
+                <button onclick="loadGame()" style="background: #10b981; margin-bottom: 6px;">Reprendre la partie</button>
             </div>
 
-            <p style="text-align: center; color: #a1a1aa; font-size: 0.9rem;">Choisissez votre archétype :</p>
+            <p style="text-align: center; color: #a1a1aa; font-size: 0.85rem;">Choisissez votre archétype :</p>
             
             <button class="class-btn" onclick="startGame('Guerrier')">
-                🛡️ Guerrier
+                🛡️ Guerrier (Set : Rempart du Juggernaut)
                 <span>Force: 15 | Cons: 120 | Armure: 5 | Agilité: 5</span>
             </button>
             <button class="class-btn" onclick="startGame('Mage')">
-                🔮 Mage
+                🔮 Mage (Set : Souffle de l'Archimage)
                 <span>Magie: 22 | Cons: 80 | Armure: 2 | Agilité: 8</span>
             </button>
             <button class="class-btn" onclick="startGame('Voleur')">
-                🗡️ Voleur
+                🗡️ Voleur (Set : Ombre de l'Assassin)
                 <span>Dextérité: 18 | Cons: 100 | Armure: 3 | Agilité: 15</span>
             </button>
         </div>
 
         <!-- ÉCRAN DE JEU -->
         <div id="screen-game" class="hidden">
-            <!-- PANNEAU DE STATISTIQUES & BARRES DE PROGRESSION -->
             <div class="status-panel">
                 <div class="stats-grid">
                     <div class="stat-item">
@@ -323,7 +308,6 @@
                     </div>
                 </div>
 
-                <!-- Barre de PV -->
                 <div class="bar-wrapper">
                     <div class="bar-label">
                         <span>PV (Constitution)</span>
@@ -333,8 +317,7 @@
                         <div id="hp-bar" class="progress-bar-fill"></div>
                     </div>
                 </div>
-                <!-- Barre d'XP -->
-                <div class="bar-wrapper" style="margin-top: 6px;">
+                <div class="bar-wrapper" style="margin-top: 5px;">
                     <div class="bar-label">
                         <span>XP (Expérience)</span>
                         <span id="xp-text">0/30</span>
@@ -345,16 +328,24 @@
                 </div>
             </div>
 
-            <!-- ÉQUIPEMENT ACTUEL -->
             <div class="section-box">
                 <h3>Équipement Actuel</h3>
-                <div class="equipment-grid" id="equipment-display">
-                    <!-- Généré dynamiquement -->
-                </div>
+                <div class="equipment-grid" id="equipment-display"></div>
+                <div id="set-bonus-container"></div>
             </div>
 
-            <div class="section-box" style="text-align: center; min-height: 50px; display: flex; align-items: center; justify-content: center;">
+            <div class="section-box" style="text-align: center;">
                 <p id="encounter-text">Vous entrez dans le donjon...</p>
+                <!-- BARRE DE PV DU MONSTRE (Cachée hors combat) -->
+                <div id="monster-container" class="hidden" style="margin-top: 8px;">
+                    <div class="bar-label">
+                        <span id="monster-name-label">Monstre</span>
+                        <span id="monster-hp-text">0/0</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="monster-hp-bar" class="progress-bar-fill"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="section-box">
@@ -367,16 +358,14 @@
 
             <div class="section-box">
                 <h3>Inventaire</h3>
-                <div class="inventory-grid" id="inventory-buttons">
-                    <!-- Généré dynamiquement sous forme de grille -->
-                </div>
+                <div class="inventory-grid" id="inventory-buttons"></div>
             </div>
 
             <div class="log-box" id="log-box"></div>
         </div>
     </div>
 
-    <!-- MODALE DE COMPARAISON D'OBJET -->
+    <!-- MODALE DE COMPARAISON -->
     <div id="modal-compare" class="hidden">
         <div class="modal-content">
             <h3 id="modal-title" style="margin-top:0; color:#bb86fc;">Comparaison d'équipement</h3>
@@ -403,33 +392,64 @@
         let currentMonster = null;
         let isBossEncounter = false;
         let selectedInventoryIndex = null;
-        let dungeonState = {
-            floor: 1,
-            roomsCleared: 0,
-            maxRoomsPerFloor: 4
-        };
+        let dungeonState = { floor: 1, roomsCleared: 0, maxRoomsPerFloor: 4 };
 
-        const icons = {
-            casque: '🪖',
-            arme: '⚔️',
-            torse: '🛡️',
-            gants: '🧤',
-            bottes: '🥾',
-            anneau: '💍',
-            potion: '🧪'
-        };
+        const icons = { casque: '🪖', arme: '⚔️', torse: '🛡️', gants: '🧤', bottes: '🥾', anneau: '💍', potion: '🧪' };
 
         const rarities = [
-            { name: 'Commun', class: 'rarity-commun', multiplier: 1.0, chance: 0.60, color: '#94a3b8' },
+            { name: 'Commun', class: 'rarity-commun', multiplier: 1.0, chance: 0.55, color: '#94a3b8' },
             { name: 'Rare', class: 'rarity-rare', multiplier: 1.8, chance: 0.25, color: '#3b82f6' },
             { name: 'Épique', class: 'rarity-epique', multiplier: 2.8, chance: 0.12, color: '#a855f7' },
-            { name: 'Légendaire', class: 'rarity-legendaire', multiplier: 4.5, chance: 0.03, color: '#eab308' }
+            { name: 'Légendaire', class: 'rarity-legendaire', multiplier: 4.5, chance: 0.05, color: '#eab308' },
+            { name: 'Set', class: 'rarity-set', multiplier: 3.5, chance: 0.03, color: '#10b981' }
         ];
 
         const classes = {
             'Guerrier': { primaryStatName: 'Force', basePrimary: 15, baseCons: 120, baseArmor: 5, baseAgi: 5 },
             'Mage': { primaryStatName: 'Magie', basePrimary: 22, baseCons: 80, baseArmor: 2, baseAgi: 8 },
             'Voleur': { primaryStatName: 'Dextérité', basePrimary: 18, baseCons: 100, baseArmor: 3, baseAgi: 15 }
+        };
+
+        const classSets = {
+            'Guerrier': {
+                setName: 'Rempart du Juggernaut',
+                pieces: {
+                    casque: { name: 'Heaume du Juggernaut', slot: 'casque', primaryStat: 6, cons: 35, armor: 6 },
+                    torse: { name: 'Cuirasse du Juggernaut', slot: 'torse', primaryStat: 10, cons: 60, armor: 12 },
+                    gants: { name: 'Gantelets du Juggernaut', slot: 'gants', primaryStat: 5, cons: 25, armor: 4 },
+                    bottes: { name: 'Soles du Juggernaut', slot: 'bottes', primaryStat: 4, cons: 20, armor: 5 }
+                },
+                bonuses: {
+                    2: { desc: '2P : +20 Armure & +50 Constitution', stats: { armor: 20, cons: 50 } },
+                    4: { desc: '4P : +30 Force & +150 Constitution', stats: { primaryStat: 30, cons: 150 } }
+                }
+            },
+            'Mage': {
+                setName: "Souffle de l'Archimage",
+                pieces: {
+                    casque: { name: "Capuche de l'Archimage", slot: 'casque', primaryStat: 12, cons: 20, agi: 4 },
+                    torse: { name: "Robe de l'Archimage", slot: 'torse', primaryStat: 18, cons: 35, armor: 4 },
+                    gants: { name: "Gants de l'Archimage", slot: 'gants', primaryStat: 10, cons: 15, agi: 3 },
+                    bottes: { name: "Sandales de l'Archimage", slot: 'bottes', primaryStat: 8, cons: 15, agi: 6 }
+                },
+                bonuses: {
+                    2: { desc: "2P : +15% Agilité & +30 Magie", stats: { primaryStat: 30, agi: 5 } },
+                    4: { desc: "4P : +60 Magie & +100 Constitution", stats: { primaryStat: 60, cons: 100 } }
+                }
+            },
+            'Voleur': {
+                setName: "Ombre de l'Assassin",
+                pieces: {
+                    casque: { name: "Masque de l'Assassin", slot: 'casque', primaryStat: 8, cons: 20, agi: 8 },
+                    torse: { name: "Harnais de l'Assassin", slot: 'torse', primaryStat: 14, cons: 30, armor: 5, agi: 10 },
+                    gants: { name: "Gants de l'Assassin", slot: 'gants', primaryStat: 9, cons: 15, agi: 7 },
+                    bottes: { name: "Bottes de l'Assassin", slot: 'bottes', primaryStat: 7, cons: 15, agi: 12 }
+                },
+                bonuses: {
+                    2: { desc: '2P : +15% Agilité & +25 Dextérité', stats: { primaryStat: 25, agi: 10 } },
+                    4: { desc: '4P : +50 Dextérité & +20% Agilité', stats: { primaryStat: 50, agi: 15 } }
+                }
+            }
         };
 
         let legacyData = JSON.parse(localStorage.getItem('rogue_legacy')) || null;
@@ -439,22 +459,15 @@
                 const legacyBox = document.getElementById('legacy-info');
                 const legacyText = document.getElementById('legacy-text');
                 legacyBox.classList.remove('hidden');
-                let bPrimary = legacyData.bonusPrimary || 0;
-                let bCons = legacyData.bonusCons || 0;
-                legacyText.innerText = `✨ Héritage actif : +${bPrimary} Stat Principale | +${bCons} Constitution`;
+                legacyText.innerText = `✨ Héritage cumulé : +${legacyData.bonusPrimary || 0} Stat Principale | +${legacyData.bonusCons || 0} Constitution`;
             }
-
             if (localStorage.getItem('rogue_save_game')) {
                 document.getElementById('save-game-section').classList.remove('hidden');
             }
         };
 
         function saveGame() {
-            const saveData = {
-                player: player,
-                dungeonState: dungeonState,
-                isBossEncounter: isBossEncounter
-            };
+            const saveData = { player, dungeonState, isBossEncounter, currentMonster };
             localStorage.setItem('rogue_save_game', JSON.stringify(saveData));
         }
 
@@ -466,25 +479,29 @@
             player = savedData.player;
             dungeonState = savedData.dungeonState;
             isBossEncounter = savedData.isBossEncounter || false;
+            currentMonster = savedData.currentMonster || null;
 
-            if (!classes[player.class]) {
-                player.class = 'Guerrier';
-            }
+            if (!classes[player.class]) player.class = 'Guerrier';
             let base = classes[player.class];
 
             if (!player.primaryStatName) player.primaryStatName = base.primaryStatName;
-            if (player.basePrimary === undefined || isNaN(player.basePrimary)) player.basePrimary = base.basePrimary;
-            if (player.baseCons === undefined || isNaN(player.baseCons)) player.baseCons = base.baseCons;
-            if (player.baseArmor === undefined || isNaN(player.baseArmor)) player.baseArmor = base.baseArmor;
-            if (player.baseAgi === undefined || isNaN(player.baseAgi)) player.baseAgi = base.baseAgi;
-            if (player.hp === undefined || isNaN(player.hp) || player.hp <= 0) player.hp = player.baseCons;
+            if (player.basePrimary === undefined) player.basePrimary = base.basePrimary;
+            if (player.baseCons === undefined) player.baseCons = base.baseCons;
+            if (player.baseArmor === undefined) player.baseArmor = base.baseArmor;
+            if (player.baseAgi === undefined) player.baseAgi = base.baseAgi;
+            if (!player.hp || player.hp <= 0) player.hp = player.baseCons;
 
             document.getElementById('screen-class-select').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
             
-            log(`Partie chargée avec succès ! Bienvenue à l'étage ${dungeonState.floor}.`);
+            log(`Partie chargée ! Bienvenue à l'étage ${dungeonState.floor}.`);
             updateStatus();
-            setExplorationMode();
+            
+            if (currentMonster && currentMonster.hp > 0) {
+                restoreCombatUI();
+            } else {
+                setExplorationMode();
+            }
         }
 
         function startGame(className) {
@@ -507,14 +524,7 @@
                 primaryStat: base.basePrimary + bonusPrimary,
                 armor: base.baseArmor,
                 agility: base.baseAgi,
-                equipment: {
-                    casque: null,
-                    arme: null,
-                    torse: null,
-                    gants: null,
-                    bottes: null,
-                    anneau: null
-                },
+                equipment: { casque: null, arme: null, torse: null, gants: null, bottes: null, anneau: null },
                 inventory: [] 
             };
             
@@ -522,7 +532,7 @@
 
             document.getElementById('screen-class-select').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
-            log(`Vous avez choisi ${className}. Bon courage !`);
+            log(`Vous commencez en tant que ${className} avec +${bonusPrimary} ATK et +${bonusCons} Cons d'héritage.`);
             
             saveGame();
             updateStatus();
@@ -546,6 +556,9 @@
             let bonusArmor = 0;
             let bonusAgi = 0;
 
+            let activeSetCount = 0;
+            let currentClassName = player.class;
+
             for (let slot in player.equipment) {
                 let eq = player.equipment[slot];
                 if (eq) {
@@ -553,8 +566,31 @@
                     bonusCons += (eq.cons || 0);
                     bonusArmor += (eq.armor || 0);
                     bonusAgi += (eq.agi || 0);
+
+                    if (eq.isSet && eq.setName === classSets[currentClassName].setName) {
+                        activeSetCount++;
+                    }
                 }
             }
+
+            let setSetBonusesDesc = [];
+            let sInfo = classSets[currentClassName];
+            if (activeSetCount >= 2) {
+                bonusPrimary += (sInfo.bonuses[2].stats.primaryStat || 0);
+                bonusCons += (sInfo.bonuses[2].stats.cons || 0);
+                bonusArmor += (sInfo.bonuses[2].stats.armor || 0);
+                bonusAgi += (sInfo.bonuses[2].stats.agi || 0);
+                setSetBonusesDesc.push(sInfo.bonuses[2].desc);
+            }
+            if (activeSetCount >= 4) {
+                bonusPrimary += (sInfo.bonuses[4].stats.primaryStat || 0);
+                bonusCons += (sInfo.bonuses[4].stats.cons || 0);
+                bonusArmor += (sInfo.bonuses[4].stats.armor || 0);
+                bonusAgi += (sInfo.bonuses[4].stats.agi || 0);
+                setSetBonusesDesc.push(sInfo.bonuses[4].desc);
+            }
+
+            player.activeSetBonuses = setSetBonusesDesc;
 
             let oldMax = player.maxHp || player.baseCons;
             player.maxHp = player.baseCons + bonusCons;
@@ -567,12 +603,8 @@
             } else if (player.maxHp > oldMax) {
                 player.hp += (player.maxHp - oldMax);
             }
-            if (player.hp > player.maxHp) {
-                player.hp = player.maxHp;
-            }
-            if (player.hp < 0) {
-                player.hp = 0;
-            }
+            if (player.hp > player.maxHp) player.hp = player.maxHp;
+            if (player.hp < 0) player.hp = 0;
         }
 
         function updateStatus() {
@@ -597,11 +629,26 @@
 
             updateEquipmentUI();
             updateInventoryUI();
+            updateMonsterUI();
             saveGame();
+        }
+
+        function updateMonsterUI() {
+            const mContainer = document.getElementById('monster-container');
+            if (currentMonster) {
+                mContainer.classList.remove('hidden');
+                document.getElementById('monster-name-label').innerText = currentMonster.name;
+                document.getElementById('monster-hp-text').innerText = `${Math.max(0, currentMonster.hp)}/${currentMonster.maxHp}`;
+                let mPercent = Math.max(0, Math.min(100, (currentMonster.hp / currentMonster.maxHp) * 100));
+                document.getElementById('monster-hp-bar').style.width = mPercent + '%';
+            } else {
+                mContainer.classList.add('hidden');
+            }
         }
 
         function updateEquipmentUI() {
             const eqDisplay = document.getElementById('equipment-display');
+            const setContainer = document.getElementById('set-bonus-container');
             let eq = player.equipment;
             
             const slotsConfig = [
@@ -624,20 +671,22 @@
                     if (item.cons) statDetails.push(`+${item.cons} Cons`);
                     if (item.armor) statDetails.push(`+${item.armor} Déf`);
                     if (item.agi) statDetails.push(`+${item.agi} Agi`);
-                    
-                    if (item.rarityClass) {
-                        rarityClass = item.rarityClass;
-                    }
+                    if (item.rarityClass) rarityClass = item.rarityClass;
                 }
 
-                let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.7rem;">${statDetails.join(' | ')}</span>` : 'Aucun';
+                let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.65rem;">${statDetails.join(' | ')}</span>` : 'Aucun';
                 
                 let div = document.createElement('div');
                 div.className = item ? `eq-slot ${rarityClass}` : 'eq-slot';
-                
-                div.innerHTML = `<span style="font-size: 1.2rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
+                div.innerHTML = `<span style="font-size: 1.1rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
                 eqDisplay.appendChild(div);
             });
+
+            if (player.activeSetBonuses && player.activeSetBonuses.length > 0) {
+                setContainer.innerHTML = `<div class="set-bonus-box"><strong>✨ Panoplie Active (${classSets[player.class].setName})</strong><br>` + player.activeSetBonuses.join('<br>') + `</div>`;
+            } else {
+                setContainer.innerHTML = '';
+            }
         }
 
         function updateInventoryUI() {
@@ -649,39 +698,32 @@
 
             for (let i = 0; i < totalSlots; i++) {
                 let slotDiv = document.createElement('div');
-                
                 if (i < player.inventory.length) {
                     let item = player.inventory[i];
                     let icon = icons[item.type] || icons[item.slot] || '📦';
                     let qtyBadge = item.quantity > 1 ? `<span class="item-count">x${item.quantity}</span>` : '';
                     
                     slotDiv.className = `inventory-slot ${item.rarityClass || 'rarity-commun'}`;
-                    slotDiv.title = `[${item.rarityName}] ${item.name}${item.quantity > 1 ? ' (x' + item.quantity + ')' : ''}`;
+                    slotDiv.title = `[${item.rarityName}] ${item.name}`;
                     slotDiv.innerHTML = `${icon}${qtyBadge}`;
                     slotDiv.onclick = () => handleItemClick(i);
                 } else {
                     slotDiv.className = 'inventory-slot empty';
                 }
-                
                 invContainer.appendChild(slotDiv);
             }
         }
 
         function handleItemClick(index) {
             let item = player.inventory[index];
-            
             if (item.type === 'potion') {
                 player.hp = Math.min(player.maxHp, player.hp + item.value);
                 log(`Potion bue (+${item.value} PV).`);
-                
                 item.quantity--;
-                if (item.quantity <= 0) {
-                    player.inventory.splice(index, 1);
-                }
+                if (item.quantity <= 0) player.inventory.splice(index, 1);
                 updateStatus();
                 return;
             }
-
             selectedInventoryIndex = index;
             openCompareModal(item);
         }
@@ -710,12 +752,7 @@
             let armorClass = diffArmor > 0 ? 'stat-diff-pos' : (diffArmor < 0 ? 'stat-diff-neg' : '');
             let agiClass = diffAgi > 0 ? 'stat-diff-pos' : (diffAgi < 0 ? 'stat-diff-neg' : '');
 
-            let primaryStr = `${player.primaryStatName}: ${newItem.primaryStat || 0} <span class="${primaryClass}">(${diffPrimary >= 0 ? '+' : ''}${diffPrimary})</span>`;
-            let consStr = `Cons: ${newItem.cons || 0} <span class="${consClass}">(${diffCons >= 0 ? '+' : ''}${diffCons})</span>`;
-            let armorStr = `Déf: ${newItem.armor || 0} <span class="${armorClass}">(${diffArmor >= 0 ? '+' : ''}${diffArmor})</span>`;
-            let agiStr = `Agi: ${newItem.agi || 0} <span class="${agiClass}">(${diffAgi >= 0 ? '+' : ''}${diffAgi})</span>`;
-
-            newDiv.innerHTML = `<strong style="color: ${newItem.rarityColor}">${newItem.name}</strong><br><span style="font-size:0.7rem; color:#a1a1aa;">[${newItem.rarityName}]</span><br>${primaryStr}<br>${consStr}<br>${armorStr}<br>${agiStr}`;
+            newDiv.innerHTML = `<strong style="color: ${newItem.rarityColor}">${newItem.name}</strong><br><span style="font-size:0.7rem; color:#a1a1aa;">[${newItem.rarityName}]</span><br>${player.primaryStatName}: ${newItem.primaryStat || 0} <span class="${primaryClass}">(${diffPrimary >= 0 ? '+' : ''}${diffPrimary})</span><br>Cons: ${newItem.cons || 0} <span class="${consClass}">(${diffCons >= 0 ? '+' : ''}${diffCons})</span><br>Déf: ${newItem.armor || 0} <span class="${armorClass}">(${diffArmor >= 0 ? '+' : ''}${diffArmor})</span><br>Agi: ${newItem.agi || 0} <span class="${agiClass}">(${diffAgi >= 0 ? '+' : ''}${diffAgi})</span>`;
 
             document.getElementById('modal-compare').classList.remove('hidden');
         }
@@ -728,7 +765,6 @@
         function confirmEquip() {
             if (selectedInventoryIndex === null) return;
             let itemStack = player.inventory[selectedInventoryIndex];
-            
             let newItem = { ...itemStack };
             delete newItem.quantity;
 
@@ -739,10 +775,8 @@
 
             if (itemStack.quantity > 1) {
                 itemStack.quantity--;
-                if (previousItem) {
-                    addItemToInventory(previousItem);
-                }
-                log(`Vous équipez ${newItem.name} depuis la pile.`);
+                if (previousItem) addItemToInventory(previousItem);
+                log(`Vous équipez ${newItem.name}.`);
             } else {
                 if (previousItem) {
                     player.inventory[selectedInventoryIndex] = previousItem;
@@ -761,14 +795,9 @@
         function discardItem() {
             if (selectedInventoryIndex === null) return;
             let itemStack = player.inventory[selectedInventoryIndex];
-            
             itemStack.quantity--;
-            log(`Vous avez jeté un exemplaire de ${itemStack.name}.`);
-            
-            if (itemStack.quantity <= 0) {
-                player.inventory.splice(selectedInventoryIndex, 1);
-            }
-            
+            log(`Jeté : ${itemStack.name}.`);
+            if (itemStack.quantity <= 0) player.inventory.splice(selectedInventoryIndex, 1);
             closeModal();
             updateStatus();
         }
@@ -781,22 +810,18 @@
 
         function setExplorationMode() {
             currentMonster = null;
+            updateMonsterUI();
             isBossEncounter = false;
             saveGame();
             
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
-                document.getElementById('encounter-text').innerText = `⚠️ SALLE DU BOSS DE L'ÉTAGE ${dungeonState.floor} !`;
-                let actionDiv = document.getElementById('action-buttons');
-                actionDiv.innerHTML = `
-                    <button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>
-                `;
+                document.getElementById('encounter-text').innerText = `⚠️ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
+                document.getElementById('action-buttons').innerHTML = `<button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>`;
                 return;
             }
 
             document.getElementById('encounter-text').innerText = `Étage ${dungeonState.floor} — Salles : ${dungeonState.roomsCleared}/${dungeonState.maxRoomsPerFloor}`;
-            
-            let actionDiv = document.getElementById('action-buttons');
-            actionDiv.innerHTML = `
+            document.getElementById('action-buttons').innerHTML = `
                 <button id="btn-explore" onclick="exploreRoom()">Explorer une salle</button>
                 <button id="btn-next-floor" onclick="nextFloor()" ${dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor ? '' : 'disabled'}>Monter l'escalier</button>
             `;
@@ -804,37 +829,32 @@
 
         function exploreRoom() {
             let eventRoll = Math.random();
-
             if (eventRoll < 0.6) {
                 spawnMonster();
             } else if (eventRoll < 0.85) {
                 let item = getRandomEquipmentOrPotion();
                 addItemToInventory(item);
                 document.getElementById('encounter-text').innerText = `✨ Trésor trouvé !`;
-                log(`Vous découvrez : <strong style="color: ${item.rarityColor}">[${item.rarityName}] ${item.name}</strong> !`);
+                log(`Trouvé : <strong style="color: ${item.rarityColor}">[${item.rarityName}] ${item.name}</strong> !`);
                 finishRoom();
             } else {
-                // Échelle de soin également influencée par le multiplicateur d'étage
                 let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
-                let heal = Math.floor((25 + (dungeonState.floor * 5)) * floorMultiplier);
+                let heal = Math.floor(30 * floorMultiplier);
                 player.hp = Math.min(player.maxHp, player.hp + heal);
                 document.getElementById('encounter-text').innerText = `💧 Source magique...`;
-                log(`Vous buvez l'eau claire et récupérez ${heal} PV.`);
+                log(`Source d'eau claire : +${heal} PV.`);
                 updateStatus();
                 finishRoom();
             }
         }
 
         function spawnMonster() {
-            // Multiplicateur x10 par étage : 10^(étage - 1)
             let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
-
             const baseMonsters = [
                 { name: 'Gobelin', hp: 30, atk: 8, xpValue: 12 },
                 { name: 'Squelette', hp: 45, atk: 12, xpValue: 20 },
                 { name: 'Orc des Cavernes', hp: 65, atk: 16, xpValue: 35 }
             ];
-
             let template = baseMonsters[Math.floor(Math.random() * baseMonsters.length)];
             
             currentMonster = {
@@ -845,11 +865,11 @@
                 xpValue: Math.floor(template.xpValue * floorMultiplier)
             };
 
-            document.getElementById('encounter-text').innerText = `⚔️ ${currentMonster.name} (PV: ${currentMonster.hp})`;
-            log(`Un féroce ${currentMonster.name} (Étage ${dungeonState.floor}) surgit !`);
+            document.getElementById('encounter-text').innerText = `⚔️ Combat en cours contre un ${currentMonster.name}`;
+            updateMonsterUI();
+            log(`Un ${currentMonster.name} surgit !`);
 
-            let actionDiv = document.getElementById('action-buttons');
-            actionDiv.innerHTML = `
+            document.getElementById('action-buttons').innerHTML = `
                 <button onclick="combatAction('fight')">Attaquer</button>
                 <button onclick="combatAction('flee')" style="background: #52525b;">Tenter de fuir</button>
             `;
@@ -858,14 +878,8 @@
         function spawnBoss() {
             isBossEncounter = true;
             let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
-            
-            const bossNames = {
-                5: 'Seigneur des Abysses',
-                10: 'Dragon des Cendres',
-                15: 'Roi Liche Immortel',
-                20: 'Titan du Chaos'
-            };
-            let bName = bossNames[dungeonState.floor] || `Seigneur des Ténèbres (Étage ${dungeonState.floor})`;
+            const bossNames = { 5: 'Seigneur des Abysses', 10: 'Dragon des Cendres', 15: 'Roi Liche Immortel', 20: 'Titan du Chaos' };
+            let bName = bossNames[dungeonState.floor] || `Seigneur des Ténèbres`;
 
             currentMonster = {
                 name: bName,
@@ -875,40 +889,62 @@
                 xpValue: Math.floor(100 * floorMultiplier)
             };
 
-            document.getElementById('encounter-text').innerText = `👹 BOSS : ${currentMonster.name} (PV: ${currentMonster.hp})`;
-            log(`🔥 Le redoutable **${currentMonster.name}** se dresse devant vous !`);
+            document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS`;
+            updateMonsterUI();
+            log(`🔥 **${currentMonster.name}** bloque le passage !`);
 
-            let actionDiv = document.getElementById('action-buttons');
-            actionDiv.innerHTML = `
+            document.getElementById('action-buttons').innerHTML = `
                 <button onclick="combatAction('fight')" style="background: #e11d48;">Combattre le Boss</button>
             `;
+        }
+
+        function restoreCombatUI() {
+            if (isBossEncounter) {
+                document.getElementById('encounter-text').innerText = `👹 COMBAT DE BOSS`;
+                document.getElementById('action-buttons').innerHTML = `
+                    <button onclick="combatAction('fight')" style="background: #e11d48;">Combattre le Boss</button>
+                `;
+            } else {
+                document.getElementById('encounter-text').innerText = `⚔️ Combat en cours contre un ${currentMonster.name}`;
+                document.getElementById('action-buttons').innerHTML = `
+                    <button onclick="combatAction('fight')">Attaquer</button>
+                    <button onclick="combatAction('flee')" style="background: #52525b;">Tenter de fuir</button>
+                `;
+            }
+            updateMonsterUI();
         }
 
         function combatAction(action) {
             if (action === 'fight' && currentMonster) {
                 currentMonster.hp -= player.primaryStat;
-                log(`Vous infligez ${player.primaryStat} dégâts (${player.primaryStatName}).`);
+                log(`Vous infligez ${player.primaryStat} dégâts.`);
+                updateMonsterUI();
 
                 if (currentMonster.hp <= 0) {
                     if (isBossEncounter) {
-                        log(`🏆 **VICTOIRE ÉPIQUE !** Vous avez terrassé le ${currentMonster.name} ! (+${currentMonster.xpValue} XP)`);
+                        log(`🏆 **VICTOIRE DU BOSS !** (+${currentMonster.xpValue} XP)`);
                         gainXp(currentMonster.xpValue);
                         
-                        let legRarity = rarities.find(r => r.name === 'Légendaire');
+                        let setInfo = classSets[player.class];
+                        let slotsKeys = Object.keys(setInfo.pieces);
+                        let randomSlotKey = slotsKeys[Math.floor(Math.random() * slotsKeys.length)];
+                        let templatePiece = setInfo.pieces[randomSlotKey];
+                        
                         let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
-                        let bossGear = { 
-                            name: '✨ Épée du Destin', 
-                            slot: 'arme', 
-                            primaryStat: Math.floor(15 * floorMultiplier * legRarity.multiplier), 
-                            cons: Math.floor(30 * floorMultiplier * legRarity.multiplier),
-                            armor: Math.floor(5 * floorMultiplier * legRarity.multiplier),
-                            agi: Math.floor(5 * floorMultiplier * legRarity.multiplier),
-                            rarityName: legRarity.name,
-                            rarityClass: legRarity.class,
-                            rarityColor: legRarity.color
+                        let bossSetItem = {
+                            ...templatePiece,
+                            isSet: true,
+                            setName: setInfo.setName,
+                            rarityName: 'Set',
+                            rarityClass: 'rarity-set',
+                            rarityColor: '#10b981',
+                            primaryStat: Math.floor(templatePiece.primaryStat * floorMultiplier),
+                            cons: Math.floor(templatePiece.cons * floorMultiplier),
+                            armor: templatePiece.armor ? Math.floor(templatePiece.armor * floorMultiplier) : 0,
+                            agi: templatePiece.agi ? Math.floor(templatePiece.agi * floorMultiplier) : 0
                         };
-                        addItemToInventory(bossGear);
-                        log(`🎁 Butin de boss obtenu : <strong style="color: ${legRarity.color}">[${legRarity.name}] ${bossGear.name}</strong> !`);
+                        addItemToInventory(bossSetItem);
+                        log(`🎁 Pièce de set de boss obtenue : <strong style="color: #10b981">[Set] ${bossSetItem.name}</strong> !`);
                         
                         dungeonState.roomsCleared = dungeonState.maxRoomsPerFloor;
                         setExplorationMode();
@@ -923,63 +959,50 @@
 
                 let dodgeChance = Math.min(50, player.agility * 0.8); 
                 if (Math.random() * 100 < dodgeChance) {
-                    log(`✨ Vous esquivez l'attaque du monstre grâce à votre Agilité !`);
+                    log(`✨ Vous esquivez l'attaque grâce à votre Agilité !`);
                 } else {
                     let mitigatedDamage = Math.max(1, currentMonster.atk - player.armor);
                     player.hp -= mitigatedDamage;
-                    log(`Le monstre riposte et inflige ${mitigatedDamage} dégâts (Réduit de ${player.armor} par l'Armure).`);
+                    log(`Le monstre riposte : ${mitigatedDamage} dégâts subis.`);
                 }
                 updateStatus();
 
-                if (player.hp <= 0) {
-                    handlePlayerDeath();
-                }
+                if (player.hp <= 0) handlePlayerDeath();
             } else if (action === 'flee') {
                 if (Math.random() < (0.4 + (player.agility * 0.01))) {
-                    log(`Fuite réussie, mais la salle est perdue.`);
+                    log(`Fuite réussie.`);
                     finishRoom();
                 } else {
-                    log(`Échec de la fuite ! Le monstre frappe.`);
+                    log(`Échec de la fuite !`);
                     let mitigatedDamage = Math.max(1, currentMonster.atk - player.armor);
                     player.hp -= mitigatedDamage;
                     updateStatus();
-                    if (player.hp <= 0) {
-                        handlePlayerDeath();
-                    }
+                    if (player.hp <= 0) handlePlayerDeath();
                 }
             }
         }
 
         function handlePlayerDeath() {
-            log(`Vous êtes mort au combat...`);
-            
-            let savedBonusPrimary = Math.floor(player.level * 2);
-            let savedBonusCons = player.level * 15;
+            log(`Vous avez péri au combat...`);
+            currentMonster = null;
+            let currentRunBonusPrimary = Math.floor(player.level * 2);
+            let currentRunBonusCons = player.level * 15;
 
+            let existingLegacy = JSON.parse(localStorage.getItem('rogue_legacy')) || { bonusPrimary: 0, bonusCons: 0 };
             localStorage.setItem('rogue_legacy', JSON.stringify({
-                level: player.level,
-                bonusPrimary: savedBonusPrimary,
-                bonusCons: savedBonusCons
+                bonusPrimary: (existingLegacy.bonusPrimary || 0) + currentRunBonusPrimary,
+                bonusCons: (existingLegacy.bonusCons || 0) + currentRunBonusCons
             }));
 
             localStorage.removeItem('rogue_save_game');
-
-            document.getElementById('action-buttons').innerHTML = `
-                <button onclick="location.reload()" style="background: #e11d48;">Recommencer (Héritage gardé)</button>
-            `;
+            document.getElementById('action-buttons').innerHTML = `<button onclick="location.reload()" style="background: #e11d48;">Recommencer (Héritage sauvegardé !)</button>`;
+            updateMonsterUI();
         }
 
         function finishRoom() {
+            currentMonster = null;
             dungeonState.roomsCleared++;
             updateStatus();
-            
-            if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor) {
-                if (dungeonState.floor % 5 === 0) {
-                    log(`⚠️ Le gardien de l'étage bloque l'accès aux escaliers !`);
-                } else {
-                    log(`🚪 L'escalier vers l'étage supérieur est débloqué !`);
-                }
-            }
             setExplorationMode();
         }
 
@@ -987,60 +1010,69 @@
             dungeonState.floor++;
             dungeonState.roomsCleared = 0;
             dungeonState.maxRoomsPerFloor += 1; 
-
-            log(`🌟 Vous montez à l'étage ${dungeonState.floor} (Difficulté x10).`);
+            log(`🌟 Étage ${dungeonState.floor} atteint.`);
             updateStatus();
             setExplorationMode();
         }
 
-        function getRandomRarity() {
-            let roll = Math.random();
-            let cumulative = 0;
-            for (let r of rarities) {
-                cumulative += r.chance;
-                if (roll <= cumulative) return r;
-            }
-            return rarities[0];
-        }
-
         function getRandomEquipmentOrPotion() {
+            if (Math.random() < 0.20) {
+                let setInfo = classSets[player.class];
+                let slotsKeys = Object.keys(setInfo.pieces);
+                let randomSlotKey = slotsKeys[Math.floor(Math.random() * slotsKeys.length)];
+                let templatePiece = setInfo.pieces[randomSlotKey];
+                let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
+
+                return {
+                    ...templatePiece,
+                    isSet: true,
+                    setName: setInfo.setName,
+                    rarityName: 'Set',
+                    rarityClass: 'rarity-set',
+                    rarityColor: '#10b981',
+                    primaryStat: Math.floor(templatePiece.primaryStat * floorMultiplier),
+                    cons: Math.floor(templatePiece.cons * floorMultiplier),
+                    armor: templatePiece.armor ? Math.floor(templatePiece.armor * floorMultiplier) : 0,
+                    agi: templatePiece.agi ? Math.floor(templatePiece.agi * floorMultiplier) : 0
+                };
+            }
+
             const itemsPool = [
                 { name: '🧪 Potion de Soin', type: 'potion', value: 40 },
-                { name: '🪖 Casque en Cuir', slot: 'casque', cons: 15, armor: 1 },
                 { name: '🪖 Casque en Fer', slot: 'casque', cons: 25, primaryStat: 2, armor: 3 },
-                { name: '🗡️ Dague Légère', slot: 'arme', primaryStat: 4, agi: 2 },
-                { name: '⚔️ Épée Longue', slot: 'arme', primaryStat: 8 },
-                { name: '🛡️ Armure en Cuir', slot: 'torse', cons: 20, armor: 2 },
+                { name: '⚔️️ Épée Longue', slot: 'arme', primaryStat: 8 },
                 { name: '🛡️ Plastron de Plates', slot: 'torse', cons: 40, armor: 5 },
-                { name: '🧤 Gants en Tissu', slot: 'gants', primaryStat: 2, cons: 5 },
                 { name: '🧤 Gants Barbelés', slot: 'gants', primaryStat: 5 },
-                { name: '🥾 Bottes Souples', slot: 'bottes', cons: 10, agi: 3 },
                 { name: '🥾 Bottes de Fer', slot: 'bottes', cons: 15, armor: 2 },
-                { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 8 },
-                { name: '💍 Anneau d\'Agilité', slot: 'anneau', agi: 4 },
-                { name: '💍 Anneau de Garde', slot: 'anneau', armor: 2, cons: 8 }
+                { name: '💍 Anneau de Puissance', slot: 'anneau', primaryStat: 3, cons: 8 }
             ];
 
             let template = itemsPool[Math.floor(Math.random() * itemsPool.length)];
             let item = { ...template };
             
-            let rarity = getRandomRarity();
+            if (item.type === 'potion') return item;
+
+            let roll = Math.random();
+            let cumulative = 0;
+            let rarity = rarities[0];
+            let standardRarities = rarities.filter(r => r.name !== 'Set');
+            for (let r of standardRarities) {
+                cumulative += r.chance;
+                if (roll <= cumulative) { rarity = r; break; }
+            }
+
             item.rarityName = rarity.name;
             item.rarityClass = rarity.class;
             item.rarityColor = rarity.color;
 
             let floorMultiplier = Math.pow(10, dungeonState.floor - 1);
+            let scale = floorMultiplier * rarity.multiplier;
 
-            if (item.type !== 'potion') {
-                let scale = floorMultiplier * rarity.multiplier;
-                if (item.primaryStat) item.primaryStat = Math.max(1, Math.floor(item.primaryStat * scale));
-                if (item.cons) item.cons = Math.max(5, Math.floor(item.cons * scale));
-                if (item.armor) item.armor = Math.max(1, Math.floor(item.armor * scale));
-                if (item.agi) item.agi = Math.max(1, Math.floor(item.agi * scale));
-            } else {
-                let scale = floorMultiplier * rarity.multiplier;
-                item.value = Math.floor(40 * scale);
-            }
+            if (item.primaryStat) item.primaryStat = Math.max(1, Math.floor(item.primaryStat * scale));
+            if (item.cons) item.cons = Math.max(5, Math.floor(item.cons * scale));
+            if (item.armor) item.armor = Math.max(1, Math.floor(item.armor * scale));
+            if (item.agi) item.agi = Math.max(1, Math.floor(item.agi * scale));
+
             return item;
         }
 
@@ -1048,7 +1080,7 @@
             if (Math.random() < 0.55) {
                 let loot = getRandomEquipmentOrPotion();
                 addItemToInventory(loot);
-                log(`🎁 Butin obtenu : <strong style="color: ${loot.rarityColor}">[${loot.rarityName}] ${loot.name}</strong> !`);
+                log(`🎁 Butin : <strong style="color: ${loot.rarityColor}">[${loot.rarityName}] ${loot.name}</strong> !`);
             }
         }
 
@@ -1061,8 +1093,7 @@
                 player.hp = player.baseCons;
                 player.basePrimary += 3;
                 player.maxXp = Math.floor(player.maxXp * 1.4);
-
-                log(`✨ **NIVEAU ${player.level} ATTEINT !** (Constitution et ${player.primaryStatName} augmentées)`);
+                log(`✨ **NIVEAU ${player.level} ATTEINT !**`);
             }
             updateStatus();
         }
