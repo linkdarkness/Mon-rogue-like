@@ -114,6 +114,37 @@
         #xp-bar { background: #22c55e; }
         #monster-hp-bar { background: #f97316; }
 
+        /* PANNEAU DE DUEL (COMBAT CÔTE À CÔTE) */
+        .combat-duel-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 6px;
+            border-top: 1px solid #2f2f35;
+            padding-top: 6px;
+        }
+        .combat-card {
+            background: #18181b;
+            border: 1px solid #3f3f46;
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+        }
+        .combat-card.hero-side { border-color: #ef4444; }
+        .combat-card.monster-side { border-color: #f97316; }
+        .combat-card-title {
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .combat-card-hp {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #f0f0f0;
+            margin-top: 3px;
+        }
+
         button { 
             background: #6200ee; 
             color: white; 
@@ -421,14 +452,25 @@
                         Étage 1 — Salles : <span id="floor-rooms-text" style="color: #03dac6;">0/4</span>
                     </div>
 
-                    <!-- BARRE DE PV DU MONSTRE -->
-                    <div id="monster-container" class="hidden" style="margin-top: 6px; border-top: 1px solid #2f2f35; padding-top: 6px;">
-                        <div class="bar-label">
-                            <span id="monster-name-label" style="color: #f97316;">Monstre</span>
-                            <span id="monster-hp-text">0/0</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div id="monster-hp-bar" class="progress-bar-fill"></div>
+                    <!-- PANNEAU DE DUEL (HÉROS VS MONSTRE) -->
+                    <div id="monster-container" class="hidden">
+                        <div class="combat-duel-panel">
+                            <!-- Carte Héros en combat -->
+                            <div class="combat-card hero-side">
+                                <div class="combat-card-title" style="color: #ef4444;">🛡️ Héros</div>
+                                <div class="progress-bar-bg">
+                                    <div id="combat-hero-hp-bar" class="progress-bar-fill" style="background: #ef4444;"></div>
+                                </div>
+                                <div id="combat-hero-hp-text" class="combat-card-hp">0/0</div>
+                            </div>
+                            <!-- Carte Monstre en combat -->
+                            <div class="combat-card monster-side">
+                                <div id="combat-monster-name-title" class="combat-card-title" style="color: #f97316;">Monstre</div>
+                                <div class="progress-bar-bg">
+                                    <div id="combat-monster-hp-bar" class="progress-bar-fill" style="background: #f97316;"></div>
+                                </div>
+                                <div id="combat-monster-hp-text" class="combat-card-hp">0/0</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -454,7 +496,7 @@
             <!-- ONGLET 4 : ENTRAÎNEMENT -->
             <div id="tab-training" class="tab-content hidden">
                 <div class="section-box">
-                    <h3>🏋️ Sanctuaire d'Entraînement</h3>
+                    <h3>🏋️️ Sanctuaire d'Entraînement</h3>
                     <p style="font-size:0.75rem; color:#a1a1aa; margin-bottom:8px;">Dépensez votre or pour augmenter durablement vos statistiques.</p>
                     
                     <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -782,10 +824,17 @@
             const mContainer = document.getElementById('monster-container');
             if (currentMonster) {
                 mContainer.classList.remove('hidden');
-                document.getElementById('monster-name-label').innerText = currentMonster.name;
-                document.getElementById('monster-hp-text').innerText = `${Math.max(0, currentMonster.hp)}/${currentMonster.maxHp}`;
+                
+                // MAJ Monstre
+                document.getElementById('combat-monster-name-title').innerText = currentMonster.name;
+                document.getElementById('combat-monster-hp-text').innerText = `${Math.max(0, currentMonster.hp)}/${currentMonster.maxHp}`;
                 let mPercent = Math.max(0, Math.min(100, (currentMonster.hp / currentMonster.maxHp) * 100));
-                document.getElementById('monster-hp-bar').style.width = mPercent + '%';
+                document.getElementById('combat-monster-hp-bar').style.width = mPercent + '%';
+
+                // MAJ Héros (Panneau de combat duel)
+                document.getElementById('combat-hero-hp-text').innerText = `${Math.max(0, player.hp)}/${player.maxHp}`;
+                let hPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
+                document.getElementById('combat-hero-hp-bar').style.width = hPercent + '%';
             } else {
                 mContainer.classList.add('hidden');
             }
