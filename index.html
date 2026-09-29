@@ -162,8 +162,8 @@
 
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
             overflow-y: auto;
             padding: 2px;
         }
@@ -172,13 +172,13 @@
             aspect-ratio: 1;
             background: #27272a;
             border: 2px solid #3f3f46;
-            border-radius: 6px;
+            border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
             cursor: pointer;
-            font-size: 1.4rem;
+            font-size: 1.1rem;
             transition: background 0.2s, transform 0.1s;
         }
         .inventory-slot:hover { background: #3f3f46; transform: scale(1.02); }
@@ -188,18 +188,18 @@
         .rarity-rare { border-color: #3b82f6 !important; }       
         .rarity-epique { border-color: #a855f7 !important; }     
         .rarity-legendaire { border-color: #eab308 !important; } 
-        .rarity-set { border-color: #10b981 !important; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4); }
-        .rarity-mythique { border-color: #ef4444 !important; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+        .rarity-set { border-color: #10b981 !important; box-shadow: 0 0 5px rgba(16, 185, 129, 0.4); }
+        .rarity-mythique { border-color: #ef4444 !important; box-shadow: 0 0 6px rgba(239, 68, 68, 0.6); }
 
         .item-count {
             position: absolute;
-            bottom: 2px;
-            right: 3px;
-            font-size: 0.65rem;
-            background: rgba(0, 0, 0, 0.75);
+            bottom: 1px;
+            right: 2px;
+            font-size: 0.55rem;
+            background: rgba(0, 0, 0, 0.8);
             color: #03dac6;
-            padding: 1px 3px;
-            border-radius: 3px;
+            padding: 0px 2px;
+            border-radius: 2px;
             font-weight: bold;
         }
 
@@ -460,7 +460,7 @@
                             ❤ Constitution / PV (+25) <br><span style="font-size:0.68rem; color:#facc15;" id="cost-cons">25 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('armor')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            🛡️️ Armure (+2) <br><span style="font-size:0.68rem; color:#facc15;" id="cost-armor">35 🪙</span>
+                            🛡 Armure (+2) <br><span style="font-size:0.68rem; color:#facc15;" id="cost-armor">35 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('agility')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
                             ⚡ Agilité (+2) <br><span style="font-size:0.68rem; color:#facc15;" id="cost-agility">30 🪙</span>
@@ -833,8 +833,8 @@
             const invContainer = document.getElementById('inventory-buttons');
             invContainer.innerHTML = '';
 
-            const minSlots = 12;
-            let totalSlots = Math.max(minSlots, Math.ceil(player.inventory.length / 4) * 4);
+            const minSlots = 15; // 3 lignes de 5
+            let totalSlots = Math.max(minSlots, Math.ceil(player.inventory.length / 5) * 5);
 
             for (let i = 0; i < totalSlots; i++) {
                 let slotDiv = document.createElement('div');
@@ -1039,7 +1039,7 @@
             saveGame();
             
             if (dungeonState.roomsCleared >= dungeonState.maxRoomsPerFloor && dungeonState.floor % 5 === 0) {
-                document.getElementById('encounter-text').innerText = `⚠️️ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
+                document.getElementById('encounter-text').innerText = `⚠ SALLE DU BOSS (Étage ${dungeonState.floor}) !`;
                 document.getElementById('action-buttons').innerHTML = `<button onclick="spawnBoss()" style="background: #e11d48;">Affronter le Boss</button>`;
                 return;
             }
