@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dungeon Crawler - Boss Every 50 Rooms</title>
+    <title>Dungeon Crawler - Entraînement & Boutons Dynamiques</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -14,33 +14,35 @@
         .animate-pulse-slow {
             animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-5px); }
-            40%, 80% { transform: translateX(5px); }
-        }
-        .animate-shake {
-            animation: shake 0.4s ease-in-out;
-        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col items-center justify-center p-2 sm:p-4">
 
-    <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+    <div class="w-full max-w-5xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
         
-        <!-- Left Panel: Stats & Controls -->
-        <div class="w-full md:w-1/3 bg-slate-900/80 p-6 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col justify-between">
+        <!-- Left Panel: Stats, Tabs & Actions -->
+        <div class="w-full lg:w-2/5 bg-slate-900/90 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col justify-between">
             <div>
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-xl font-bold tracking-wider text-amber-500"><i class="fa-solid fa-dungeon mr-2"></i>Dungeon Crawler</h1>
+                <div class="flex items-center justify-between mb-4">
+                    <h1 class="text-lg sm:text-xl font-bold tracking-wider text-amber-500"><i class="fa-solid fa-dungeon mr-2"></i>Dungeon Crawler</h1>
                     <span id="floorBadge" class="px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold rounded-full">Étage 1</span>
                 </div>
 
-                <!-- Hero Status -->
-                <div class="space-y-4">
-                    <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                <!-- Navigation Tabs -->
+                <div class="grid grid-cols-2 gap-2 mb-4 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+                    <button id="tabAdventure" onclick="game.switchTab('adventure')" class="py-2 text-xs font-bold rounded-lg transition bg-amber-600 text-white shadow">
+                        <i class="fa-solid fa-map mr-1.5"></i>Aventure
+                    </button>
+                    <button id="tabTraining" onclick="game.switchTab('training')" class="py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-slate-200">
+                        <i class="fa-solid fa-dumbbell mr-1.5"></i>Sanctuaire
+                    </button>
+                </div>
+
+                <!-- Hero Status Overview -->
+                <div class="space-y-3">
+                    <div class="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
                         <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-slate-200"><i class="fa-solid fa-user-shield text-blue-400 mr-2"></i>Héros</span>
+                            <span class="font-bold text-sm text-slate-200"><i class="fa-solid fa-user-shield text-blue-400 mr-2"></i>Héros</span>
                             <span id="heroLevel" class="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded">Niv. 1</span>
                         </div>
                         
@@ -50,7 +52,7 @@
                                 <span class="text-slate-400">PV</span>
                                 <span id="heroHpText" class="font-medium text-emerald-400">100 / 100</span>
                             </div>
-                            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                                 <div id="heroHpBar" class="bg-emerald-500 h-full transition-all duration-300" style="width: 100%"></div>
                             </div>
                         </div>
@@ -67,15 +69,23 @@
                         </div>
                     </div>
 
-                    <!-- Attributes -->
-                    <div class="grid grid-cols-2 gap-2 text-sm">
+                    <!-- Attributes Grid (Including Chance) -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
                         <div class="bg-slate-950/40 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
-                            <span class="text-slate-400"><i class="fa-solid fa-sword text-red-400 mr-1.5"></i>Attaque</span>
-                            <span id="statAtk" class="font-bold text-slate-200">12</span>
+                            <span class="text-slate-400"><i class="fa-solid fa-sword text-red-400 mr-1.5"></i>Atq</span>
+                            <span id="statAtk" class="font-bold text-slate-200">14</span>
                         </div>
                         <div class="bg-slate-950/40 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
-                            <span class="text-slate-400"><i class="fa-solid fa-shield-halved text-cyan-400 mr-1.5"></i>Défense</span>
-                            <span id="statDef" class="font-bold text-slate-200">4</span>
+                            <span class="text-slate-400"><i class="fa-solid fa-shield-halved text-cyan-400 mr-1.5"></i>Déf</span>
+                            <span id="statDef" class="font-bold text-slate-200">5</span>
+                        </div>
+                        <div class="bg-slate-950/40 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
+                            <span class="text-slate-400"><i class="fa-solid fa-heart text-emerald-400 mr-1.5"></i>PV Max</span>
+                            <span id="statMaxHp" class="font-bold text-slate-200">100</span>
+                        </div>
+                        <div class="bg-slate-950/40 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
+                            <span class="text-slate-400"><i class="fa-solid fa-dice text-amber-400 mr-1.5"></i>Chance</span>
+                            <span id="statChance" class="font-bold text-amber-400">0%</span>
                         </div>
                     </div>
 
@@ -86,63 +96,157 @@
                             <span id="roomCount" class="font-semibold text-amber-400">1 / 50 (Boss)</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-slate-400">Or amassé :</span>
-                            <span id="goldCount" class="font-semibold text-yellow-400">0 pièces</span>
+                            <span class="text-slate-400">Or disponible :</span>
+                            <span id="goldCount" class="font-semibold text-yellow-400">100 pièces</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Action Controls -->
-            <div class="mt-6 space-y-2">
-                <button id="exploreBtn" onclick="game.progressRoom()" class="w-full py-3 px-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center cursor-pointer">
-                    <i class="fa-solid fa-shoe-prints mr-2"></i>Explorer la salle suivante
-                </button>
-                <button onclick="game.resetGame()" class="w-full py-2 px-4 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs rounded-xl transition duration-200 cursor-pointer">
-                    Recommencer à zéro
+            <!-- Global Action or Footer note -->
+            <div class="mt-4 pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-500">
+                <span>Progression active</span>
+                <button onclick="game.resetGame()" class="hover:text-red-400 transition cursor-pointer">
+                    <i class="fa-solid fa-rotate-right mr-1"></i>Recommencer
                 </button>
             </div>
         </div>
 
-        <!-- Right Panel: Adventure Log & Visuals -->
-        <div class="w-full md:w-2/3 flex flex-col bg-slate-950/50">
+        <!-- Right Panel: Dynamic Views (Adventure vs Training) -->
+        <div class="w-full lg:w-3/5 flex flex-col bg-slate-950/50">
             
-            <!-- Visual Display Area -->
-            <div id="visualDisplay" class="relative h-56 border-b border-slate-800 flex items-center justify-center p-4 bg-gradient-to-b from-slate-900 to-slate-950 overflow-hidden transition-colors duration-500">
-                <!-- Background pattern / room decoration -->
-                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                
-                <!-- Entity Card -->
-                <div id="entityCard" class="z-10 bg-slate-900/90 border border-slate-800 px-6 py-4 rounded-2xl shadow-xl flex flex-col items-center max-w-xs w-full transition-all">
-                    <div id="entityIcon" class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-3xl text-emerald-400 mb-3 shadow-inner">
-                        <i class="fa-solid fa-tree"></i>
-                    </div>
-                    <h2 id="entityName" class="font-bold text-lg text-slate-100 mb-1">Salle paisible</h2>
-                    <p id="entityDesc" class="text-xs text-slate-400 text-center mb-3">Rien de menaçant ici, vous soufflez un moment.</p>
+            <!-- VIEW 1: ADVENTURE -->
+            <div id="viewAdventure" class="flex flex-col h-full">
+                <!-- Visual Display Area -->
+                <div id="visualDisplay" class="relative h-52 sm:h-56 border-b border-slate-800 flex items-center justify-center p-4 bg-gradient-to-b from-slate-900 to-slate-950 overflow-hidden transition-colors duration-500">
+                    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px]"></div>
                     
-                    <!-- Monster HP bar if fighting -->
-                    <div id="entityHpContainer" class="w-full hidden">
-                        <div class="flex justify-between text-xs mb-1">
-                            <span id="entityHpLabel" class="text-slate-400">PV de la menace</span>
-                            <span id="entityHpText" class="font-medium text-red-400">50 / 50</span>
+                    <!-- Entity Card -->
+                    <div id="entityCard" class="z-10 bg-slate-900/90 border border-slate-800 px-6 py-4 rounded-2xl shadow-xl flex flex-col items-center max-w-xs w-full transition-all">
+                        <div id="entityIcon" class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-2xl text-emerald-400 mb-2.5 shadow-inner">
+                            <i class="fa-solid fa-tree"></i>
                         </div>
-                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                            <div id="entityHpBar" class="bg-red-500 h-full transition-all duration-200" style="width: 100%"></div>
+                        <h2 id="entityName" class="font-bold text-base text-slate-100 mb-0.5">Salle paisible</h2>
+                        <p id="entityDesc" class="text-xs text-slate-400 text-center mb-2.5">Rien de menaçant ici, vous soufflez un moment.</p>
+                        
+                        <!-- Monster HP bar if fighting -->
+                        <div id="entityHpContainer" class="w-full hidden">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span id="entityHpLabel" class="text-slate-400">PV de la menace</span>
+                                <span id="entityHpText" class="font-medium text-red-400">50 / 50</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                                <div id="entityHpBar" class="bg-red-500 h-full transition-all duration-200" style="width: 100%"></div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Log Header -->
+                <div class="px-4 py-2 bg-slate-900/60 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                    <span><i class="fa-solid fa-scroll mr-1.5"></i>Journal d'aventure</span>
+                    <span id="bossIndicator" class="text-amber-400 font-semibold hidden"><i class="fa-solid fa-skull mr-1 text-red-500 animate-pulse"></i>Salle de Boss imminente !</span>
+                </div>
+
+                <!-- Log Box -->
+                <div id="logBox" class="flex-1 p-4 h-48 sm:h-56 overflow-y-auto space-y-2 text-xs font-mono scroll-smooth">
+                    <div class="text-slate-500">[00:00] Bienvenue. Un boss redoutable vous attend toutes les 50 salles. Améliorez votre Chance au Sanctuaire !</div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="p-4 bg-slate-900/80 border-t border-slate-800">
+                    <button id="exploreBtn" onclick="game.progressRoom()" class="w-full py-3 px-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center cursor-pointer text-sm">
+                        <i class="fa-solid fa-shoe-prints mr-2"></i>Explorer la salle suivante
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW 2: TRAINING SANCTUARY -->
+            <div id="viewTraining" class="hidden flex flex-col h-full p-4 sm:p-6 overflow-y-auto">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                    <div>
+                        <h2 class="font-bold text-base text-amber-400"><i class="fa-solid fa-dumbbell mr-2"></i>Sanctuaire d'Entraînement</h2>
+                        <p class="text-xs text-slate-400">Dépensez votre or pour renforcer votre héros.</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block">Multiplicateur :</span>
+                        <div id="buyMultiplierBox" class="flex gap-1 mt-1">
+                            <button onclick="game.setBuyMultiplier(1)" class="px-2 py-0.5 text-xs font-bold rounded bg-amber-600 text-white multiplier-btn" data-mult="1">x1</button>
+                            <button onclick="game.setBuyMultiplier(5)" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-300 multiplier-btn" data-mult="5">x5</button>
+                            <button onclick="game.setBuyMultiplier(10)" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-300 multiplier-btn" data-mult="10">x10</button>
+                            <button onclick="game.setBuyMultiplier('max')" class="px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-300 multiplier-btn" data-mult="max">MAX</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Training List -->
+                <div class="space-y-3 flex-1">
+                    <!-- Attack Training -->
+                    <div class="bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-sword text-red-400"></i>
+                                <span class="font-bold text-sm text-slate-200">Force d'Attaque</span>
+                                <span id="trainAtkLevel" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Niv. 0</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Augmente les dégâts infligés.</p>
+                        </div>
+                        <button id="trainAtkBtn" onclick="game.trainStat('atk')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 disabled:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed text-amber-400 disabled:text-slate-600 font-bold text-xs rounded-lg border border-amber-500/30 disabled:border-slate-800 transition cursor-pointer flex flex-col items-center min-w-[90px]">
+                            <span id="trainAtkCost">15 Or</span>
+                            <span id="trainAtkAction" class="text-[10px] text-slate-400 font-normal">+1 Atq (x1)</span>
+                        </button>
+                    </div>
+
+                    <!-- Defense Training -->
+                    <div class="bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-shield-halved text-cyan-400"></i>
+                                <span class="font-bold text-sm text-slate-200">Endurance / Défense</span>
+                                <span id="trainDefLevel" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Niv. 0</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Réduit les dégâts reçus des monstres.</p>
+                        </div>
+                        <button id="trainDefBtn" onclick="game.trainStat('def')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 disabled:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed text-amber-400 disabled:text-slate-600 font-bold text-xs rounded-lg border border-amber-500/30 disabled:border-slate-800 transition cursor-pointer flex flex-col items-center min-w-[90px]">
+                            <span id="trainDefCost">20 Or</span>
+                            <span id="trainDefAction" class="text-[10px] text-slate-400 font-normal">+1 Déf (x1)</span>
+                        </button>
+                    </div>
+
+                    <!-- Max HP Training -->
+                    <div class="bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-heart text-emerald-400"></i>
+                                <span class="font-bold text-sm text-slate-200">Vitalité Maximale</span>
+                                <span id="trainHpLevel" class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Niv. 0</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Augmente vos points de vie totaux.</p>
+                        </div>
+                        <button id="trainHpBtn" onclick="game.trainStat('hp')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-600 disabled:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed text-amber-400 disabled:text-slate-600 font-bold text-xs rounded-lg border border-amber-500/30 disabled:border-slate-800 transition cursor-pointer flex flex-col items-center min-w-[90px]">
+                            <span id="trainHpCost">10 Or</span>
+                            <span id="trainHpAction" class="text-[10px] text-slate-400 font-normal">+10 PV (x1)</span>
+                        </button>
+                    </div>
+
+                    <!-- LUCK Training -->
+                    <div class="bg-slate-900/80 border border-amber-500/30 p-3.5 rounded-xl flex items-center justify-between shadow-lg shadow-amber-500/5">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-dice text-amber-400 animate-pulse"></i>
+                                <span class="font-bold text-sm text-amber-300">Chance & Fortune</span>
+                                <span id="trainChanceLevel" class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded">Niv. 0</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">Augmente les probabilités de trouver du butin rare.</p>
+                        </div>
+                        <button id="trainChanceBtn" onclick="game.trainStat('chance')" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 disabled:bg-slate-900 disabled:opacity-40 disabled:cursor-not-allowed text-white disabled:text-slate-600 font-bold text-xs rounded-lg border border-amber-400/50 disabled:border-slate-800 transition cursor-pointer flex flex-col items-center min-w-[90px] shadow">
+                            <span id="trainChanceCost">25 Or</span>
+                            <span id="trainChanceAction" class="text-[10px] text-amber-200 font-normal">+1% Chance (x1)</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Log Header -->
-            <div class="px-4 py-2.5 bg-slate-900/60 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                <span><i class="fa-solid fa-scroll mr-1.5"></i>Journal d'aventure</span>
-                <span id="bossIndicator" class="text-amber-400 font-semibold hidden"><i class="fa-solid fa-skull mr-1 text-red-500 animate-pulse"></i>Salle de Boss imminente !</span>
-            </div>
-
-            <!-- Log Box -->
-            <div id="logBox" class="flex-1 p-4 h-64 overflow-y-auto space-y-2 text-xs font-mono scroll-smooth">
-                <div class="text-slate-500">[00:00] Bienvenue dans le Donjon infini ! Un boss vous attend toutes les 50 salles. Préparez-vous.</div>
-            </div>
         </div>
 
     </div>
@@ -156,31 +260,74 @@
                     maxHp: 100,
                     atk: 14,
                     def: 5,
+                    chance: 0,
                     xp: 0,
                     xpToLevel: 50,
-                    gold: 0
+                    gold: 100 // Starting gold
                 };
+                
+                this.training = {
+                    atk: 0,
+                    def: 0,
+                    hp: 0,
+                    chance: 0
+                };
+
+                this.buyMultiplier = 1; // 1, 5, 10, 'max'
                 this.floor = 1;
-                this.room = 0; // Current room index in current set of 50 (1 to 50)
+                this.room = 0;
                 this.totalRoomsExplored = 0;
                 this.currentEncounter = null;
                 this.isBossRoom = false;
+                this.activeTab = 'adventure';
                 
                 this.initGame();
             }
 
             initGame() {
                 this.room = 0;
-                this.log("Le périple commence. Prochain Boss à la salle 50.");
+                this.log("Le périple commence. Un Boss vous attend toutes les 50 salles ! Visitez le Sanctuaire pour augmenter votre Chance.");
                 this.updateUI();
                 this.nextRoomSetup();
+            }
+
+            switchTab(tabName) {
+                this.activeTab = tabName;
+                const advView = document.getElementById('viewAdventure');
+                const trainView = document.getElementById('viewTraining');
+                const tabAdvBtn = document.getElementById('tabAdventure');
+                const tabTrainBtn = document.getElementById('tabTraining');
+
+                if (tabName === 'adventure') {
+                    advView.classList.remove('hidden');
+                    trainView.classList.add('hidden');
+                    tabAdvBtn.className = "py-2 text-xs font-bold rounded-lg transition bg-amber-600 text-white shadow";
+                    tabTrainBtn.className = "py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-slate-200";
+                } else {
+                    advView.classList.add('hidden');
+                    trainView.classList.remove('hidden');
+                    tabTrainBtn.className = "py-2 text-xs font-bold rounded-lg transition bg-amber-600 text-white shadow";
+                    tabAdvBtn.className = "py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-slate-200";
+                    this.updateTrainingUI();
+                }
+            }
+
+            setBuyMultiplier(mult) {
+                this.buyMultiplier = mult;
+                document.querySelectorAll('.multiplier-btn').forEach(btn => {
+                    if (btn.getAttribute('data-mult') == String(mult)) {
+                        btn.className = "px-2 py-0.5 text-xs font-bold rounded bg-amber-600 text-white multiplier-btn";
+                    } else {
+                        btn.className = "px-2 py-0.5 text-xs font-bold rounded bg-slate-800 text-slate-300 multiplier-btn";
+                    }
+                });
+                this.updateTrainingUI();
             }
 
             nextRoomSetup() {
                 this.room++;
                 this.totalRoomsExplored++;
 
-                // Check if it's a Boss room (every 50 rooms)
                 if (this.room % 50 === 0) {
                     this.isBossRoom = true;
                     this.setupBossEncounter();
@@ -197,7 +344,7 @@
                     "Roi Squelette Ancien", "Hydra des Ténèbres", "Archidémon du Chaos"
                 ];
                 const bossName = bossNames[(this.floor - 1) % bossNames.length] + ` (Étage ${this.floor})`;
-                const bossHp = 250 + (this.floor - 1) * 100 + (Math.floor(this.room / 50) * 50);
+                const bossHp = 250 + (this.floor - 1) * 120 + (Math.floor(this.room / 50) * 50);
                 const bossAtk = 25 + (this.floor - 1) * 10;
                 
                 this.currentEncounter = {
@@ -210,13 +357,18 @@
                     icon: 'fa-skull text-red-500 animate-pulse'
                 };
 
-                this.log(`⚠️ ALERTE : Vous entrez dans la salle ${this.room}. Le Boss ${bossName} vous fait face !`, 'text-red-400 font-bold');
+                this.log(`⚠️ ALERTE BOSS : Vous entrez dans la salle ${this.room}. Le Boss ${bossName} bloque le passage !`, 'text-red-400 font-bold');
             }
 
             randomizeEncounter() {
-                const roll = Math.random();
-                if (roll < 0.45) {
-                    // Monster
+                const luckBonus = this.hero.chance * 0.4;
+                const roll = Math.random() * 100;
+
+                const monsterThreshold = Math.max(20, 45 - luckBonus);
+                const chestThreshold = monsterThreshold + 30 + (luckBonus * 0.5);
+                const healThreshold = chestThreshold + 15;
+
+                if (roll < monsterThreshold) {
                     const monsterNames = ["Goblin", "Squelette", "Orc", "Slime Corrompu", "Araignée Géante", "Zombie"];
                     const name = monsterNames[Math.floor(Math.random() * monsterNames.length)];
                     const mHp = 30 + (this.floor - 1) * 15 + Math.floor(this.room * 1.5);
@@ -225,28 +377,36 @@
                     this.currentEncounter = {
                         type: 'monster',
                         name: name,
-                        desc: `Un ${name} sauvage surgit de l'ombre.`,
+                        desc: `Un ${name} belliqueux surgit de l'ombre.`,
                         hp: mHp,
                         maxHp: mHp,
                         atk: mAtk,
                         icon: 'fa-ghost text-purple-400'
                     };
-                    this.log(`Salle ${this.room} : Un ${name} belliqueux apparaît !`);
-                } else if (roll < 0.70) {
-                    // Chest / Loot
-                    const goldAmt = 15 + Math.floor(Math.random() * 20) + (this.floor * 5);
+                    this.log(`Salle ${this.room} : Un ${name} hostile apparaît !`);
+                } else if (roll < chestThreshold) {
+                    let baseGold = 15 + Math.floor(Math.random() * 20) + (this.floor * 5);
+                    let multiplier = 1 + (this.hero.chance * 0.025);
+                    
+                    let isRareChest = Math.random() * 100 < (this.hero.chance * 0.8);
+                    if (isRareChest) {
+                        multiplier *= 3;
+                        this.log(`✨ CHANCE DE COFFRE RARE ! Grâce à votre statistique Chance, le coffre renferme des richesses fabuleuses !`, 'text-amber-400');
+                    }
+
+                    const goldAmt = Math.floor(baseGold * multiplier);
                     this.currentEncounter = {
                         type: 'loot',
-                        name: 'Coffre au trésor',
-                        desc: `Un coffre mystérieux repose au milieu de la salle.`,
+                        name: isRareChest ? 'Coffre Légendaire ✨' : 'Coffre au trésor',
+                        desc: isRareChest ? 'Un magnifique coffre scintillant d\'or pur.' : 'Un coffre mystérieux repose au milieu de la salle.',
                         gold: goldAmt,
-                        icon: 'fa-chest text-yellow-400'
+                        icon: isRareChest ? 'fa-gem text-amber-300 animate-bounce' : 'fa-chest text-yellow-400'
                     };
                     this.log(`Salle ${this.room} : Vous découvrez un coffre contenant ${goldAmt} pièces d'or.`);
                     this.hero.gold += goldAmt;
-                } else if (roll < 0.85) {
-                    // Fountain / Heal
-                    const healAmt = 25 + (this.floor * 5);
+                } else if (roll < healThreshold) {
+                    const healAmt = 30 + (this.floor * 8) + Math.floor(this.hero.chance * 0.5);
+                    this.hero.hp = Math.min(this.hero.maxHp, this.hero.hp + healAmt);
                     this.currentEncounter = {
                         type: 'heal',
                         name: 'Fontaine sacrée',
@@ -254,11 +414,8 @@
                         heal: healAmt,
                         icon: 'fa-fountain text-cyan-400'
                     };
-                    const actualHeal = Math.min(this.hero.maxHp - this.hero.hp, healAmt);
-                    this.hero.hp = Math.min(this.hero.maxHp, this.hero.hp + healAmt);
-                    this.log(`Salle ${this.room} : Vous trouvez une fontaine sacrée et récupérez ${actualHeal > 0 ? actualHeal : 0} PV.`);
+                    this.log(`Salle ${this.room} : Vous trouvez une fontaine sacrée et récupérez des points de vie.`);
                 } else {
-                    // Empty room
                     this.currentEncounter = {
                         type: 'empty',
                         name: 'Salle calme',
@@ -276,10 +433,8 @@
                 }
 
                 if (this.currentEncounter.type === 'monster' || this.currentEncounter.type === 'boss') {
-                    // Resolve Combat turn
                     this.resolveCombatTurn();
                 } else {
-                    // Move to next room
                     this.nextRoomSetup();
                 }
             }
@@ -287,68 +442,144 @@
             resolveCombatTurn() {
                 const enemy = this.currentEncounter;
                 
-                // Hero attacks enemy
                 let heroDmg = Math.max(3, this.hero.atk - Math.floor(Math.random() * 3));
+                let isCrit = Math.random() * 100 < (this.hero.chance * 0.6);
+                if (isCrit) {
+                    heroDmg = Math.floor(heroDmg * 1.8);
+                }
+
                 enemy.hp -= heroDmg;
                 
                 if (enemy.hp <= 0) {
                     enemy.hp = 0;
                     this.updateUI();
-                    this.resolveVictory();
+                    this.resolveVictory(isCrit);
                     return;
                 }
 
-                // Enemy attacks hero
                 let enemyDmg = Math.max(1, enemy.atk - Math.floor(this.hero.def / 2));
                 this.hero.hp -= enemyDmg;
 
                 const isBoss = enemy.type === 'boss';
-                this.log(`Combat (${isBoss ? 'BOSS' : 'Monstre'}) : Vous infligez ${heroDmg} dégâts. ${enemy.name} réplique et vous inflige ${enemyDmg} dégâts.`);
+                let combatMsg = `Combat (${isBoss ? 'BOSS' : 'Monstre'}) : Vous infligez ${heroDmg} dégâts${isCrit ? ' [ COUP CRITIQUE ⚡ ]' : ''}. ${enemy.name} réplique et vous inflige ${enemyDmg} dégâts.`;
+                this.log(combatMsg);
 
                 if (this.hero.hp <= 0) {
                     this.hero.hp = 0;
                     this.updateUI();
                     this.log(`💀 Vous avez été vaincu par ${enemy.name}... La partie s'arrête ici.`, "text-red-500 font-bold");
-                    document.getElementById('exploreBtn').textContent = "Partie terminée (Recommencer)";
-                    document.getElementById('exploreBtn').onclick = () => this.resetGame();
+                    const btn = document.getElementById('exploreBtn');
+                    btn.textContent = "Partie terminée (Recommencer)";
+                    btn.onclick = () => this.resetGame();
                     return;
                 }
 
                 this.updateUI();
             }
 
-            resolveVictory() {
+            resolveVictory(wasCrit = false) {
                 const enemy = this.currentEncounter;
                 const isBoss = enemy.type === 'boss';
                 
-                let xpGain = isBoss ? 150 * this.floor : 20 + this.floor * 5;
-                let goldGain = isBoss ? 100 * this.floor : 10 + this.floor * 2;
+                let baseXp = isBoss ? 150 * this.floor : 20 + this.floor * 5;
+                let baseGold = isBoss ? 120 * this.floor : 12 + this.floor * 3;
+
+                let luckMultiplier = 1 + (this.hero.chance * 0.03); 
+                let xpGain = Math.floor(baseXp * luckMultiplier);
+                let goldGain = Math.floor(baseGold * luckMultiplier);
 
                 this.hero.xp += xpGain;
                 this.hero.gold += goldGain;
 
                 if (isBoss) {
                     this.floor++;
-                    this.room = 0; // Reset room count for the new floor
-                    this.log(`🎉 VICTOIRE ÉPIQUE ! Vous avez vaincu le Boss de l'étage ! Vous montez à l'étage ${this.floor}.`, "text-amber-400 font-bold");
+                    this.room = 0;
+                    this.log(`🎉 VICTOIRE ÉPIQUE ! Vous avez vaincu le Boss de l'étage ! Vous accédez à l'étage ${this.floor}. (+${goldGain} Or, +${xpGain} XP)`, "text-amber-400 font-bold");
                 } else {
                     this.log(`Victoire ! Vous éliminez ${enemy.name} et obtenez ${xpGain} XP et ${goldGain} pièces d'or.`);
                 }
 
-                // Check Level Up
                 if (this.hero.xp >= this.hero.xpToLevel) {
                     this.hero.level++;
                     this.hero.xp -= this.hero.xpToLevel;
                     this.hero.xpToLevel = Math.floor(this.hero.xpToLevel * 1.5);
                     this.hero.maxHp += 20;
-                    this.hero.hp = this.hero.maxHp; // Full heal on level up
+                    this.hero.hp = this.hero.maxHp; 
                     this.hero.atk += 4;
                     this.hero.def += 2;
-                    this.log(`✨ NIVEAU SUPÉRIEUR ! Vous passez au niveau ${this.hero.level}. Vos stats s'améliorent et vos PV sont restaurés !`, "text-purple-400 font-bold");
+                    this.log(`✨ NIVEAU SUPÉRIEUR ! Vous passez au niveau ${this.hero.level}. Vos stats augmentent et PV restaurés !`, "text-purple-400 font-bold");
                 }
 
-                // Transition to next room automatically or via button click
                 this.nextRoomSetup();
+            }
+
+            getBaseCost(statName, lvl) {
+                switch(statName) {
+                    case 'atk': return Math.floor(15 * Math.pow(1.18, lvl));
+                    case 'def': return Math.floor(20 * Math.pow(1.20, lvl));
+                    case 'hp': return Math.floor(10 * Math.pow(1.15, lvl));
+                    case 'chance': return Math.floor(25 * Math.pow(1.25, lvl));
+                }
+            }
+
+            calculatePurchaseDetails(statName) {
+                let currentLvl = this.training[statName];
+                let count = 0;
+                let totalCost = 0;
+
+                if (this.buyMultiplier === 'max') {
+                    let tempGold = this.hero.gold;
+                    let tempLvl = currentLvl;
+                    while (true) {
+                        let singleCost = this.getBaseCost(statName, tempLvl);
+                        if (tempGold >= singleCost && count < 100) {
+                            tempGold -= singleCost;
+                            totalCost += singleCost;
+                            tempLvl++;
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+                } else {
+                    let targetCount = this.buyMultiplier;
+                    for (let i = 0; i < targetCount; i++) {
+                        let singleCost = this.getBaseCost(statName, currentLvl + i);
+                        if (this.hero.gold >= totalCost + singleCost) {
+                            totalCost += singleCost;
+                            count++;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                return { count, totalCost };
+            }
+
+            trainStat(statName) {
+                const details = this.calculatePurchaseDetails(statName);
+                if (details.count === 0 || this.hero.gold < details.totalCost) {
+                    this.log(`Or insuffisant pour améliorer ${statName}.`, "text-red-400");
+                    return;
+                }
+
+                this.hero.gold -= details.totalCost;
+                this.training[statName] += details.count;
+
+                if (statName === 'atk') {
+                    this.hero.atk += details.count * 2;
+                } else if (statName === 'def') {
+                    this.hero.def += details.count * 1;
+                } else if (statName === 'hp') {
+                    this.hero.maxHp += details.count * 15;
+                    this.hero.hp += details.count * 15;
+                } else if (statName === 'chance') {
+                    this.hero.chance += details.count * 1;
+                }
+
+                this.log(`💪 Entraînement réussi : +${details.count} en ${statName.toUpperCase()} pour ${details.totalCost} or.`, "text-amber-300");
+                this.updateUI();
+                this.updateTrainingUI();
             }
 
             resetGame() {
@@ -358,10 +589,12 @@
                     maxHp: 100,
                     atk: 14,
                     def: 5,
+                    chance: 0,
                     xp: 0,
                     xpToLevel: 50,
-                    gold: 0
+                    gold: 100
                 };
+                this.training = { atk: 0, def: 0, hp: 0, chance: 0 };
                 this.floor = 1;
                 this.room = 0;
                 this.totalRoomsExplored = 0;
@@ -385,7 +618,6 @@
             }
 
             updateUI() {
-                // Hero stats
                 document.getElementById('heroLevel').textContent = `Niv. ${this.hero.level}`;
                 document.getElementById('heroHpText').textContent = `${this.hero.hp} / ${this.hero.maxHp}`;
                 document.getElementById('heroHpBar').style.width = `${Math.max(0, (this.hero.hp / this.hero.maxHp) * 100)}%`;
@@ -395,13 +627,14 @@
 
                 document.getElementById('statAtk').textContent = this.hero.atk;
                 document.getElementById('statDef').textContent = this.hero.def;
+                document.getElementById('statMaxHp').textContent = this.hero.maxHp;
+                document.getElementById('statChance').textContent = `${this.hero.chance}%`;
                 document.getElementById('goldCount').textContent = `${this.hero.gold} pièces`;
                 document.getElementById('floorBadge').textContent = `Étage ${this.floor}`;
                 
                 const roomsRemainingToBoss = 50 - (this.room % 50);
                 document.getElementById('roomCount').textContent = `${this.room} / 50 (Boss dans ${roomsRemainingToBoss})`;
 
-                // Boss indicator alert
                 const bossIndicator = document.getElementById('bossIndicator');
                 if (this.room >= 45 && this.room < 50) {
                     bossIndicator.classList.remove('hidden');
@@ -409,8 +642,9 @@
                     bossIndicator.classList.add('hidden');
                 }
 
-                // Entity UI rendering
                 const enc = this.currentEncounter;
+                if (!enc) return;
+
                 const entityIcon = document.getElementById('entityIcon');
                 const entityName = document.getElementById('entityName');
                 const entityDesc = document.getElementById('entityDesc');
@@ -420,7 +654,7 @@
 
                 entityName.textContent = enc.name;
                 entityDesc.textContent = enc.desc;
-                entityIcon.className = `w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-3 shadow-inner ${enc.type === 'boss' ? 'bg-red-500/20 border border-red-500/40 text-red-400 animate-pulse' : enc.type === 'monster' ? 'bg-purple-500/10 border border-purple-500/30 text-purple-400' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'}`;
+                entityIcon.className = `w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-2.5 shadow-inner ${enc.type === 'boss' ? 'bg-red-500/20 border border-red-500/40 text-red-400 animate-pulse' : enc.type === 'monster' ? 'bg-purple-500/10 border border-purple-500/30 text-purple-400' : 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'}`;
                 entityIcon.innerHTML = `<i class="fa-solid ${enc.icon.split(' ')[0]}"></i>`;
 
                 if (enc.type === 'boss' || enc.type === 'monster') {
@@ -430,23 +664,61 @@
                     document.getElementById('entityHpLabel').textContent = enc.type === 'boss' ? 'PV du Boss' : 'PV du Monstre';
                     
                     exploreBtn.innerHTML = `<i class="fa-solid fa-khanda mr-2"></i>Attaquer (${enc.name})`;
-                    exploreBtn.className = "w-full py-3 px-4 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center cursor-pointer";
+                    exploreBtn.className = "w-full py-3 px-4 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center cursor-pointer text-sm";
                     
                     if(enc.type === 'boss') {
-                        visualDisplay.className = "relative h-56 border-b border-red-900/50 flex items-center justify-center p-4 bg-gradient-to-b from-red-950/40 to-slate-950 overflow-hidden transition-colors duration-500";
+                        visualDisplay.className = "relative h-52 sm:h-56 border-b border-red-900/50 flex items-center justify-center p-4 bg-gradient-to-b from-red-950/40 to-slate-950 overflow-hidden transition-colors duration-500";
                     } else {
-                        visualDisplay.className = "relative h-56 border-b border-purple-900/50 flex items-center justify-center p-4 bg-gradient-to-b from-purple-950/30 to-slate-950 overflow-hidden transition-colors duration-500";
+                        visualDisplay.className = "relative h-52 sm:h-56 border-b border-purple-900/50 flex items-center justify-center p-4 bg-gradient-to-b from-purple-950/30 to-slate-950 overflow-hidden transition-colors duration-500";
                     }
                 } else {
                     entityHpContainer.classList.add('hidden');
                     exploreBtn.innerHTML = `<i class="fa-solid fa-shoe-prints mr-2"></i>Explorer la salle suivante`;
-                    exploreBtn.className = "w-full py-3 px-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center cursor-pointer";
-                    visualDisplay.className = "relative h-56 border-b border-slate-800 flex items-center justify-center p-4 bg-gradient-to-b from-slate-900 to-slate-950 overflow-hidden transition-colors duration-500";
+                    exploreBtn.className = "w-full py-3 px-4 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center cursor-pointer text-sm";
+                    visualDisplay.className = "relative h-52 sm:h-56 border-b border-slate-800 flex items-center justify-center p-4 bg-gradient-to-b from-slate-900 to-slate-950 overflow-hidden transition-colors duration-500";
                 }
+
+                // If on training tab, update button states as well
+                if (this.activeTab === 'training') {
+                    this.updateTrainingUI();
+                }
+            }
+
+            updateTrainingUI() {
+                const stats = ['atk', 'def', 'hp', 'chance'];
+                stats.forEach(stat => {
+                    const lvl = this.training[stat];
+                    document.getElementById(`train${stat.charAt(0).toUpperCase() + stat.slice(1)}Level`).textContent = `Niv. ${lvl}`;
+                    
+                    const details = this.calculatePurchaseDetails(stat);
+                    const btn = document.getElementById(`train${stat.charAt(0).toUpperCase() + stat.slice(1)}Btn`);
+                    const costSpan = document.getElementById(`train${stat.charAt(0).toUpperCase() + stat.slice(1)}Cost`);
+                    const actionSpan = document.getElementById(`train${stat.charAt(0).toUpperCase() + stat.slice(1)}Action`);
+
+                    // Check if player can afford at least 1 level
+                    const singleCost = this.getBaseCost(stat, lvl);
+                    const canAffordOne = this.hero.gold >= singleCost;
+
+                    if (!canAffordOne) {
+                        btn.disabled = true;
+                        costSpan.textContent = `${singleCost} Or (Requis)`;
+                        actionSpan.textContent = `Fonds insuffisants`;
+                    } else {
+                        btn.disabled = false;
+                        costSpan.textContent = `${details.totalCost} Or`;
+                        
+                        if (this.buyMultiplier === 'max') {
+                            actionSpan.textContent = `+${details.count} niv. (Max)`;
+                        } else {
+                            let mult = this.buyMultiplier;
+                            let bonusText = stat === 'atk' ? `+${mult*2} Atq` : stat === 'def' ? `+${mult*1} Déf` : stat === 'hp' ? `+${mult*15} PV` : `+${mult*1}% Chance`;
+                            actionSpan.textContent = `${bonusText} (x${mult})`;
+                        }
+                    }
+                });
             }
         }
 
-        // Initialize game instance
         const game = new DungeonGame();
     </script>
 </body>
