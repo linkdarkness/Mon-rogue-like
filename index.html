@@ -62,22 +62,43 @@
 
         h1 { font-size: 1.3rem; text-align: center; margin: 4px 0 10px 0; color: #bb86fc; }
         
-        /* EN-TÊTE PERSISTANT (GLOBAL) */
+        /* EN-TÊTE PERSISTANT COMPACT (ALIGNÉ SUR LE HAUT) */
         .global-header {
             background: #202024;
-            padding: 8px 10px;
+            padding: 6px 10px;
             border-radius: 8px;
             border: 1px solid #2f2f35;
             flex-shrink: 0;
             margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
         .global-header-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: bold;
+        }
+        .global-stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .global-stat-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .global-stat-header {
+            display: flex;
+            justify-content: space-between;
+            color: #a1a1aa;
+            font-weight: bold;
+            font-size: 0.65rem;
         }
 
         .status-panel {
@@ -109,8 +130,7 @@
         .stat-value { color: #03dac6; font-weight: bold; }
         .gold-value { color: #facc15; font-weight: bold; }
 
-        .bar-wrapper { margin-bottom: 6px; }
-        .bar-wrapper:last-child { margin-bottom: 0; }
+        .bar-wrapper { margin-bottom: 0; }
         .bar-label {
             display: flex;
             justify-content: space-between;
@@ -121,9 +141,9 @@
         }
         .progress-bar-bg {
             width: 100%;
-            height: 10px;
+            height: 7px;
             background: #09090b;
-            border-radius: 5px;
+            border-radius: 4px;
             overflow: hidden;
             border: 1px solid #3f3f46;
         }
@@ -400,28 +420,36 @@
         <!-- ÉCRAN DE JEU -->
         <div id="screen-game" class="hidden">
             
-            <!-- EN-TÊTE GLOBAL PERSISTANT SUR TOUS LES ONGLETS -->
+            <!-- EN-TÊTE GLOBAL PERSISTANT COMPACT (ALIGNÉ SUR LE HAUT) -->
             <div class="global-header">
                 <div class="global-header-top">
                     <span id="global-header-class-level">Niveau 1</span>
-                    <span id="global-hero-stat-gold" class="gold-value">0 🪙</span>
                 </div>
-                <div class="bar-wrapper">
-                    <div class="bar-label">
-                        <span>PV (Constitution)</span>
-                        <span id="global-hp-text">120/120</span>
+                <div class="global-stats-row">
+                    <!-- PV -->
+                    <div class="global-stat-col">
+                        <div class="global-stat-header">
+                            <span>PV</span>
+                            <span id="global-hp-text">120/120</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="global-hp-bar" class="progress-bar-fill"></div>
+                        </div>
                     </div>
-                    <div class="progress-bar-bg">
-                        <div id="global-hp-bar" class="progress-bar-fill"></div>
+                    <!-- EXP -->
+                    <div class="global-stat-col">
+                        <div class="global-stat-header">
+                            <span>XP</span>
+                            <span id="global-xp-text">0/30</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="global-xp-bar" class="progress-bar-fill"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="bar-wrapper" style="margin-top: 4px;">
-                    <div class="bar-label">
-                        <span>XP (Expérience)</span>
-                        <span id="global-xp-text">0/30</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div id="global-xp-bar" class="progress-bar-fill"></div>
+                    <!-- OR -->
+                    <div class="global-stat-col" style="align-items: flex-end;">
+                        <span class="global-stat-header" style="justify-content: flex-end;">Or</span>
+                        <span id="global-hero-stat-gold" class="gold-value" style="font-size: 0.78rem; line-height: 1;">0 🪙</span>
                     </div>
                 </div>
             </div>
@@ -531,7 +559,10 @@
             <!-- ONGLET 3 : INVENTAIRE -->
             <div id="tab-inventory" class="tab-content hidden">
                 <div class="section-box flex-fill" style="display: flex; flex-direction: column;">
-                    <h3>🎒 Inventaire</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <h3 style="margin: 0;">🎒 Inventaire</h3>
+                        <button onclick="sellAllInventory()" style="background: #eab308; color: #000; font-size: 0.7rem; padding: 4px 8px; width: auto; margin: 0; box-shadow: none;">Vendre tout</button>
+                    </div>
                     <div style="flex: 1; overflow-y: auto; padding: 2px;">
                         <div class="inventory-grid" id="inventory-buttons"></div>
                     </div>
@@ -988,6 +1019,27 @@
             let base = item.goldVal || 10;
             let statBonus = (item.primaryStat || 0) * 3 + (item.cons || 0) * 2 + (item.armor || 0) * 3 + (item.agi || 0) * 3;
             return Math.max(5, Math.floor((base + statBonus)));
+        }
+
+        function sellAllInventory() {
+            if (!player.inventory || player.inventory.length === 0) {
+                log("Votre inventaire est déjà vide.");
+                return;
+            }
+
+            let totalGoldGained = 0;
+            player.inventory.forEach(item => {
+                let qty = item.quantity || 1;
+                let singleVal = calculateItemGoldValue(item);
+                totalGoldGained += (singleVal * qty);
+            });
+
+            player.gold = (player.gold || 0) + totalGoldGained;
+            log(`📦 Tout l'inventaire a été vendu pour ${totalGoldGained} 🪙.`);
+            
+            player.inventory = [];
+            closeModal();
+            updateStatus();
         }
 
         function openCompareModal(newItem) {
