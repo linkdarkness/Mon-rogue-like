@@ -403,7 +403,7 @@
             
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 <button class="class-btn" onclick="startGame('Guerrier')">
-                    🛡️ Guerrier (Set : Rempart du Juggernaut)
+                    🛡️️ Guerrier (Set : Rempart du Juggernaut)
                     <span>Force: 15 | Cons: 120 | Armure: 5 | Agilité: 5</span>
                 </button>
                 <button class="class-btn" onclick="startGame('Mage')">
@@ -537,9 +537,14 @@
 
             <!-- ONGLET 3 : INVENTAIRE -->
             <div id="tab-inventory" class="tab-content hidden">
+                <div class="section-box" style="flex-shrink: 0;">
+                    <h3 style="margin: 0 0 5px 0;">⚡ Équipement Actif</h3>
+                    <div class="equipment-grid" id="inventory-equipment-display"></div>
+                </div>
+
                 <div class="section-box flex-fill" style="display: flex; flex-direction: column;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <h3 style="margin: 0;">🎒 Inventaire</h3>
+                        <h3 style="margin: 0;">🎒 Objets Non Équipés</h3>
                         <button onclick="sellAllInventory()" style="background: #eab308; color: #000; font-size: 0.7rem; padding: 4px 8px; width: auto; margin: 0; box-shadow: none;">Vendre tout</button>
                     </div>
                     <div style="flex: 1; overflow-y: auto; padding: 2px;">
@@ -901,6 +906,7 @@
 
         function updateEquipmentUI() {
             const eqDisplay = document.getElementById('equipment-display');
+            const invEqDisplay = document.getElementById('inventory-equipment-display');
             const setContainer = document.getElementById('set-bonus-container');
             let eq = player.equipment;
             
@@ -914,6 +920,8 @@
             ];
 
             eqDisplay.innerHTML = '';
+            invEqDisplay.innerHTML = '';
+
             slotsConfig.forEach(s => {
                 let item = eq[s.key];
                 let statDetails = [];
@@ -930,10 +938,17 @@
 
                 let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.6rem;">${statDetails.join(' | ')}</span>` : 'Aucun';
                 
+                // HTML pour l'onglet Héros
                 let div = document.createElement('div');
                 div.className = item ? `eq-slot ${rarityClass}` : 'eq-slot';
                 div.innerHTML = `<span style="font-size: 1rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
                 eqDisplay.appendChild(div);
+
+                // HTML pour l'onglet Inventaire
+                let divInv = document.createElement('div');
+                divInv.className = item ? `eq-slot ${rarityClass}` : 'eq-slot';
+                divInv.innerHTML = `<span style="font-size: 1rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
+                invEqDisplay.appendChild(divInv);
             });
 
             if (player.activeSetBonuses && player.activeSetBonuses.length > 0) {
