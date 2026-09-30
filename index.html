@@ -948,6 +948,7 @@
                     if (item.armor) statDetails.push(`+${item.armor} Déf`);
                     if (item.agi) statDetails.push(`+${item.agi} Agi`);
                     if (item.rarityClass) rarityClass = item.rarityClass;
+                    if (item.floorSource) statDetails.push(`Étage ${item.floorSource}`);
                 }
 
                 let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.6rem;">${statDetails.join(' | ')}</span>` : 'Aucun';
@@ -1071,7 +1072,7 @@
 
                 let currentDiv = document.getElementById('current-gear-info');
                 if (currentItem) {
-                    currentDiv.innerHTML = `<strong style="color: ${currentItem.rarityColor}">${currentItem.name}</strong><br><span style="font-size:0.65rem; color:#a1a1aa;">[${currentItem.rarityName}]</span><br>${player.primaryStatName}: ${currentItem.primaryStat || 0}<br>Cons: ${currentItem.cons || 0}<br>Défense: ${currentItem.armor || 0}<br>Agilité: ${currentItem.agi || 0}`;
+                    currentDiv.innerHTML = `<strong style="color: ${currentItem.rarityColor}">${currentItem.name}</strong><br><span style="font-size:0.65rem; color:#a1a1aa;">[${currentItem.rarityName}] (Étage ${currentItem.floorSource || 1})</span><br>${player.primaryStatName}: ${currentItem.primaryStat || 0}<br>Cons: ${currentItem.cons || 0}<br>Défense: ${currentItem.armor || 0}<br>Agilité: ${currentItem.agi || 0}`;
                 } else {
                     currentDiv.innerHTML = `<em>Emplacement vide</em>`;
                 }
@@ -1087,7 +1088,7 @@
                 let armorClass = diffArmor > 0 ? 'stat-diff-pos' : (diffArmor < 0 ? 'stat-diff-neg' : '');
                 let agiClass = diffAgi > 0 ? 'stat-diff-pos' : (diffAgi < 0 ? 'stat-diff-neg' : '');
 
-                newDiv.innerHTML = `<strong style="color: ${newItem.rarityColor}">${newItem.name}</strong><br><span style="font-size:0.65rem; color:#a1a1aa;">[${newItem.rarityName}]</span><br>${player.primaryStatName}: ${newItem.primaryStat || 0} <span class="${primaryClass}">(${diffPrimary >= 0 ? '+' : ''}${diffPrimary})</span><br>Cons: ${newItem.cons || 0} <span class="${consClass}">(${diffCons >= 0 ? '+' : ''}${diffCons})</span><br>Déf: ${newItem.armor || 0} <span class="${armorClass}">(${diffArmor >= 0 ? '+' : ''}${diffArmor})</span><br>Agi: ${newItem.agi || 0} <span class="${agiClass}">(${diffAgi >= 0 ? '+' : ''}${diffAgi})</span>`;
+                newDiv.innerHTML = `<strong style="color: ${newItem.rarityColor}">${newItem.name}</strong><br><span style="font-size:0.65rem; color:#a1a1aa;">[${newItem.rarityName}] (Étage ${newItem.floorSource || 1})</span><br>${player.primaryStatName}: ${newItem.primaryStat || 0} <span class="${primaryClass}">(${diffPrimary >= 0 ? '+' : ''}${diffPrimary})</span><br>Cons: ${newItem.cons || 0} <span class="${consClass}">(${diffCons >= 0 ? '+' : ''}${diffCons})</span><br>Déf: ${newItem.armor || 0} <span class="${armorClass}">(${diffArmor >= 0 ? '+' : ''}${diffArmor})</span><br>Agi: ${newItem.agi || 0} <span class="${agiClass}">(${diffAgi >= 0 ? '+' : ''}${diffAgi})</span>`;
             }
 
             document.getElementById('modal-compare').classList.remove('hidden');
