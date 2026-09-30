@@ -383,6 +383,40 @@
         
         .stat-diff-pos { color: #4ade80; font-weight: bold; }
         .stat-diff-neg { color: #f87171; font-weight: bold; }
+
+        /* STYLES SPÉCIFIQUES POUR L'ENTRAÎNEMENT AVEC MULTI-BOUTONS */
+        .training-card {
+            background: #18181b;
+            border: 1px solid #2f2f35;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .training-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            font-weight: bold;
+        }
+        .training-buttons-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3px;
+        }
+        .training-btn {
+            background: #3b82f6;
+            font-size: 0.65rem;
+            padding: 6px 2px;
+            margin: 0;
+            border-radius: 5px;
+            box-shadow: none;
+        }
+        .training-btn:hover { background: #2563eb; }
+        .training-btn.btn-max { background: #10b981; }
+        .training-btn.btn-max:hover { background: #059669; }
     </style>
 </head>
 <body>
@@ -390,7 +424,7 @@
     <div id="game-container">
         <!-- ÉCRAN DE SÉLECTION DE CLASSE -->
         <div id="screen-class-select">
-            <h1>Roguelite Mobile (Difficulté x10 & Sets Scalés)</h1>
+            <h1>Roguelite Mobile (Difficulté x10 & Entraînement Avancé)</h1>
             <div id="legacy-info" class="legacy-box hidden">
                 <p id="legacy-text" style="margin: 0; color: #e8d7ff;"></p>
             </div>
@@ -555,23 +589,66 @@
 
             <!-- ONGLET 4 : ENTRAÎNEMENT -->
             <div id="tab-training" class="tab-content hidden">
-                <div class="section-box">
+                <div class="section-box" style="display: flex; flex-direction: column; gap: 8px;">
                     <h3>🏋 Sanctuaire d'Entraînement</h3>
-                    <p style="font-size:0.75rem; color:#a1a1aa; margin-bottom:8px;">Dépensez votre or pour augmenter durablement vos statistiques.</p>
+                    <p style="font-size:0.73rem; color:#a1a1aa; margin:0;">Dépensez votre or pour augmenter durablement vos statistiques (achats multiples x1, x5, x10 ou Max).</p>
                     
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <button onclick="buyUpgrade('primary')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            📈 <span id="train-primary-label">Attaque</span> (+2) — <span style="color:#03dac6;" id="count-primary">0 fois</span><br><span style="font-size:0.68rem; color:#facc15;" id="cost-primary">25 🪙</span>
-                        </button>
-                        <button onclick="buyUpgrade('cons')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            ❤ Constitution / PV (+25) — <span style="color:#03dac6;" id="count-cons">0 fois</span><br><span style="font-size:0.68rem; color:#facc15;" id="cost-cons">25 🪙</span>
-                        </button>
-                        <button onclick="buyUpgrade('armor')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            🛡 Armure (+2) — <span style="color:#03dac6;" id="count-armor">0 fois</span><br><span style="font-size:0.68rem; color:#facc15;" id="cost-armor">35 🪙</span>
-                        </button>
-                        <button onclick="buyUpgrade('agility')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            ⚡ Agilité (+2) — <span style="color:#03dac6;" id="count-agility">0 fois</span><br><span style="font-size:0.68rem; color:#facc15;" id="cost-agility">30 🪙</span>
-                        </button>
+                    <div style="display: flex; flex-direction: column; gap: 6px;" id="training-cards-container">
+                        <!-- Statistique 1 : Attaque / Magie / Dextérité -->
+                        <div class="training-card">
+                            <div class="training-card-header">
+                                <span style="color: #bb86fc;">📈 <span id="train-primary-label">Attaque</span> (+2)</span>
+                                <span style="font-size:0.7rem; color:#03dac6;"><span id="count-primary">0</span> fois (<span class="gold-value" id="cost-primary">25</span> 🪙/u)</span>
+                            </div>
+                            <div class="training-buttons-row">
+                                <button class="training-btn" onclick="buyUpgradeMulti('primary', 1)">x1</button>
+                                <button class="training-btn" onclick="buyUpgradeMulti('primary', 5)">x5</button>
+                                <button class="training-btn" onclick="buyUpgradeMulti('primary', 10)">x10</button>
+                                <button class="training-btn btn-max" onclick="buyUpgradeMulti('primary', 'max')">Max</button>
+                            </div>
+                        </div>
+
+                        <!-- Statistique 2 : Constitution / PV -->
+                        <div class="training-card">
+                            <div class="training-card-header">
+                                <span style="color: #ef4444;">❤ Constitution / PV (+25)</span>
+                                <span style="font-size:0.7rem; color:#03dac6;"><span id="count-cons">0</span> fois (<span class="gold-value" id="cost-cons">25</span> 🪙/u)</span>
+                            </div>
+                            <div class="training-buttons-row">
+                                <button class="training-btn" onclick="buyUpgradeMulti('cons', 1)">x1</button>
+                                <button class="training-btn" onclick="buyUpgradeMulti('cons', 5)">x5</button>
+                                <button class="training-btn" onclick="buyUpgradeMulti('cons', 10)">x10</button>
+                                <button class="training-btn btn-max" onclick="buyUpgradeMulti('cons', 'max')">Max</button>
+                            </div>
+                        </div>
+
+                        <!-- Statistique 3 : Armure -->
+                        <div class="training-card">
+                            <div class="training-card-header">
+                                <span style="color: #3b82f6;">🛡 Armure (+2)</span>
+                                <span style="font-size:0.7rem; color:#03dac6;"><span id="count-armor">0</span> fois (<span class="gold-value" id="cost-armor">35</span> 🪙/u)</span>
+                            </div>
+                            <div class="training-buttons-row">
+                                <button class="training-btn" onclick="buyUpgradeMulti('armor', 1)">x1</button>
+                                <button class="training-btn" onclick="buyUpgradeMulti('armor', 5)">x5</button>
+                                <button class="training-btn" onclick="buyUpgradeMulti('armor', 10)">x10</button>
+                                <button class="training-btn btn-max" onclick="buyUpgradeMulti('armor', 'max')">Max</button>
+                            </div>
+                        </div>
+
+                        <!-- Statistique 4 : Agilité -->
+                        <div class="training-card">
+                            <div class="training-card-header">
+                                <span style="color: #10b981;">⚡ Agilité (+2)</span>
+                                <span style="font-size:0.7rem; color:#03dac6;"><span id="count-agility">0</span> fois (<span class="gold-value" id="cost-agility">30</span> 🪙/u)</span>
+                            </div>
+                            <div class="training-buttons-row">
+                                <button class="training-btn" onclick="buyUpgradeMulti('agility', 1)">x1</button>
+                                <button class="training-btn" onclick="buyUpgradeMulti('agility', 5)">x5</button>
+                                <button class="training-btn" onclick="buyUpgradeMulti('agility', 10)">x10</button>
+                                <button class="training-btn btn-max" onclick="buyUpgradeMulti('agility', 'max')">Max</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -825,7 +902,6 @@
             let setSetBonusesDesc = [];
             let sInfo = classSets[currentClassName];
             
-            // Calcul du multiplicateur d'étage proportionnel pour le set basé sur la moyenne des étages des pièces équipées
             let avgSetFloor = setFloorSources.length > 0 ? setFloorSources.reduce((a, b) => a + b, 0) / setFloorSources.length : 1;
             let setFloorScale = Math.pow(10, avgSetFloor - 1);
 
@@ -968,13 +1044,11 @@
 
                 let text = item ? `<span style="color: ${item.rarityColor}; font-weight: bold;">${item.name}</span><br><span style="color:#a1a1aa; font-size:0.6rem;">${statDetails.join(' | ')}</span>` : 'Aucun';
                 
-                // HTML pour l'onglet Héros
                 let div = document.createElement('div');
                 div.className = item ? `eq-slot ${rarityClass}` : 'eq-slot';
                 div.innerHTML = `<span style="font-size: 1rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
                 eqDisplay.appendChild(div);
 
-                // HTML pour l'onglet Inventaire
                 let divInv = document.createElement('div');
                 divInv.className = item ? `eq-slot ${rarityClass}` : 'eq-slot';
                 divInv.innerHTML = `<span style="font-size: 1rem;">${icons[s.key]}</span> <div style="overflow:hidden; text-overflow:ellipsis;"><strong>${s.label}:</strong><br>${text}</div>`;
@@ -1018,15 +1092,15 @@
             if (!player.trainingCounts) player.trainingCounts = { primary: 0, cons: 0, armor: 0, agility: 0 };
             
             document.getElementById('train-primary-label').innerText = player.primaryStatName;
-            document.getElementById('cost-primary').innerText = `${player.costs.primary} 🪙`;
-            document.getElementById('cost-cons').innerText = `${player.costs.cons} 🪙`;
-            document.getElementById('cost-armor').innerText = `${player.costs.armor} 🪙`;
-            document.getElementById('cost-agility').innerText = `${player.costs.agility} 🪙`;
+            document.getElementById('cost-primary').innerText = player.costs.primary;
+            document.getElementById('cost-cons').innerText = player.costs.cons;
+            document.getElementById('cost-armor').innerText = player.costs.armor;
+            document.getElementById('cost-agility').innerText = player.costs.agility;
 
-            document.getElementById('count-primary').innerText = `${player.trainingCounts.primary} fois`;
-            document.getElementById('count-cons').innerText = `${player.trainingCounts.cons} fois`;
-            document.getElementById('count-armor').innerText = `${player.trainingCounts.armor} fois`;
-            document.getElementById('count-agility').innerText = `${player.trainingCounts.agility} fois`;
+            document.getElementById('count-primary').innerText = player.trainingCounts.primary;
+            document.getElementById('count-cons').innerText = player.trainingCounts.cons;
+            document.getElementById('count-armor').innerText = player.trainingCounts.armor;
+            document.getElementById('count-agility').innerText = player.trainingCounts.agility;
         }
 
         function handleItemClick(index) {
@@ -1177,33 +1251,98 @@
             updateStatus();
         }
 
-        function buyUpgrade(statType) {
-            let cost = player.costs[statType];
-            if ((player.gold || 0) < cost) {
-                log(`Pas assez d'or pour cet entraînement ! (${cost} 🪙 requis)`);
+        function buyUpgradeMulti(statType, countOrMax) {
+            if (!player.costs || !player.trainingCounts) return;
+
+            let currentCost = player.costs[statType];
+            let gold = player.gold || 0;
+
+            if (gold < currentCost) {
+                log(`Pas assez d'or pour cet entraînement ! (${currentCost} 🪙 requis)`);
                 return;
             }
 
-            player.gold -= cost;
-            if (!player.trainingCounts) player.trainingCounts = { primary: 0, cons: 0, armor: 0, agility: 0 };
-            player.trainingCounts[statType]++;
+            let amountToBuy = 0;
 
-            if (statType === 'primary') {
-                player.basePrimary += 2;
-                log(`Entraînement réussi : +2 en ${player.primaryStatName} !`);
-            } else if (statType === 'cons') {
-                player.baseCons += 25;
-                player.hp = Math.min(player.maxHp + 25, player.hp + 25);
-                log(`Entraînement réussi : +25 en Constitution !`);
-            } else if (statType === 'armor') {
-                player.baseArmor += 2;
-                log(`Entraînement réussi : +2 en Armure !`);
-            } else if (statType === 'agility') {
-                player.baseAgi += 2;
-                log(`Entraînement réussi : +2 en Agilité !`);
+            if (countOrMax === 'max') {
+                // Calculer combien on peut acheter avec la progression du coût (coût augmente de 30% à chaque palier)
+                let tempGold = gold;
+                let tempCost = currentCost;
+                while (tempGold >= tempCost) {
+                    tempGold -= tempCost;
+                    amountToBuy++;
+                    tempCost = Math.floor(tempCost * 1.3);
+                }
+                if (amountToBuy === 0) return;
+            } else {
+                amountToBuy = parseInt(countOrMax);
+                // Vérifier si on a assez d'or pour le total des paliers demandés
+                let totalCost = 0;
+                let tempCost = currentCost;
+                for (let i = 0; i < amountToBuy; i++) {
+                    totalCost += tempCost;
+                    tempCost = Math.floor(tempCost * 1.3);
+                }
+                if (gold < totalCost) {
+                    // Ajuster au nombre maximum achetable dans la limite demandée
+                    amountToBuy = 0;
+                    let tempGold = gold;
+                    let tempCost = currentCost;
+                    for (let i = 0; i < parseInt(countOrMax); i++) {
+                        if (tempGold >= tempCost) {
+                            tempGold -= tempCost;
+                            amountToBuy++;
+                            tempCost = Math.floor(tempCost * 1.3);
+                        } else {
+                            break;
+                        }
+                    }
+                    if (amountToBuy === 0) {
+                        log(`Pas assez d'or pour effectuer ${countOrMax} achats.`);
+                        return;
+                    }
+                }
             }
 
-            player.costs[statType] = Math.floor(cost * 1.3);
+            let totalGoldSpent = 0;
+            let totalPrimaryGain = 0;
+            let totalConsGain = 0;
+            let totalArmorGain = 0;
+            let totalAgiGain = 0;
+
+            for (let i = 0; i < amountToBuy; i++) {
+                let cost = player.costs[statType];
+                player.gold -= cost;
+                totalGoldSpent += cost;
+                player.trainingCounts[statType]++;
+
+                if (statType === 'primary') {
+                    totalPrimaryGain += 2;
+                    player.basePrimary += 2;
+                } else if (statType === 'cons') {
+                    totalConsGain += 25;
+                    player.baseCons += 25;
+                } else if (statType === 'armor') {
+                    totalArmorGain += 2;
+                    player.baseArmor += 2;
+                } else if (statType === 'agility') {
+                    totalAgiGain += 2;
+                    player.baseAgi += 2;
+                }
+
+                player.costs[statType] = Math.floor(cost * 1.3);
+            }
+
+            if (statType === 'primary') {
+                log(`Entraînement (x${amountToBuy}) : +${totalPrimaryGain} en ${player.primaryStatName} (${totalGoldSpent} 🪙).`);
+            } else if (statType === 'cons') {
+                player.hp = Math.min(player.maxHp + totalConsGain, player.hp + totalConsGain);
+                log(`Entraînement (x${amountToBuy}) : +${totalConsGain} en Constitution (${totalGoldSpent} 🪙).`);
+            } else if (statType === 'armor') {
+                log(`Entraînement (x${amountToBuy}) : +${totalArmorGain} en Armure (${totalGoldSpent} 🪙).`);
+            } else if (statType === 'agility') {
+                log(`Entraînement (x${amountToBuy}) : +${totalAgiGain} en Agilité (${totalGoldSpent} 🪙).`);
+            }
 
             updateStatus();
         }
