@@ -577,16 +577,16 @@
                     
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <button onclick="buyUpgrade('primary')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            📈 <span id="train-primary-label">Attaque</span> (+2) <br><span style="font-size:0.68rem; color:#facc15;" id="cost-primary">25 🪙</span>
+                            📈 <span id="train-primary-label">Attaque</span> (+2) — <span style="color:#03dac6;" id="count-primary">0 fois</span><br><span style="font-size:0.68rem; color:#facc15;" id="cost-primary">25 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('cons')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            ❤ Constitution / PV (+25) <br><span style="font-size:0.68rem; color:#facc15;" id="cost-cons">25 🪙</span>
+                            ❤ Constitution / PV (+25) — <span style="color:#03dac6;" id="count-cons">0 fois</span><br><span style="font-size:0.68rem; color:#facc15;" id="cost-cons">25 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('armor')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            🛡 Armure (+2) <br><span style="font-size:0.68rem; color:#facc15;" id="cost-armor">35 🪙</span>
+                            🛡 Armure (+2) — <span style="color:#03dac6;" id="count-armor">0 fois</span><br><span style="font-size:0.68rem; color:#facc15;" id="cost-armor">35 🪙</span>
                         </button>
                         <button onclick="buyUpgrade('agility')" style="background: #6200ee; font-size:0.82rem; padding: 8px;">
-                            ⚡ Agilité (+2) <br><span style="font-size:0.68rem; color:#facc15;" id="cost-agility">30 🪙</span>
+                            ⚡ Agilité (+2) — <span style="color:#03dac6;" id="count-agility">0 fois</span><br><span style="font-size:0.68rem; color:#facc15;" id="cost-agility">30 🪙</span>
                         </button>
                     </div>
                 </div>
@@ -748,6 +748,7 @@
             if (player.baseAgi === undefined) player.baseAgi = base.baseAgi;
             if (player.gold === undefined) player.gold = 0;
             if (!player.costs) player.costs = { primary: 25, cons: 25, armor: 35, agility: 30 };
+            if (!player.trainingCounts) player.trainingCounts = { primary: 0, cons: 0, armor: 0, agility: 0 };
             if (!player.hp || player.hp <= 0) player.hp = player.baseCons;
 
             document.getElementById('screen-class-select').classList.add('hidden');
@@ -780,6 +781,7 @@
                 baseArmor: base.baseArmor,
                 baseAgi: base.baseAgi,
                 costs: { primary: 25, cons: 25, armor: 35, agility: 30 },
+                trainingCounts: { primary: 0, cons: 0, armor: 0, agility: 0 },
                 maxHp: base.baseCons + bonusCons,
                 hp: base.baseCons + bonusCons,
                 primaryStat: base.basePrimary + bonusPrimary,
@@ -994,11 +996,18 @@
 
         function updateTrainingUI() {
             if (!player.costs) return;
+            if (!player.trainingCounts) player.trainingCounts = { primary: 0, cons: 0, armor: 0, agility: 0 };
+            
             document.getElementById('train-primary-label').innerText = player.primaryStatName;
             document.getElementById('cost-primary').innerText = `${player.costs.primary} 🪙`;
             document.getElementById('cost-cons').innerText = `${player.costs.cons} 🪙`;
             document.getElementById('cost-armor').innerText = `${player.costs.armor} 🪙`;
             document.getElementById('cost-agility').innerText = `${player.costs.agility} 🪙`;
+
+            document.getElementById('count-primary').innerText = `${player.trainingCounts.primary} fois`;
+            document.getElementById('count-cons').innerText = `${player.trainingCounts.cons} fois`;
+            document.getElementById('count-armor').innerText = `${player.trainingCounts.armor} fois`;
+            document.getElementById('count-agility').innerText = `${player.trainingCounts.agility} fois`;
         }
 
         function handleItemClick(index) {
@@ -1157,6 +1166,8 @@
             }
 
             player.gold -= cost;
+            if (!player.trainingCounts) player.trainingCounts = { primary: 0, cons: 0, armor: 0, agility: 0 };
+            player.trainingCounts[statType]++;
 
             if (statType === 'primary') {
                 player.basePrimary += 2;
