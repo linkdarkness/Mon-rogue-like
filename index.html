@@ -112,7 +112,7 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 5px;
-            margin-bottom: 8px;
+            margin-bottom: 0;
             font-size: 0.78rem;
         }
         
@@ -482,25 +482,6 @@
                         <div class="stat-item">
                             <span class="stat-label">Agilité</span>
                             <span id="hero-stat-agility" class="stat-value">0</span>
-                        </div>
-                    </div>
-
-                    <div class="bar-wrapper">
-                        <div class="bar-label">
-                            <span>PV (Constitution)</span>
-                            <span id="hp-text">120/120</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div id="hp-bar" class="progress-bar-fill"></div>
-                        </div>
-                    </div>
-                    <div class="bar-wrapper" style="margin-top: 4px;">
-                        <div class="bar-label">
-                            <span>XP (Expérience)</span>
-                            <span id="xp-text">0/30</span>
-                        </div>
-                        <div class="progress-bar-bg">
-                            <div id="xp-bar" class="progress-bar-fill"></div>
                         </div>
                     </div>
                 </div>
@@ -878,14 +859,10 @@
             document.getElementById('global-hero-stat-gold').innerText = `${player.gold || 0} 🪙`;
 
             let hpPercent = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
-            document.getElementById('hp-bar').style.width = hpPercent + '%';
-            document.getElementById('hp-text').innerText = `${player.hp}/${player.maxHp}`;
             document.getElementById('global-hp-bar').style.width = hpPercent + '%';
             document.getElementById('global-hp-text').innerText = `${player.hp}/${player.maxHp}`;
 
             let xpPercent = Math.max(0, Math.min(100, (player.xp / player.maxXp) * 100));
-            document.getElementById('xp-bar').style.width = xpPercent + '%';
-            document.getElementById('xp-text').innerText = `${player.xp}/${player.maxXp}`;
             document.getElementById('global-xp-bar').style.width = xpPercent + '%';
             document.getElementById('global-xp-text').innerText = `${player.xp}/${player.maxXp}`;
 
