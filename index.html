@@ -390,7 +390,7 @@
     <div id="game-container">
         <!-- ÉCRAN DE SÉLECTION DE CLASSE -->
         <div id="screen-class-select">
-            <h1>Roguelite Mobile (Difficulté x10 & Sets)</h1>
+            <h1>Roguelite Mobile (Difficulté x10 & Sets Scalés)</h1>
             <div id="legacy-info" class="legacy-box hidden">
                 <p id="legacy-text" style="margin: 0; color: #e8d7ff;"></p>
             </div>
@@ -403,7 +403,7 @@
             
             <div style="display: flex; flex-direction: column; gap: 6px;">
                 <button class="class-btn" onclick="startGame('Guerrier')">
-                    🛡️️ Guerrier (Set : Rempart du Juggernaut)
+                    🛡 Guerrier (Set : Rempart du Juggernaut)
                     <span>Force: 15 | Cons: 120 | Armure: 5 | Agilité: 5</span>
                 </button>
                 <button class="class-btn" onclick="startGame('Mage')">
@@ -805,6 +805,7 @@
 
             let activeSetCount = 0;
             let currentClassName = player.class;
+            let setFloorSources = [];
 
             for (let slot in player.equipment) {
                 let eq = player.equipment[slot];
@@ -816,25 +817,54 @@
 
                     if (eq.isSet && eq.setName === classSets[currentClassName].setName) {
                         activeSetCount++;
+                        setFloorSources.push(eq.floorSource || 1);
                     }
                 }
             }
 
             let setSetBonusesDesc = [];
             let sInfo = classSets[currentClassName];
+            
+            // Calcul du multiplicateur d'étage proportionnel pour le set basé sur la moyenne des étages des pièces équipées
+            let avgSetFloor = setFloorSources.length > 0 ? setFloorSources.reduce((a, b) => a + b, 0) / setFloorSources.length : 1;
+            let setFloorScale = Math.pow(10, avgSetFloor - 1);
+
             if (activeSetCount >= 2) {
-                bonusPrimary += (sInfo.bonuses[2].stats.primaryStat || 0);
-                bonusCons += (sInfo.bonuses[2].stats.cons || 0);
-                bonusArmor += (sInfo.bonuses[2].stats.armor || 0);
-                bonusAgi += (sInfo.bonuses[2].stats.agi || 0);
-                setSetBonusesDesc.push(sInfo.bonuses[2].desc);
+                let b2Primary = Math.round((sInfo.bonuses[2].stats.primaryStat || 0) * setFloorScale);
+                let b2Cons = Math.round((sInfo.bonuses[2].stats.cons || 0) * setFloorScale);
+                let b2Armor = Math.round((sInfo.bonuses[2].stats.armor || 0) * setFloorScale);
+                let b2Agi = Math.round((sInfo.bonuses[2].stats.agi || 0) * setFloorScale);
+
+                bonusPrimary += b2Primary;
+                bonusCons += b2Cons;
+                bonusArmor += b2Armor;
+                bonusAgi += b2Agi;
+                
+                let textParts = [];
+                if (b2Armor) textParts.push(`+${b2Armor} Armure`);
+                if (b2Cons) textParts.push(`+${b2Cons} Constitution`);
+                if (b2Primary) textParts.push(`+${b2Primary} ${player.primaryStatName}`);
+                if (b2Agi) textParts.push(`+${b2Agi} Agilité`);
+                setSetBonusesDesc.push(`2P (Étage ${avgSetFloor.toFixed(1)}) : ${textParts.join(' & ')}`);
             }
+
             if (activeSetCount >= 4) {
-                bonusPrimary += (sInfo.bonuses[4].stats.primaryStat || 0);
-                bonusCons += (sInfo.bonuses[4].stats.cons || 0);
-                bonusArmor += (sInfo.bonuses[4].stats.armor || 0);
-                bonusAgi += (sInfo.bonuses[4].stats.agi || 0);
-                setSetBonusesDesc.push(sInfo.bonuses[4].desc);
+                let b4Primary = Math.round((sInfo.bonuses[4].stats.primaryStat || 0) * setFloorScale);
+                let b4Cons = Math.round((sInfo.bonuses[4].stats.cons || 0) * setFloorScale);
+                let b4Armor = Math.round((sInfo.bonuses[4].stats.armor || 0) * setFloorScale);
+                let b4Agi = Math.round((sInfo.bonuses[4].stats.agi || 0) * setFloorScale);
+
+                bonusPrimary += b4Primary;
+                bonusCons += b4Cons;
+                bonusArmor += b4Armor;
+                bonusAgi += b4Agi;
+
+                let textParts = [];
+                if (b4Primary) textParts.push(`+${b4Primary} ${player.primaryStatName}`);
+                if (b4Cons) textParts.push(`+${b4Cons} Constitution`);
+                if (b4Armor) textParts.push(`+${b4Armor} Armure`);
+                if (b4Agi) textParts.push(`+${b4Agi} Agilité`);
+                setSetBonusesDesc.push(`4P (Étage ${avgSetFloor.toFixed(1)}) : ${textParts.join(' & ')}`);
             }
 
             player.activeSetBonuses = setSetBonusesDesc;
