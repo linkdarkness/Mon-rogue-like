@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vampire RPG: Blood & Shadows</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=MedievalSharp&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-dark: #0a060a;
@@ -17,6 +17,7 @@
       --text-main: #e2d9f3;
       --text-muted: #8d7a9e;
       --border-color: #3d2449;
+      
       --rarity-common: #a0a0a0;
       --rarity-rare: #0088ff;
       --rarity-epic: #a335ee;
@@ -50,11 +51,10 @@
       letter-spacing: 1px;
     }
 
-    /* Screen Management */
     .screen {
       width: 100%;
       max-width: 1100px;
-      padding: 20px;
+      padding: 15px;
       display: none;
     }
 
@@ -130,7 +130,6 @@
       cursor: pointer;
       transition: all 0.3s ease;
       text-align: center;
-      position: relative;
     }
 
     .clan-card:hover {
@@ -193,8 +192,8 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
       display: flex;
       justify-content: center;
-      gap: 10px;
-      padding: 10px 20px;
+      gap: 6px;
+      padding: 10px 15px;
       flex-wrap: wrap;
     }
 
@@ -202,16 +201,16 @@
       background: rgba(21, 13, 24, 0.8);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 10px 20px;
+      padding: 8px 14px;
       border-radius: 6px;
       cursor: pointer;
       font-family: 'Cinzel', serif;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       transition: all 0.3s;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .nav-btn:hover {
@@ -232,7 +231,7 @@
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 10px;
-      padding: 20px;
+      padding: 15px 20px;
       margin-top: 15px;
       margin-bottom: 20px;
       display: grid;
@@ -242,41 +241,41 @@
     }
 
     .player-avatar {
-      width: 70px;
-      height: 70px;
+      width: 65px;
+      height: 65px;
       border-radius: 50%;
       background: linear-gradient(135deg, var(--accent-red), #200);
       border: 2px solid var(--accent-gold);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
+      font-size: 1.8rem;
       box-shadow: 0 0 10px rgba(139,0,0,0.5);
     }
 
     .player-info h2 {
       color: var(--accent-gold);
-      font-size: 1.4rem;
+      font-size: 1.3rem;
     }
 
     .player-clan {
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.8rem;
     }
 
     .stats-bars {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-top: 8px;
+      gap: 6px;
+      margin-top: 6px;
     }
 
     .bar-container {
       background: rgba(0,0,0,0.6);
       border-radius: 10px;
-      height: 14px;
+      height: 12px;
       width: 100%;
-      max-width: 300px;
+      max-width: 280px;
       overflow: hidden;
       position: relative;
       border: 1px solid rgba(255,255,255,0.1);
@@ -300,7 +299,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       font-weight: bold;
       color: #fff;
       text-shadow: 1px 1px 2px #000;
@@ -308,7 +307,7 @@
 
     .player-resources {
       display: flex;
-      gap: 20px;
+      gap: 15px;
     }
 
     .resource-item {
@@ -316,17 +315,16 @@
     }
 
     .resource-label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
     }
 
     .resource-value {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: bold;
       color: var(--accent-gold);
     }
 
-    /* Tab Content Grid */
     .tab-content {
       display: none;
     }
@@ -335,199 +333,19 @@
       display: block;
     }
 
-    /* Quests Section */
-    .quests-grid {
+    /* ===================================================
+       CHARACTER SHEET TAB (SILHOUETTE & STATS)
+    =================================================== */
+    .character-layout {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: 1fr;
       gap: 20px;
     }
 
-    .quest-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.3s;
-    }
-
-    .quest-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--accent-red);
-    }
-
-    .quest-title {
-      color: var(--accent-gold);
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-    }
-
-    .quest-desc {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 15px;
-      min-height: 40px;
-    }
-
-    .quest-rewards {
-      background: rgba(0,0,0,0.3);
-      border-radius: 6px;
-      padding: 10px;
-      margin-bottom: 15px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-    }
-
-    .quest-rewards span {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .btn-quest {
-      width: 100%;
-      padding: 10px;
-      background: var(--accent-red);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-family: 'Cinzel', serif;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .btn-quest:hover:not(:disabled) {
-      background: var(--accent-red-bright);
-    }
-
-    .btn-quest:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .quest-progress-overlay {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 6px;
-      background: var(--accent-gold-bright);
-      width: 0%;
-      transition: width 0.1s linear;
-    }
-
-    /* La Tour (Tower Dungeon) */
-    .tower-container {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 25px;
-      text-align: center;
-    }
-
-    .tower-header {
-      margin-bottom: 25px;
-    }
-
-    .tower-header h2 {
-      color: var(--accent-gold);
-      font-size: 1.8rem;
-    }
-
-    .tower-progress-tracker {
-      display: flex;
-      justify-content: center;
-      gap: 6px;
-      margin: 20px 0;
-      flex-wrap: wrap;
-    }
-
-    .tower-step-node {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
-      font-weight: bold;
-      color: var(--text-muted);
-    }
-
-    .tower-step-node.completed {
-      background: rgba(0, 136, 255, 0.2);
-      border-color: #0088ff;
-      color: #0088ff;
-    }
-
-    .tower-step-node.active {
-      background: var(--accent-red);
-      border-color: var(--accent-gold);
-      color: #fff;
-      box-shadow: 0 0 10px var(--accent-red-bright);
-      transform: scale(1.15);
-    }
-
-    .tower-step-node.boss {
-      border-radius: 6px;
-      border-color: var(--accent-gold);
-      color: var(--accent-gold);
-    }
-
-    .tower-boss-preview {
-      background: rgba(0,0,0,0.4);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 20px;
-      max-width: 500px;
-      margin: 0 auto 25px auto;
-    }
-
-    .tower-boss-preview h3 {
-      color: var(--accent-red-bright);
-      font-size: 1.4rem;
-      margin-bottom: 8px;
-    }
-
-    .boss-stats {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 15px;
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
-    .combat-log {
-      background: #000;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 15px;
-      height: 180px;
-      overflow-y: auto;
-      text-align: left;
-      font-family: monospace;
-      font-size: 0.85rem;
-      margin-top: 20px;
-      color: #ccc;
-    }
-
-    .log-entry { margin-bottom: 4px; }
-    .log-player { color: #4cc9f0; }
-    .log-enemy { color: #f72585; }
-    .log-crit { color: #ffb703; font-weight: bold; }
-
-    /* Inventory & Forge Layout */
-    .shop-inventory-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 20px;
+    @media(min-width: 768px) {
+      .character-layout {
+        grid-template-columns: 1.2fr 1fr;
+      }
     }
 
     .section-box {
@@ -543,1152 +361,49 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      font-size: 1.1rem;
     }
 
-    .items-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 12px;
-    }
-
-    .item-card {
-      background: rgba(0,0,0,0.4);
+    /* Paper Doll Silhouette Grid */
+    .paper-doll-container {
+      position: relative;
+      background: radial-gradient(circle at center, rgba(30,15,35,0.8) 0%, rgba(10,6,10,0.95) 100%);
       border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 420px;
+      justify-content: center;
+    }
+
+    .doll-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      width: 100%;
+      max-width: 380px;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .doll-slot {
+      background: rgba(0,0,0,0.5);
+      border: 2px dashed var(--border-color);
       border-radius: 8px;
-      padding: 10px;
+      width: 85px;
+      height: 85px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5px;
       text-align: center;
       cursor: pointer;
       position: relative;
       transition: all 0.2s;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
     }
 
-    .item-card:hover {
-      border-color: var(--accent-gold);
-      transform: translateY(-2px);
-    }
-
-    .item-card.common { border-color: var(--rarity-common); }
-    .item-card.rare { border-color: var(--rarity-rare); box-shadow: inset 0 0 8px rgba(0,136,255,0.2); }
-    .item-card.epic { border-color: var(--rarity-epic); box-shadow: inset 0 0 8px rgba(163,53,238,0.2); }
-    .item-card.legendary { border-color: var(--rarity-legendary); box-shadow: inset 0 0 10px rgba(255,128,0,0.3); }
-    .item-card.trinket { border-color: var(--rarity-trinket); background: rgba(255, 183, 3, 0.05); }
-
-    .item-icon {
-      font-size: 1.8rem;
-      margin-bottom: 5px;
-    }
-
-    .item-name {
-      font-size: 0.8rem;
-      font-weight: bold;
-      margin-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .item-card.common .item-name { color: var(--rarity-common); }
-    .item-card.rare .item-name { color: var(--rarity-rare); }
-    .item-card.epic .item-name { color: var(--rarity-epic); }
-    .item-card.legendary .item-name { color: var(--rarity-legendary); }
-    .item-card.trinket .item-name { color: var(--rarity-trinket); }
-
-    .item-stat {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .item-price {
-      font-size: 0.75rem;
-      color: var(--accent-gold);
-      margin-top: 5px;
-      font-weight: bold;
-    }
-
-    .equipped-slots {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .slot-card {
-      background: rgba(0,0,0,0.3);
-      border: 1px dashed var(--border-color);
-      border-radius: 8px;
-      padding: 10px;
-      min-height: 80px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .slot-card.has-item {
-      border-style: solid;
-      background: rgba(0,0,0,0.6);
-    }
-
-    .btn-secondary {
-      background: rgba(201, 160, 80, 0.15);
-      border: 1px solid var(--accent-gold);
-      color: var(--accent-gold);
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-secondary:hover {
-      background: var(--accent-gold);
-      color: #000;
-    }
-
-    /* Training Section */
-    .stats-upgrade-list {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .stat-upgrade-row {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .stat-info h4 {
-      color: var(--accent-gold);
-      margin-bottom: 3px;
-    }
-
-    .stat-info p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    /* Utility */
-    .flex-between {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .badge-trinket {
-      background: var(--rarity-trinket);
-      color: #000;
-      font-weight: bold;
-      font-size: 0.65rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .player-header {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-      .player-avatar { margin: 0 auto; }
-      .player-resources { justify-content: center; }
-      .bar-container { margin: 0 auto; }
-      .main-nav { gap: 5px; }
-      .nav-btn { padding: 8px 12px; font-size: 0.85rem; }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Screen 1: Character Creation -->
-  <div id="creation-screen" class="screen active">
-    <h1>Vampire RPG</h1>
-    <div class="subtitle">Blood & Shadows</div>
-
-    <div class="form-group">
-      <label for="player-name">Nom de votre Seigneur Vampire</label>
-      <input type="text" id="player-name" class="form-control" placeholder="ex: Vladislav, Carmilla..." maxlength="18" value="Dracula">
-    </div>
-
-    <div class="form-group">
-      <label>Choisissez votre Lignée Sanguine</label>
-      <div class="clan-selector">
-        <div class="clan-card selected" data-clan="Sang-Pur">
-          <h3>Sang-Pur</h3>
-          <p>Aristocrates maîtres du sang. Attaque équilibrée et grande maîtrise magique.</p>
-          <div class="clan-bonus">+2 Force, +2 Dégâts</div>
-        </div>
-
-        <div class="clan-card" data-clan="Ombre">
-          <h3>Ombre Nosferatu</h3>
-          <p>Rôdeurs des ténèbres. Véloces, esquivent et frappent là où ça fait mal.</p>
-          <div class="clan-bonus">+4 Dextérité, +5% Esquive</div>
-        </div>
-
-        <div class="clan-card" data-clan="Lycan-Mordu">
-          <h3>Vampire Garou</h3>
-          <p>Monstruosités hybrides à la résistance physique terrifiante.</p>
-          <div class="clan-bonus">+5 Endurance, +20 HP</div>
-        </div>
-      </div>
-    </div>
-
-    <button id="start-btn" class="btn-main">Eveil du Vampire</button>
-  </div>
-
-  <!-- Screen 2: Game Dashboard -->
-  <div id="game-screen" class="screen">
-    
-    <!-- Navigation Tabs (Fixed at Top) -->
-    <nav class="main-nav">
-      <button class="nav-btn active" data-tab="tab-quests">🦇 Crypte (Quêtes)</button>
-      <button class="nav-btn" data-tab="tab-tower">🏰 La Tour</button>
-      <button class="nav-btn" data-tab="tab-shop">🗡️ Forge Sanglante</button>
-      <button class="nav-btn" data-tab="tab-training">📜 Entraînement</button>
-      <button class="nav-btn" data-tab="tab-inventory">🎒 Inventaire</button>
-    </nav>
-
-    <!-- Player Header Stats -->
-    <div class="player-header">
-      <div class="player-avatar" id="avatar-display">🩸</div>
+    .doll-slot.has-item {
       
-      <div class="player-info">
-        <div>
-          <span id="p-name" style="font-weight: bold; font-size: 1.2rem; color: var(--text-main);">Vampire</span>
-          <span id="p-clan" class="player-clan">Sang-Pur</span>
-        </div>
-        <div style="font-size: 0.85rem; color: var(--accent-gold); margin-top: 2px;">
-          Niveau <span id="p-level">1</span>
-        </div>
-
-        <div class="stats-bars">
-          <!-- HP Bar -->
-          <div class="bar-container">
-            <div id="hp-bar" class="bar-fill hp" style="width: 100%;"></div>
-            <div id="hp-text" class="bar-text">100 / 100 HP</div>
-          </div>
-          <!-- Energy Bar -->
-          <div class="bar-container">
-            <div id="energy-bar" class="bar-fill energy" style="width: 100%;"></div>
-            <div id="energy-text" class="bar-text">Soif de Sang: 100 / 100</div>
-          </div>
-          <!-- XP Bar -->
-          <div class="bar-container">
-            <div id="xp-bar" class="bar-fill xp" style="width: 0%;"></div>
-            <div id="xp-text" class="bar-text">XP: 0 / 100</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="player-resources">
-        <div class="resource-item">
-          <div class="resource-label">Sang (Or)</div>
-          <div class="resource-value">🩸 <span id="p-gold">50</span></div>
-        </div>
-        <div class="resource-item">
-          <div class="resource-label">Puissance Dégâts</div>
-          <div class="resource-value">⚔️ <span id="p-dmg">10</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TABS CONTENT -->
-
-    <!-- TAB 1: QUESTS -->
-    <div id="tab-quests" class="tab-content active">
-      <div class="quests-grid" id="quests-container">
-        <!-- Generated Dynamically -->
-      </div>
-    </div>
-
-    <!-- TAB 2: TOWER DUNGEON -->
-    <div id="tab-tower" class="tab-content">
-      <div class="tower-container">
-        <div class="tower-header">
-          <h2>La Tour des Épreuves</h2>
-          <p style="color: var(--text-muted); font-size: 0.9rem;">
-            Grimpez les étages de la tour ! Chaque étage comporte 10 étapes. La difficulté double à chaque étage.
-            Battez le Boss de l'Étape 10 pour débloquer un équipement de haut rang !
-          </p>
-        </div>
-
-        <h3>Étage <span id="tower-floor-display">1</span> - Étape <span id="tower-step-display">1</span> / 10</h3>
-        
-        <div class="tower-progress-tracker" id="tower-tracker">
-          <!-- 10 Steps UI rendered here -->
-        </div>
-
-        <div class="tower-boss-preview">
-          <div style="font-size: 3rem; margin-bottom: 10px;" id="tower-enemy-icon">👹</div>
-          <h3 id="tower-enemy-name">Garde d'Ombre</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted);" id="tower-enemy-desc">Un serviteur corrompu gardant les marches de la tour.</p>
-          
-          <div class="boss-stats">
-            <span>PV: <strong id="tower-enemy-hp" style="color:#ff4d4d;">50</strong></span>
-            <span>Attaque: <strong id="tower-enemy-dmg" style="color:var(--accent-gold);">8</strong></span>
-            <span>Récompense Boss: <strong style="color:var(--rarity-epic);">Objet Épique/Légendaire</strong></span>
-          </div>
-        </div>
-
-        <button class="btn-main" id="btn-fight-tower">Combattre l'Étape</button>
-
-        <div class="combat-log" id="tower-log">
-          <div class="log-entry">Prêt pour l'ascension de La Tour...</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: SHOP (FORGE SANGLANTE) -->
-    <div id="tab-shop" class="tab-content">
-      <div class="section-box">
-        <h3>
-          <span>Forge Sanglante</span>
-          <button class="btn-secondary" id="btn-refresh-shop">Renouveler le Stock (10 🩸)</button>
-        </h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
-          Échangez votre sang récolté contre des armes et pièces d'équipement rares.
-        </p>
-        <div class="items-grid" id="shop-items-container">
-          <!-- Shop items dynamically rendered -->
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 4: TRAINING -->
-    <div id="tab-training" class="tab-content">
-      <div class="section-box">
-        <h3>Entraînement des Ombres</h3>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
-          Consommez votre Sang pour augmenter définitivement vos statistiques primaires.
-        </p>
-        <div class="stats-upgrade-list">
-          
-          <div class="stat-upgrade-row">
-            <div class="stat-info">
-              <h4>Force (<span id="stat-str">5</span>)</h4>
-              <p>Augmente directement vos dégâts physiques (+2 Dmg / pt)</p>
-            </div>
-            <button class="btn-secondary btn-upgrade" data-stat="str">Améliorer (<span id="cost-str">15</span> 🩸)</button>
-          </div>
-
-          <div class="stat-upgrade-row">
-            <div class="stat-info">
-              <h4>Endurance (<span id="stat-end">5</span>)</h4>
-              <p>Augmente vos points de vie max (+10 HP / pt)</p>
-            </div>
-            <button class="btn-secondary btn-upgrade" data-stat="end">Améliorer (<span id="cost-end">15</span> 🩸)</button>
-          </div>
-
-          <div class="stat-upgrade-row">
-            <div class="stat-info">
-              <h4>Dextérité (<span id="stat-dex">5</span>)</h4>
-              <p>Augmente vos chances de coup critique et d'esquive (+1%)</p>
-            </div>
-            <button class="btn-secondary btn-upgrade" data-stat="dex">Améliorer (<span id="cost-dex">15</span> 🩸)</button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 5: INVENTORY -->
-    <div id="tab-inventory" class="tab-content">
-      <div class="shop-inventory-grid">
-        
-        <!-- Equipped Box -->
-        <div class="section-box">
-          <h3>Équipement Actif</h3>
-          <div class="equipped-slots">
-            
-            <div class="slot-card" id="slot-weapon">
-              <div class="item-icon">🗡️</div>
-              <div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">Arme</div>
-                <div class="item-name" style="font-size:0.85rem;">Mains nues</div>
-              </div>
-            </div>
-
-            <div class="slot-card" id="slot-head">
-              <div class="item-icon">🪖</div>
-              <div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">Tête</div>
-                <div class="item-name" style="font-size:0.85rem;">Aucun</div>
-              </div>
-            </div>
-
-            <div class="slot-card" id="slot-chest">
-              <div class="item-icon">🛡️</div>
-              <div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">Torse</div>
-                <div class="item-name" style="font-size:0.85rem;">Aucun</div>
-              </div>
-            </div>
-
-            <div class="slot-card" id="slot-amulet">
-              <div class="item-icon">📿</div>
-              <div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">Amulette</div>
-                <div class="item-name" style="font-size:0.85rem;">Aucun</div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Backpack Box -->
-        <div class="section-box">
-          <h3>
-            <span>Sac à Dos (<span id="inv-count">0</span>/12)</span>
-            <button class="btn-secondary" id="btn-sell-trinkets" style="border-color:var(--rarity-trinket); color:var(--rarity-trinket);">💰 Vendre toutes les babioles</button>
-          </h3>
-          <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">Cliquez sur un équipement pour l'équiper, ou une babiole pour la revendre.</p>
-          <div class="items-grid" id="inventory-items-container">
-            <!-- Inventory items -->
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    /* ===================================================
-       GAME DATA & CONFIGURATION
-    =================================================== */
-    let player = {
-      name: 'Dracula',
-      clan: 'Sang-Pur',
-      level: 1,
-      xp: 0,
-      xpMax: 100,
-      hp: 100,
-      hpMax: 100,
-      energy: 100,
-      energyMax: 100,
-      gold: 50,
-      str: 5,
-      end: 5,
-      dex: 5,
-      equipped: {
-        weapon: null,
-        head: null,
-        chest: null,
-        amulet: null
-      },
-      inventory: [],
-      tower: {
-        floor: 1,
-        step: 1
-      }
-    };
-
-    let activeQuests = [];
-    let currentQuestTimer = null;
-    let shopInventory = [];
-
-    const ITEM_TYPES = {
-      weapon: { name: 'Arme', icon: '🗡️' },
-      head: { name: 'Tête', icon: '🪖' },
-      chest: { name: 'Torse', icon: '🛡️' },
-      amulet: { name: 'Amulette', icon: '📿' },
-      trinket: { name: 'Babiole', icon: '💎' }
-    };
-
-    const TRINKETS_DB = [
-      { name: "Coupe de Sang Ancienne", icon: "🍷", val: 25 },
-      { name: "Anneau d'Argent Corrompu", icon: "💍", val: 40 },
-      { name: "Chandelier en Os", icon: "🕯️", val: 15 },
-      { name: "Relique de Chauve-souris", icon: "🦇", val: 60 },
-      { name: "Pierre de Lune Sombre", icon: "🔮", val: 80 },
-      { name: "Miroir Brisé d'Ombre", icon: "🪞", val: 35 }
-    ];
-
-    const EQUIPMENT_NAMES = {
-      weapon: ["Dague de Sang", "Épée d'Obsidienne", "Faux des Ombres", "Katana Maudit"],
-      head: ["Capuche d'Ombre", "Couronne Sanglante", "Casque d'Os", "Diadème de Nuit"],
-      chest: ["Cotte de Mailles d'Acier Sombre", "Cuirass de Vampire", "Robe de Nécromancien"],
-      amulet: ["Pendentif d'Émeraude", "Cœur de Rubis Fissuré", "Amulette d'Anubis"]
-    };
-
-    /* ===================================================
-       INITIALIZATION & EVENTS
-    =================================================== */
-    document.addEventListener('DOMContentLoaded', () => {
-      setupClanSelection();
-      setupNavigation();
-      setupEventListeners();
-      loadGame();
-
-      // Energy recovery interval
-      setInterval(() => {
-        if (player.energy < player.energyMax) {
-          player.energy = Math.min(player.energyMax, player.energy + 1);
-          updateUI();
-        }
-      }, 3000);
-    });
-
-    function setupClanSelection() {
-      const clanCards = document.querySelectorAll('.clan-card');
-      clanCards.forEach(card => {
-        card.addEventListener('click', () => {
-          clanCards.forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
-        });
-      });
-    }
-
-    function setupNavigation() {
-      const navBtns = document.querySelectorAll('.nav-btn');
-      navBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const tabId = btn.getAttribute('data-tab');
-          navBtns.forEach(b => b.classList.remove('active'));
-          document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-          
-          btn.classList.add('active');
-          document.getElementById(tabId).classList.add('active');
-        });
-      });
-    }
-
-    function setupEventListeners() {
-      document.getElementById('start-btn').addEventListener('click', createCharacter);
-      document.getElementById('btn-fight-tower').addEventListener('click', startTowerBattle);
-      document.getElementById('btn-refresh-shop').addEventListener('click', refreshShop);
-      document.getElementById('btn-sell-trinkets').addEventListener('click', sellAllTrinkets);
-
-      document.querySelectorAll('.btn-upgrade').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const stat = e.currentTarget.getAttribute('data-stat');
-          upgradeStat(stat);
-        });
-      });
-    }
-
-    /* ===================================================
-       CHARACTER CREATION
-    =================================================== */
-    function createCharacter() {
-      const nameInput = document.getElementById('player-name').value.trim();
-      const selectedClanCard = document.querySelector('.clan-card.selected');
-
-      if (!nameInput) {
-        alert('Veuillez entrer un nom pour votre Vampire.');
-        return;
-      }
-
-      player.name = nameInput;
-      player.clan = selectedClanCard ? selectedClanCard.getAttribute('data-clan') : 'Sang-Pur';
-
-      // Apply Clan Bonuses
-      if (player.clan === 'Sang-Pur') {
-        player.str += 2;
-      } else if (player.clan === 'Ombre') {
-        player.dex += 4;
-      } else if (player.clan === 'Lycan-Mordu') {
-        player.end += 5;
-        player.hpMax += 20;
-        player.hp = player.hpMax;
-      }
-
-      document.getElementById('creation-screen').classList.remove('active');
-      document.getElementById('game-screen').classList.add('active');
-
-      generateQuests();
-      generateShopItems();
-      saveGame();
-      updateUI();
-    }
-
-    /* ===================================================
-       STATISTICS & COMPUTED VALUES
-    =================================================== */
-    function getPlayerDamage() {
-      let baseDmg = player.str * 2;
-      if (player.equipped.weapon) baseDmg += player.equipped.weapon.val;
-      return baseDmg;
-    }
-
-    function getPlayerMaxHP() {
-      let baseHP = 100 + (player.end * 10);
-      if (player.equipped.chest) baseHP += player.equipped.chest.val * 5;
-      if (player.equipped.head) baseHP += player.equipped.head.val * 3;
-      return baseHP;
-    }
-
-    /* ===================================================
-       QUEST SYSTEM
-    =================================================== */
-    function generateQuests() {
-      const questTemplates = [
-        { title: "Chasse aux Paysans", desc: "Siphonnez le sang des villageois sans vous faire repérer.", cost: 15, time: 5 },
-        { title: "Pillage de Tombeau", desc: "Explorez un sarcophage ancien à la recherche de trésors oubliés.", cost: 25, time: 8 },
-        { title: "Rituel de Sang Noir", desc: "Invoquez les esprits nocturnes pour amplifier votre puissance.", cost: 35, time: 12 },
-        { title: "Embuscade de Gargouilles", desc: "Affrontez les gardiens de pierre qui protègent la cathédrale.", cost: 20, time: 6 }
-      ];
-
-      activeQuests = questTemplates.map((template, idx) => {
-        const goldReward = Math.floor(template.cost * (1.5 + Math.random() * 0.5));
-        const xpReward = Math.floor(template.cost * (1.2 + Math.random() * 0.4));
-        
-        // Reward Type: 40% Trinket, 30% Equipment, 30% None
-        let rewardType = 'none';
-        const rand = Math.random();
-        if (rand < 0.4) rewardType = 'trinket';
-        else if (rand < 0.7) rewardType = 'equipment';
-
-        return {
-          id: idx,
-          ...template,
-          gold: goldReward,
-          xp: xpReward,
-          rewardType: rewardType
-        };
-      });
-
-      renderQuests();
-    }
-
-    function renderQuests() {
-      const container = document.getElementById('quests-container');
-      container.innerHTML = '';
-
-      activeQuests.forEach(quest => {
-        let rewardBadge = 'Aucun objet';
-        if (quest.rewardType === 'trinket') rewardBadge = '🎁 Babiole';
-        if (quest.rewardType === 'equipment') rewardBadge = '🛡️ Équipement';
-
-        const card = document.createElement('div');
-        card.className = 'quest-card';
-        card.innerHTML = `
-          <div>
-            <div class="quest-title">${quest.title}</div>
-            <div class="quest-desc">${quest.desc}</div>
-            <div class="quest-rewards">
-              <span>🩸 ${quest.gold} Sang</span>
-              <span>⚡ ${quest.xp} XP</span>
-              <span style="color:var(--accent-gold);">${rewardBadge}</span>
-            </div>
-          </div>
-          <div>
-            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">
-              Coût: ${quest.cost} Soif | Durée: ${quest.time}s
-            </div>
-            <button class="btn-quest" onclick="startQuest(${quest.id})" ${player.energy < quest.cost ? 'disabled' : ''}>
-              Lancer la Quête
-            </button>
-          </div>
-          <div class="quest-progress-overlay" id="q-prog-${quest.id}"></div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    function startQuest(questId) {
-      const quest = activeQuests.find(q => q.id === questId);
-      if (!quest || player.energy < quest.cost) return;
-
-      player.energy -= quest.cost;
-      updateUI();
-
-      // Disable all quest buttons
-      document.querySelectorAll('.btn-quest').forEach(b => b.disabled = true);
-
-      const progressBar = document.getElementById(`q-prog-${questId}`);
-      let elapsed = 0;
-      const interval = 100;
-      const totalTicks = (quest.time * 1000) / interval;
-
-      currentQuestTimer = setInterval(() => {
-        elapsed++;
-        const pct = (elapsed / totalTicks) * 100;
-        if (progressBar) progressBar.style.width = `${pct}%`;
-
-        if (elapsed >= totalTicks) {
-          clearInterval(currentQuestTimer);
-          completeQuest(quest);
-        }
-      }, interval);
-    }
-
-    function completeQuest(quest) {
-      player.gold += quest.gold;
-      addXP(quest.xp);
-
-      let lootMsg = '';
-      if (quest.rewardType === 'trinket') {
-        const trinket = TRINKETS_DB[Math.floor(Math.random() * TRINKETS_DB.length)];
-        addItemToInventory({
-          id: Date.now(),
-          type: 'trinket',
-          name: trinket.name,
-          icon: trinket.icon,
-          rarity: 'trinket',
-          val: trinket.val
-        });
-        lootMsg = ` et a trouvé une babiole: ${trinket.name} (${trinket.val} 🩸)`;
-      } else if (quest.rewardType === 'equipment') {
-        const item = generateRandomEquipment();
-        addItemToInventory(item);
-        lootMsg = ` et a trouvé un équipement: ${item.name}`;
-      }
-
-      alert(`Quête réussie ! Vous gagnez ${quest.gold} Sang et ${quest.xp} XP${lootMsg}.`);
-
-      generateQuests();
-      saveGame();
-      updateUI();
-    }
-
-    /* ===================================================
-       TOWER SYSTEM (DONJON LA TOUR)
-    =================================================== */
-    function getTowerEnemy() {
-      const f = player.tower.floor;
-      const s = player.tower.step;
-      const multiplier = Math.pow(2, f - 1);
-      
-      const isBoss = (s === 10);
-      const baseHP = (30 + (s * 15)) * multiplier;
-      const baseDmg = (5 + (s * 3)) * multiplier;
-
-      return {
-        name: isBoss ? `SEIGNEUR SUPRÊME (Étage ${f})` : `Gardien de la Tour E${f}-S${s}`,
-        icon: isBoss ? '👑' : (s % 2 === 0 ? '🐺' : '👹'),
-        hp: Math.floor(baseHP),
-        maxHp: Math.floor(baseHP),
-        dmg: Math.floor(baseDmg),
-        isBoss: isBoss
-      };
-    }
-
-    function renderTowerUI() {
-      document.getElementById('tower-floor-display').innerText = player.tower.floor;
-      document.getElementById('tower-step-display').innerText = player.tower.step;
-
-      // Render Step Tracker Nodes
-      const tracker = document.getElementById('tower-tracker');
-      tracker.innerHTML = '';
-      for (let i = 1; i <= 10; i++) {
-        const node = document.createElement('div');
-        node.className = 'tower-step-node';
-        if (i < player.tower.step) node.classList.add('completed');
-        if (i === player.tower.step) node.classList.add('active');
-        if (i === 10) {
-          node.classList.add('boss');
-          node.innerText = '👑';
-        } else {
-          node.innerText = i;
-        }
-        tracker.appendChild(node);
-      }
-
-      const enemy = getTowerEnemy();
-      document.getElementById('tower-enemy-name').innerText = enemy.name;
-      document.getElementById('tower-enemy-icon').innerText = enemy.icon;
-      document.getElementById('tower-enemy-hp').innerText = enemy.hp;
-      document.getElementById('tower-enemy-dmg').innerText = enemy.dmg;
-    }
-
-    function startTowerBattle() {
-      const enemy = getTowerEnemy();
-      const log = document.getElementById('tower-log');
-      log.innerHTML = `<div class="log-entry"><strong>Début du combat contre ${enemy.name} !</strong></div>`;
-
-      let playerHP = getPlayerMaxHP();
-      let enemyHP = enemy.hp;
-      const playerDmg = getPlayerDamage();
-
-      let turn = 1;
-      const battleInterval = setInterval(() => {
-        // Player Attack
-        let isCrit = Math.random() < (player.dex * 0.02);
-        let actualDmg = isCrit ? playerDmg * 2 : playerDmg;
-        enemyHP -= actualDmg;
-
-        log.innerHTML += `<div class="log-entry log-player">Tour ${turn}: Vous attaquez et infligez ${actualDmg} dégâts ${isCrit ? '<span class="log-crit">[COUP CRITIQUE !]</span>' : ''}.</div>`;
-
-        if (enemyHP <= 0) {
-          clearInterval(battleInterval);
-          log.innerHTML += `<div class="log-entry" style="color:var(--accent-gold-bright);"><strong>VICTOIRE !</strong> Vous avez vaincu ${enemy.name} !</div>`;
-          handleTowerVictory(enemy);
-          return;
-        }
-
-        // Enemy Attack
-        let isEvaded = Math.random() < (player.dex * 0.01);
-        if (isEvaded) {
-          log.innerHTML += `<div class="log-entry log-enemy">Tour ${turn}: ${enemy.name} attaque mais VOUS ESQUIVEZ !</div>`;
-        } else {
-          playerHP -= enemy.dmg;
-          log.innerHTML += `<div class="log-entry log-enemy">Tour ${turn}: ${enemy.name} vous inflige ${enemy.dmg} dégâts.</div>`;
-        }
-
-        if (playerHP <= 0) {
-          clearInterval(battleInterval);
-          log.innerHTML += `<div class="log-entry" style="color:var(--accent-red-bright);"><strong>DÉFAITE...</strong> Vous avez succombé. Entraînez-vous et réessayez.</div>`;
-          return;
-        }
-
-        log.scrollTop = log.scrollHeight;
-        turn++;
-      }, 600);
-    }
-
-    function handleTowerVictory(enemy) {
-      const rewardGold = 20 * player.tower.floor * player.tower.step;
-      const rewardXP = 30 * player.tower.floor * player.tower.step;
-
-      player.gold += rewardGold;
-      addXP(rewardXP);
-
-      if (enemy.isBoss) {
-        // High rarity reward on Boss step 10
-        const rareTypes = ['epic', 'legendary'];
-        const chosenRarity = rareTypes[Math.floor(Math.random() * rareTypes.length)];
-        const loot = generateRandomEquipment(chosenRarity);
-        addItemToInventory(loot);
-
-        alert(`🎉 ÉTAGE ${player.tower.floor} COMPLÉTÉ !\nBoss vaincu ! Vous obtenez le butin Légendaire/Épique : ${loot.name} !`);
-        
-        player.tower.floor++;
-        player.tower.step = 1;
-      } else {
-        player.tower.step++;
-      }
-
-      saveGame();
-      updateUI();
-      renderTowerUI();
-    }
-
-    /* ===================================================
-       FORGE SANGLANTE (SHOP)
-    =================================================== */
-    function generateShopItems() {
-      shopInventory = [];
-      for (let i = 0; i < 4; i++) {
-        shopInventory.push(generateRandomEquipment());
-      }
-      renderShop();
-    }
-
-    function renderShop() {
-      const container = document.getElementById('shop-items-container');
-      container.innerHTML = '';
-
-      shopInventory.forEach((item, index) => {
-        const card = document.createElement('div');
-        card.className = `item-card ${item.rarity}`;
-        card.innerHTML = `
-          <div class="item-icon">${item.icon}</div>
-          <div class="item-name">${item.name}</div>
-          <div class="item-stat">+${item.val} Stat</div>
-          <div class="item-price">🩸 ${item.price}</div>
-        `;
-        card.onclick = () => buyShopItem(index);
-        container.appendChild(card);
-      });
-    }
-
-    function buyShopItem(index) {
-      const item = shopInventory[index];
-      if (!item) return;
-
-      if (player.gold < item.price) {
-        alert("Vous n'avez pas assez de Sang !");
-        return;
-      }
-
-      if (player.inventory.length >= 12) {
-        alert("Votre sac à dos est plein !");
-        return;
-      }
-
-      player.gold -= item.price;
-      addItemToInventory(item);
-      shopInventory.splice(index, 1);
-      
-      renderShop();
-      saveGame();
-      updateUI();
-    }
-
-    function refreshShop() {
-      if (player.gold < 10) {
-        alert("Le renouvellement du stock coûte 10 Sang.");
-        return;
-      }
-      player.gold -= 10;
-      generateShopItems();
-      saveGame();
-      updateUI();
-    }
-
-    /* ===================================================
-       ITEMS & INVENTORY
-    =================================================== */
-    function generateRandomEquipment(forcedRarity = null) {
-      const types = ['weapon', 'head', 'chest', 'amulet'];
-      const type = types[Math.floor(Math.random() * types.length)];
-      
-      const rarities = ['common', 'rare', 'epic', 'legendary'];
-      const rarityWeights = [0.5, 0.3, 0.15, 0.05];
-      
-      let rarity = forcedRarity;
-      if (!rarity) {
-        const rand = Math.random();
-        let sum = 0;
-        for (let i = 0; i < rarities.length; i++) {
-          sum += rarityWeights[i];
-          if (rand <= sum) {
-            rarity = rarities[i];
-            break;
-          }
-        }
-      }
-
-      const mults = { common: 1, rare: 1.8, epic: 2.5, legendary: 4 };
-      const baseNames = EQUIPMENT_NAMES[type];
-      const name = `${baseNames[Math.floor(Math.random() * baseNames.length)]}`;
-      
-      const statVal = Math.floor((5 + Math.random() * 5 * player.level) * mults[rarity]);
-      const price = Math.floor(statVal * 4);
-
-      return {
-        id: Date.now() + Math.random(),
-        type: type,
-        name: name,
-        icon: ITEM_TYPES[type].icon,
-        rarity: rarity,
-        val: statVal,
-        price: price
-      };
-    }
-
-    function addItemToInventory(item) {
-      if (player.inventory.length < 12) {
-        player.inventory.push(item);
-        renderInventory();
-      }
-    }
-
-    function renderInventory() {
-      document.getElementById('inv-count').innerText = player.inventory.length;
-      const container = document.getElementById('inventory-items-container');
-      container.innerHTML = '';
-
-      player.inventory.forEach((item, idx) => {
-        const card = document.createElement('div');
-        card.className = `item-card ${item.rarity}`;
-        
-        let statText = item.type === 'trinket' ? `<span class="badge-trinket">Babiole</span>` : `+${item.val} Stat`;
-        let actionText = item.type === 'trinket' ? `Vendre (${item.val} 🩸)` : `Équiper`;
-
-        card.innerHTML = `
-          <div class="item-icon">${item.icon}</div>
-          <div class="item-name">${item.name}</div>
-          <div class="item-stat">${statText}</div>
-          <div class="item-price" style="font-size:0.7rem; color:var(--accent-gold); margin-top:4px;">${actionText}</div>
-        `;
-
-        card.onclick = () => {
-          if (item.type === 'trinket') {
-            sellTrinket(idx);
-          } else {
-            equipItem(idx);
-          }
-        };
-
-        container.appendChild(card);
-      });
-
-      renderEquippedSlots();
-    }
-
-    function renderEquippedSlots() {
-      ['weapon', 'head', 'chest', 'amulet'].forEach(slot => {
-        const el = document.getElementById(`slot-${slot}`);
-        const item = player.equipped[slot];
-        if (item) {
-          el.classList.add('has-item');
-          el.innerHTML = `
-            <div class="item-icon">${item.icon}</div>
-            <div>
-              <div style="font-size:0.75rem; color:var(--text-muted);">${ITEM_TYPES[slot].name}</div>
-              <div class="item-name ${item.rarity}" style="font-size:0.85rem;">${item.name} (+${item.val})</div>
-              <div style="font-size:0.65rem; color:var(--accent-red-bright); cursor:pointer;" onclick="unequipItem('${slot}')">Déséquiper</div>
-            </div>
-          `;
-        } else {
-          el.classList.remove('has-item');
-          el.innerHTML = `
-            <div class="item-icon">${ITEM_TYPES[slot].icon}</div>
-            <div>
-              <div style="font-size:0.75rem; color:var(--text-muted);">${ITEM_TYPES[slot].name}</div>
-              <div class="item-name" style="font-size:0.85rem; color:#666;">Vide</div>
-            </div>
-          `;
-        }
-      });
-    }
-
-    function equipItem(invIndex) {
-      const item = player.inventory[invIndex];
-      if (!item || item.type === 'trinket') return;
-
-      const currentEquipped = player.equipped[item.type];
-      player.inventory.splice(invIndex, 1);
-
-      if (currentEquipped) {
-        player.inventory.push(currentEquipped);
-      }
-
-      player.equipped[item.type] = item;
-      saveGame();
-      updateUI();
-      renderInventory();
-    }
-
-    function unequipItem(slotType) {
-      const item = player.equipped[slotType];
-      if (!item) return;
-
-      if (player.inventory.length >= 12) {
-        alert("Sac à dos complet !");
-        return;
-      }
-
-      player.equipped[slotType] = null;
-      player.inventory.push(item);
-      saveGame();
-      updateUI();
-      renderInventory();
-    }
-
-    function sellTrinket(invIndex) {
-      const item = player.inventory[invIndex];
-      if (item && item.type === 'trinket') {
-        player.gold += item.val;
-        player.inventory.splice(invIndex, 1);
-        saveGame();
-        updateUI();
-        renderInventory();
-      }
-    }
-
-    function sellAllTrinkets() {
-      let totalEarned = 0;
-      player.inventory = player.inventory.filter(item => {
-        if (item.type === 'trinket') {
-          totalEarned += item.val;
-          return false;
-        }
-        return true;
-      });
-
-      if (totalEarned > 0) {
-        player.gold += totalEarned;
-        alert(`Vous avez vendu toutes vos babioles pour un total de ${totalEarned} Sang !`);
-        saveGame();
-        updateUI();
-        renderInventory();
-      } else {
-        alert("Aucune babiole dans votre sac à dos.");
-      }
-    }
-
-    /* ===================================================
-       TRAINING & LEVEL UP
-    =================================================== */
-    function upgradeStat(statName) {
-      const cost = Math.floor(15 * Math.pow(1.3, player[statName] - 5));
-      if (player.gold < cost) {
-        alert("Pas assez de Sang !");
-        return;
-      }
-
-      player.gold -= cost;
-      player[statName]++;
-      saveGame();
-      updateUI();
-    }
-
-    function addXP(amount) {
-      player.xp += amount;
-      if (player.xp >= player.xpMax) {
-        player.xp -= player.xpMax;
-        player.level++;
-        player.xpMax = Math.floor(player.xpMax * 1.5);
-        player.str += 1;
-        player.end += 1;
-        player.dex += 1;
-        alert(`⚡ MONTÉE DE NIVEAU ! Vous êtes désormais Niveau ${player.level} !`);
-      }
-    }
-
-    /* ===================================================
-       UI & STORAGE MANAGEMENT
-    =================================================== */
-    function updateUI() {
-      document.getElementById('p-name').innerText = player.name;
-      document.getElementById('p-clan').innerText = player.clan;
-      document.getElementById('p-level').innerText = player.level;
-      document.getElementById('p-gold').innerText = player.gold;
-      document.getElementById('p-dmg').innerText = getPlayerDamage();
-
-      // Bars Update
-      const maxHP = getPlayerMaxHP();
-      player.hp = Math.min(player.hp, maxHP);
-      
-      document.getElementById('hp-bar').style.width = `${(player.hp / maxHP) * 100}%`;
-      document.getElementById('hp-text').innerText = `${player.hp} / ${maxHP} HP`;
-
-      document.getElementById('energy-bar').style.width = `${(player.energy / player.energyMax) * 100}%`;
-      document.getElementById('energy-text').innerText = `Soif de Sang: ${player.energy} / ${player.energyMax}`;
-
-      document.getElementById('xp-bar').style.width = `${(player.xp / player.xpMax) * 100}%`;
-      document.getElementById('xp-text').innerText = `XP: ${player.xp} / ${player.xpMax}`;
-
-      // Training Stats Costs Update
-      ['str', 'end', 'dex'].forEach(st => {
-        document.getElementById(`stat-${st}`).innerText = player[st];
-        const cost = Math.floor(15 * Math.pow(1.3, player[st] - 5));
-        document.getElementById(`cost-${st}`).innerText = cost;
-      });
-
-      renderTowerUI();
-      renderInventory();
-    }
-
-    function saveGame() {
-      localStorage.setItem('vampire_rpg_save', JSON.stringify(player));
-    }
-
-    function loadGame() {
-      const data = localStorage.getItem('vampire_rpg_save');
-      if (data) {
-        try {
-          player = { ...player, ...JSON.parse(data) };
-          document.getElementById('creation-screen').classList.remove('active');
-          document.getElementById('game-screen').classList.add('active');
-          generateQuests();
-          generateShopItems();
-          updateUI();
-        } catch(e) {
-          console.error("Erreur chargement sauvegarde", e);
-        }
-      }
-    }
-  </script>
-</body>
-</html>
