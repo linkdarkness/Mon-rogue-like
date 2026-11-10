@@ -62,7 +62,7 @@
       display: block;
     }
 
-    /* Creation Screen */
+    /* Écran de Création */
     #creation-screen {
       max-width: 800px;
       margin: 40px auto;
@@ -180,7 +180,7 @@
       box-shadow: 0 0 20px rgba(217, 4, 41, 0.6);
     }
 
-    /* Navigation Bar Fixed at Top */
+    /* Barre de Navigation Haut */
     .main-nav {
       position: sticky;
       top: 0;
@@ -192,7 +192,7 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
       display: flex;
       justify-content: center;
-      gap: 6px;
+      gap: 12px;
       padding: 10px 15px;
       flex-wrap: wrap;
     }
@@ -201,12 +201,12 @@
       background: rgba(21, 13, 24, 0.8);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 8px 14px;
+      padding: 10px 20px;
       border-radius: 6px;
       cursor: pointer;
       font-family: 'Cinzel', serif;
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.95rem;
       transition: all 0.3s;
       display: flex;
       align-items: center;
@@ -226,7 +226,7 @@
       box-shadow: 0 0 10px rgba(201, 160, 80, 0.3);
     }
 
-    /* Player Header Dashboard */
+    /* Header Joueur (Stats de base) */
     .player-header {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -333,16 +333,14 @@
       display: block;
     }
 
-    /* ===================================================
-       CHARACTER SHEET TAB (SILHOUETTE & STATS)
-    =================================================== */
+    /* Onglet Personnage (Silhouette & Stats) */
     .character-layout {
       display: grid;
       grid-template-columns: 1fr;
       gap: 20px;
     }
 
-    @media(min-width: 768px) {
+    @media(min-width: 850px) {
       .character-layout {
         grid-template-columns: 1.2fr 1fr;
       }
@@ -364,7 +362,6 @@
       font-size: 1.1rem;
     }
 
-    /* Paper Doll Silhouette Grid */
     .paper-doll-container {
       position: relative;
       background: radial-gradient(circle at center, rgba(30,15,35,0.8) 0%, rgba(10,6,10,0.95) 100%);
@@ -442,7 +439,6 @@
     .doll-slot.epic .item-name { color: var(--rarity-epic); }
     .doll-slot.legendary .item-name { color: var(--rarity-legendary); }
 
-    /* Central Vampire Silhouette graphic representation */
     .vampire-silhouette {
       width: 75px;
       height: 180px;
@@ -461,18 +457,18 @@
       font-size: 2.8rem;
     }
 
-    /* Attributes & Stats list */
     .stats-grid-detailed {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     .stat-card-detail {
       background: rgba(0,0,0,0.4);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -484,12 +480,39 @@
     }
 
     .stat-card-detail .val {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: bold;
       color: var(--accent-gold);
     }
 
-    /* Quests Section */
+    .stats-upgrade-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stat-upgrade-row {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-info h4 {
+      color: var(--accent-gold);
+      margin-bottom: 2px;
+      font-size: 0.9rem;
+    }
+
+    .stat-info p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Onglet Quêtes */
     .quests-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -514,10 +537,24 @@
       border-color: var(--accent-red);
     }
 
+    .quest-difficulty-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .diff-easy { background: rgba(0, 200, 83, 0.2); color: #00e676; border: 1px solid #00c853; }
+    .diff-medium { background: rgba(255, 171, 0, 0.2); color: #ffab00; border: 1px solid #ffab00; }
+    .diff-hard { background: rgba(217, 4, 41, 0.2); color: #ff4d4d; border: 1px solid #d90429; }
+
     .quest-title {
       color: var(--accent-gold);
       font-size: 1.1rem;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .quest-desc {
@@ -575,7 +612,7 @@
       transition: width 0.1s linear;
     }
 
-    /* La Tour (Tower Dungeon) */
+    /* Onglet La Tour */
     .tower-container {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -673,13 +710,7 @@
     .log-enemy { color: #f72585; }
     .log-crit { color: #ffb703; font-weight: bold; }
 
-    /* Shop & Inventory Layout */
-    .shop-inventory-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 15px;
-    }
-
+    /* Onglet Forge & Inventaire */
     .items-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
@@ -759,34 +790,6 @@
       color: #000;
     }
 
-    /* Training Section */
-    .stats-upgrade-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .stat-upgrade-row {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 12px 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .stat-info h4 {
-      color: var(--accent-gold);
-      margin-bottom: 2px;
-      font-size: 0.95rem;
-    }
-
-    .stat-info p {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
     .badge-trinket {
       background: var(--rarity-trinket);
       color: #000;
@@ -805,8 +808,8 @@
       .player-avatar { margin: 0 auto; }
       .player-resources { justify-content: center; }
       .bar-container { margin: 0 auto; }
-      .main-nav { gap: 4px; padding: 8px 10px; }
-      .nav-btn { padding: 6px 10px; font-size: 0.75rem; }
+      .main-nav { gap: 6px; padding: 8px 10px; }
+      .nav-btn { padding: 8px 12px; font-size: 0.8rem; }
       .doll-grid { max-width: 320px; gap: 8px; }
       .doll-slot { width: 75px; height: 75px; }
     }
@@ -814,7 +817,7 @@
 </head>
 <body>
 
-  <!-- Screen 1: Character Creation -->
+  <!-- Écran 1: Création du Personnage -->
   <div id="creation-screen" class="screen active">
     <h1>Vampire RPG</h1>
     <div class="subtitle">Blood & Shadows</div>
@@ -850,20 +853,18 @@
     <button id="start-btn" class="btn-main">Eveil du Vampire</button>
   </div>
 
-  <!-- Screen 2: Game Dashboard -->
+  <!-- Écran 2: Interface Principale du Jeu -->
   <div id="game-screen" class="screen">
     
-    <!-- Navigation Tabs Fixed at Top -->
+    <!-- Barre de Navigation Supérieure -->
     <nav class="main-nav">
       <button class="nav-btn active" data-tab="tab-character">👤 Personnage</button>
-      <button class="nav-btn" data-tab="tab-quests">🦇 Crypte</button>
+      <button class="nav-btn" data-tab="tab-quests">🦇 Crypte (Quêtes)</button>
       <button class="nav-btn" data-tab="tab-tower">🏰 La Tour</button>
-      <button class="nav-btn" data-tab="tab-shop">🗡️ Forge</button>
-      <button class="nav-btn" data-tab="tab-training">📜 Entraînement</button>
-      <button class="nav-btn" data-tab="tab-inventory">🎒 Sac</button>
+      <button class="nav-btn" data-tab="tab-shop">🗡️ Forge Sanglante</button>
     </nav>
 
-    <!-- Player Header Stats -->
+    <!-- En-tête Joueur -->
     <div class="player-header">
       <div class="player-avatar" id="avatar-display">🩸</div>
       
@@ -904,18 +905,17 @@
       </div>
     </div>
 
-    <!-- TABS CONTENT -->
+    <!-- CONTENU DES ONGLETS -->
 
-    <!-- TAB 1: CHARACTER (PAPER DOLL & STATS) -->
+    <!-- ONGLET 1: PERSONNAGE (SILHOUETTE, INVENTAIRE & ENTRAÎNEMENT) -->
     <div id="tab-character" class="tab-content active">
       <div class="character-layout">
         
-        <!-- Paper Doll / Silhouette Box -->
+        <!-- Boîte Silhouette / Équipement -->
         <div class="paper-doll-container">
-          <h3 style="color: var(--accent-gold); margin-bottom: 15px; font-size: 1.1rem;">Équipement du Vampire</h3>
+          <h3 style="color: var(--accent-gold); margin-bottom: 15px; font-size: 1.1rem;">Équipement Porté</h3>
           
           <div class="doll-grid">
-            <!-- Row 1: Amulet, Head, Ring -->
             <div class="doll-slot" id="doll-amulet" onclick="unequipItem('amulet')">
               <span class="slot-label">Amulette</span>
               <div class="item-icon">📿</div>
@@ -934,7 +934,6 @@
               <div class="item-name" style="color:#666;">Vide</div>
             </div>
 
-            <!-- Row 2: Weapon, Silhouette Center, Chest -->
             <div class="doll-slot" id="doll-weapon" onclick="unequipItem('weapon')">
               <span class="slot-label">Arme</span>
               <div class="item-icon">🗡️</div>
@@ -949,7 +948,6 @@
               <div class="item-name" style="color:#666;">Vide</div>
             </div>
 
-            <!-- Row 3: Gloves, (empty space), Boots -->
             <div class="doll-slot" id="doll-gloves" onclick="unequipItem('gloves')">
               <span class="slot-label">Gants</span>
               <div class="item-icon">🥊</div>
@@ -964,63 +962,80 @@
               <div class="item-name" style="color:#666;">Vide</div>
             </div>
           </div>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px; text-align: center;">Cliquez sur un emplacement pour déséquiper l'objet.</p>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px; text-align: center;">Cliquez sur un équipement pour le retirer.</p>
         </div>
 
-        <!-- Character Attributes Stats Box -->
+        <!-- Boîte Statistiques, Entraînement et Sac à dos -->
         <div class="section-box">
-          <h3>Statistiques Détaillées</h3>
+          
+          <h3>
+            <span>Sac à Dos (<span id="inv-count">0</span>/12)</span>
+            <button class="btn-secondary" id="btn-sell-trinkets" style="border-color:var(--rarity-trinket); color:var(--rarity-trinket);">💰 Vendre babioles</button>
+          </h3>
+          <div class="items-grid" id="inventory-items-container" style="margin-bottom: 20px;"></div>
+
+          <h3 style="border-top: 1px solid var(--border-color); padding-top: 15px;">Statistiques du Personnage</h3>
           <div class="stats-grid-detailed">
             <div class="stat-card-detail">
-              <span class="label">Niveau</span>
-              <span class="val" id="stat-det-lvl">1</span>
-            </div>
-            <div class="stat-card-detail">
-              <span class="label">Points de Vie Max</span>
+              <span class="label">PV Max</span>
               <span class="val" id="stat-det-hp">100</span>
             </div>
             <div class="stat-card-detail">
-              <span class="label">Dégâts d'Attaque</span>
+              <span class="label">Dégâts</span>
               <span class="val" id="stat-det-dmg">10</span>
             </div>
             <div class="stat-card-detail">
-              <span class="label">Force</span>
-              <span class="val" id="stat-det-str">5</span>
-            </div>
-            <div class="stat-card-detail">
-              <span class="label">Endurance</span>
-              <span class="val" id="stat-det-end">5</span>
-            </div>
-            <div class="stat-card-detail">
-              <span class="label">Dextérité</span>
-              <span class="val" id="stat-det-dex">5</span>
-            </div>
-            <div class="stat-card-detail">
-              <span class="label">Chance Critique</span>
+              <span class="label">Critique</span>
               <span class="val" id="stat-det-crit">5%</span>
             </div>
             <div class="stat-card-detail">
-              <span class="label">Chance Esquive</span>
+              <span class="label">Esquive</span>
               <span class="val" id="stat-det-dodge">5%</span>
             </div>
           </div>
+
+          <h3 style="border-top: 1px solid var(--border-color); padding-top: 15px;">Entraînement des Attributs</h3>
+          <div class="stats-upgrade-list">
+            <div class="stat-upgrade-row">
+              <div class="stat-info">
+                <h4>Force (<span id="stat-str">5</span>)</h4>
+                <p>+2 Dégâts / pt</p>
+              </div>
+              <button class="btn-secondary btn-upgrade" data-stat="str">Améliorer (<span id="cost-str">15</span> 🩸)</button>
+            </div>
+            <div class="stat-upgrade-row">
+              <div class="stat-info">
+                <h4>Endurance (<span id="stat-end">5</span>)</h4>
+                <p>+10 PV / pt</p>
+              </div>
+              <button class="btn-secondary btn-upgrade" data-stat="end">Améliorer (<span id="cost-end">15</span> 🩸)</button>
+            </div>
+            <div class="stat-upgrade-row">
+              <div class="stat-info">
+                <h4>Dextérité (<span id="stat-dex">5</span>)</h4>
+                <p>+1% Crit & Esquive</p>
+              </div>
+              <button class="btn-secondary btn-upgrade" data-stat="dex">Améliorer (<span id="cost-dex">15</span> 🩸)</button>
+            </div>
+          </div>
+
         </div>
 
       </div>
     </div>
 
-    <!-- TAB 2: QUESTS -->
+    <!-- ONGLET 2: QUÊTES -->
     <div id="tab-quests" class="tab-content">
       <div class="quests-grid" id="quests-container"></div>
     </div>
 
-    <!-- TAB 3: TOWER DUNGEON -->
+    <!-- ONGLET 3: LA TOUR -->
     <div id="tab-tower" class="tab-content">
       <div class="tower-container">
         <div class="tower-header">
           <h2>La Tour des Épreuves</h2>
           <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">
-            10 étapes par étage. La difficulté double à chaque étage. Affrontez le Boss à l'étape 10 pour looter du légendaire !
+            10 étapes par étage. Difficulté doublée à chaque étage. Vainquez le Boss de l'Étape 10 pour looter du matériel d'élite !
           </p>
         </div>
 
@@ -1048,7 +1063,7 @@
       </div>
     </div>
 
-    <!-- TAB 4: SHOP (FORGE) -->
+    <!-- ONGLET 4: FORGE SANGLANTE -->
     <div id="tab-shop" class="tab-content">
       <div class="section-box">
         <h3>
@@ -1056,54 +1071,9 @@
           <button class="btn-secondary" id="btn-refresh-shop">Renouveler (10 🩸)</button>
         </h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">
-          Achetez des pièces d'équipement de qualité pour renforcer votre vampire.
+          Achetez des pièces d'équipement puissantes directement contre du Sang.
         </p>
         <div class="items-grid" id="shop-items-container"></div>
-      </div>
-    </div>
-
-    <!-- TAB 5: TRAINING -->
-    <div id="tab-training" class="tab-content">
-      <div class="section-box">
-        <h3>Entraînement des Ombres</h3>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">
-          Dépensez votre Sang pour augmenter définitivement vos attributs fondamentaux.
-        </p>
-        <div class="stats-upgrade-list">
-          <div class="stat-upgrade-row">
-            <div class="stat-info">
-              <h4>Force (<span id="stat-str">5</span>)</h4>
-              <p>Augmente vos dégâts physiques</p>
-            </div>
-            <button class="btn-secondary btn-upgrade" data-stat="str">Améliorer (<span id="cost-str">15</span> 🩸)</button>
-          </div>
-          <div class="stat-upgrade-row">
-            <div class="stat-info">
-              <h4>Endurance (<span id="stat-end">5</span>)</h4>
-              <p>Augmente vos points de vie max</p>
-            </div>
-            <button class="btn-secondary btn-upgrade" data-stat="end">Améliorer (<span id="cost-end">15</span> 🩸)</button>
-          </div>
-          <div class="stat-upgrade-row">
-            <div class="stat-info">
-              <h4>Dextérité (<span id="stat-dex">5</span>)</h4>
-              <p>Augmente vos chances de critique et d'esquive</p>
-            </div>
-            <button class="btn-secondary btn-upgrade" data-stat="dex">Améliorer (<span id="cost-dex">15</span> 🩸)</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 6: INVENTORY -->
-    <div id="tab-inventory" class="tab-content">
-      <div class="section-box">
-        <h3>
-          <span>Sac à Dos (<span id="inv-count">0</span>/12)</span>
-          <button class="btn-secondary" id="btn-sell-trinkets" style="border-color:var(--rarity-trinket); color:var(--rarity-trinket);">💰 Vendre babioles</button>
-        </h3>
-        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">Cliquez sur un équipement pour l'équiper, ou sur une babiole pour la revendre.</p>
-        <div class="items-grid" id="inventory-items-container"></div>
       </div>
     </div>
 
@@ -1111,7 +1081,7 @@
 
   <script>
     /* ===================================================
-       GAME STATE & CONFIGURATION
+       ÉTAT DU JEU & DONNÉES
     =================================================== */
     let player = {
       name: 'Dracula',
@@ -1128,7 +1098,7 @@
       end: 5,
       dex: 5,
       equipped: {
-        helmet: null,
+        head: null,
         gloves: null,
         chest: null,
         boots: null,
@@ -1145,7 +1115,7 @@
     let shopInventory = [];
 
     const ITEM_TYPES = {
-      helmet: { name: 'Casque', icon: '🪖' },
+      head: { name: 'Casque', icon: '🪖' },
       gloves: { name: 'Gants', icon: '🥊' },
       chest: { name: 'Torse', icon: '🛡️' },
       boots: { name: 'Bottes', icon: '👢' },
@@ -1165,7 +1135,7 @@
     ];
 
     const EQUIPMENT_NAMES = {
-      helmet: ["Capuche d'Ombre", "Couronne Sanglante", "Casque d'Os", "Diadème de Nuit"],
+      head: ["Capuche d'Ombre", "Couronne Sanglante", "Casque d'Os", "Diadème de Nuit"],
       gloves: ["Gantelets de Cuir Noir", "Griffes de Fer", "Gants de Soie Sanglante"],
       chest: ["Cotte de Mailles Sombre", "Cuirass de Vampire", "Robe de Nécromancien"],
       boots: ["Bottes de Traque", "Sabots de Cuir Hardi", "Bottes de Brume"],
@@ -1175,7 +1145,7 @@
     };
 
     /* ===================================================
-       INITIALIZATION & EVENTS
+       INITIALISATION & ÉVÉNEMENTS
     =================================================== */
     document.addEventListener('DOMContentLoaded', () => {
       setupClanSelection();
@@ -1261,7 +1231,7 @@
     }
 
     /* ===================================================
-       COMPUTED STATS
+       CALCUL DES STATISTIQUES
     =================================================== */
     function getPlayerDamage() {
       let baseDmg = player.str * 2;
@@ -1273,7 +1243,7 @@
     function getPlayerMaxHP() {
       let baseHP = 100 + (player.end * 10);
       if (player.equipped.chest) baseHP += player.equipped.chest.val * 5;
-      if (player.equipped.helmet) baseHP += player.equipped.helmet.val * 3;
+      if (player.equipped.head) baseHP += player.equipped.head.val * 3;
       if (player.equipped.amulet) baseHP += player.equipped.amulet.val * 2;
       return baseHP;
     }
@@ -1293,33 +1263,49 @@
     }
 
     /* ===================================================
-       QUEST SYSTEM
+       SYSTÈME DE QUÊTES (DYNAMIQUE SELON LE NIVEAU)
     =================================================== */
     function generateQuests() {
-      const questTemplates = [
-        { title: "Chasse aux Paysans", desc: "Siphonnez le sang des villageois sans vous faire repérer.", cost: 15, time: 5 },
-        { title: "Pillage de Tombeau", desc: "Explorez un sarcophage ancien à la recherche de trésors oubliés.", cost: 25, time: 8 },
-        { title: "Rituel de Sang Noir", desc: "Invoquez les esprits nocturnes pour amplifier votre puissance.", cost: 35, time: 12 },
-        { title: "Embuscade de Gargouilles", desc: "Affrontez les gardiens de pierre qui protègent la cathédrale.", cost: 20, time: 6 }
+      const lvl = player.level;
+
+      activeQuests = [
+        {
+          id: 0,
+          difficulty: 'facile',
+          diffLabel: 'Facile',
+          title: "Chasse aux Paysans",
+          desc: "Nourrissez-vous sur les villageois isolés de la périphérie.",
+          cost: 10,
+          time: 5,
+          gold: Math.floor((15 + Math.random() * 10) * (1 + lvl * 0.5)),
+          xp: Math.floor((20 + Math.random() * 10) * (1 + lvl * 0.4)),
+          equipDropChance: 0.15
+        },
+        {
+          id: 1,
+          difficulty: 'moyenne',
+          diffLabel: 'Normale',
+          title: "Pillage de Tombeau",
+          desc: "Explorez une crypte ancienne et éliminez ses gardiens.",
+          cost: 20,
+          time: 10,
+          gold: Math.floor((35 + Math.random() * 15) * (1 + lvl * 0.5)),
+          xp: Math.floor((45 + Math.random() * 15) * (1 + lvl * 0.4)),
+          equipDropChance: 0.40
+        },
+        {
+          id: 2,
+          difficulty: 'difficile',
+          diffLabel: 'Difficile',
+          title: "Rituel de Sang Noir",
+          desc: "Profanez la cathédrale et terrassez les maîtres Inquisiteurs.",
+          cost: 35,
+          time: 15,
+          gold: Math.floor((70 + Math.random() * 25) * (1 + lvl * 0.5)),
+          xp: Math.floor((85 + Math.random() * 25) * (1 + lvl * 0.4)),
+          equipDropChance: 0.85
+        }
       ];
-
-      activeQuests = questTemplates.map((template, idx) => {
-        const goldReward = Math.floor(template.cost * (1.5 + Math.random() * 0.5));
-        const xpReward = Math.floor(template.cost * (1.2 + Math.random() * 0.4));
-        
-        let rewardType = 'none';
-        const rand = Math.random();
-        if (rand < 0.4) rewardType = 'trinket';
-        else if (rand < 0.7) rewardType = 'equipment';
-
-        return {
-          id: idx,
-          ...template,
-          gold: goldReward,
-          xp: xpReward,
-          rewardType: rewardType
-        };
-      });
 
       renderQuests();
     }
@@ -1329,25 +1315,28 @@
       container.innerHTML = '';
 
       activeQuests.forEach(quest => {
-        let rewardBadge = 'Aucun objet';
-        if (quest.rewardType === 'trinket') rewardBadge = '🎁 Babiole';
-        if (quest.rewardType === 'equipment') rewardBadge = '🛡️ Équipement';
+        let diffClass = 'diff-easy';
+        if (quest.difficulty === 'moyenne') diffClass = 'diff-medium';
+        if (quest.difficulty === 'difficile') diffClass = 'diff-hard';
+
+        let lootPreview = `🛡️ ${(quest.equipDropChance * 100)}% Chance Équipement`;
 
         const card = document.createElement('div');
         card.className = 'quest-card';
         card.innerHTML = `
           <div>
+            <span class="quest-difficulty-badge ${diffClass}">${quest.diffLabel} (${quest.time}s)</span>
             <div class="quest-title">${quest.title}</div>
             <div class="quest-desc">${quest.desc}</div>
             <div class="quest-rewards">
               <span>🩸 ${quest.gold} Sang</span>
               <span>⚡ ${quest.xp} XP</span>
-              <span style="color:var(--accent-gold);">${rewardBadge}</span>
+              <span style="color:var(--accent-gold);">${lootPreview}</span>
             </div>
           </div>
           <div>
             <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">
-              Coût: ${quest.cost} Soif | Durée: ${quest.time}s
+              Coût: ${quest.cost} Soif de Sang
             </div>
             <button class="btn-quest" onclick="startQuest(${quest.id})" ${player.energy < quest.cost ? 'disabled' : ''}>
               Lancer la Quête
@@ -1390,24 +1379,35 @@
       addXP(quest.xp);
 
       let lootMsg = '';
-      if (quest.rewardType === 'trinket') {
+      const randDrop = Math.random();
+
+      if (randDrop < quest.equipDropChance) {
+        let forcedRarity = null;
+        if (quest.difficulty === 'difficile') {
+          const rareRand = Math.random();
+          if (rareRand < 0.2) forcedRarity = 'legendary';
+          else if (rareRand < 0.6) forcedRarity = 'epic';
+          else forcedRarity = 'rare';
+        }
+
+        const item = generateRandomEquipment(forcedRarity);
+        addItemToInventory(item);
+        lootMsg = ` et vous dénichez un équipement : ${item.name} (${item.rarity.toUpperCase()}) !`;
+      } else {
         const trinket = TRINKETS_DB[Math.floor(Math.random() * TRINKETS_DB.length)];
+        const trinketVal = Math.floor(trinket.val * (1 + player.level * 0.3));
         addItemToInventory({
           id: Date.now(),
           type: 'trinket',
           name: trinket.name,
           icon: trinket.icon,
           rarity: 'trinket',
-          val: trinket.val
+          val: trinketVal
         });
-        lootMsg = ` et a trouvé une babiole: ${trinket.name}`;
-      } else if (quest.rewardType === 'equipment') {
-        const item = generateRandomEquipment();
-        addItemToInventory(item);
-        lootMsg = ` et a trouvé un équipement: ${item.name}`;
+        lootMsg = ` et vous trouvez une babiole : ${trinket.name} (${trinketVal} 🩸)`;
       }
 
-      alert(`Quête réussie ! Vous gagnez ${quest.gold} Sang et ${quest.xp} XP${lootMsg}.`);
+      alert(`Quête complétée !\nGains : ${quest.gold} Sang, ${quest.xp} XP${lootMsg}.`);
 
       generateQuests();
       saveGame();
@@ -1415,7 +1415,7 @@
     }
 
     /* ===================================================
-       TOWER DUNGEON
+       LA TOUR DES ÉPREUVES
     =================================================== */
     function getTowerEnemy() {
       const f = player.tower.floor;
@@ -1521,7 +1521,7 @@
         const loot = generateRandomEquipment(chosenRarity);
         addItemToInventory(loot);
 
-        alert(`🎉 ÉTAGE ${player.tower.floor} COMPLÉTÉ !\nBoss vaincu ! Butin obtenu : ${loot.name} (${chosenRarity}) !`);
+        alert(`🎉 ÉTAGE ${player.tower.floor} COMPLÉTÉ !\nBoss battu ! Vous gagnez l'objet : ${loot.name} (${chosenRarity.toUpperCase()}) !`);
         
         player.tower.floor++;
         player.tower.step = 1;
@@ -1535,7 +1535,7 @@
     }
 
     /* ===================================================
-       SHOP & FORGE
+       FORGE SANGLANTE (MARCHAND)
     =================================================== */
     function generateShopItems() {
       shopInventory = [];
@@ -1598,10 +1598,10 @@
     }
 
     /* ===================================================
-       ITEMS & INVENTORY
+       OBJETS ET INVENTAIRE
     =================================================== */
     function generateRandomEquipment(forcedRarity = null) {
-      const types = ['helmet', 'gloves', 'chest', 'boots', 'weapon', 'ring', 'amulet'];
+      const types = ['head', 'gloves', 'chest', 'boots', 'weapon', 'ring', 'amulet'];
       const type = types[Math.floor(Math.random() * types.length)];
       
       const rarities = ['common', 'rare', 'epic', 'legendary'];
@@ -1680,12 +1680,11 @@
     }
 
     function renderPaperDoll() {
-      const slots = ['helmet', 'gloves', 'chest', 'boots', 'weapon', 'ring', 'amulet'];
+      const slots = ['head', 'gloves', 'chest', 'boots', 'weapon', 'ring', 'amulet'];
       slots.forEach(slot => {
         const el = document.getElementById(`doll-${slot}`);
         const item = player.equipped[slot];
         
-        // Remove prior rarity classes
         el.className = 'doll-slot';
         
         if (item) {
@@ -1706,12 +1705,8 @@
     }
 
     function renderDetailedStats() {
-      document.getElementById('stat-det-lvl').innerText = player.level;
       document.getElementById('stat-det-hp').innerText = getPlayerMaxHP();
       document.getElementById('stat-det-dmg').innerText = getPlayerDamage();
-      document.getElementById('stat-det-str').innerText = player.str;
-      document.getElementById('stat-det-end').innerText = player.end;
-      document.getElementById('stat-det-dex').innerText = player.dex;
       document.getElementById('stat-det-crit').innerText = getCritChance() + '%';
       document.getElementById('stat-det-dodge').innerText = getDodgeChance() + '%';
     }
@@ -1738,7 +1733,7 @@
       if (!item) return;
 
       if (player.inventory.length >= 12) {
-        alert("Sac à dos complet !");
+        alert("Votre sac à dos est plein !");
         return;
       }
 
@@ -1772,7 +1767,7 @@
 
       if (totalEarned > 0) {
         player.gold += totalEarned;
-        alert(`Babioles vendues pour ${totalEarned} Sang !`);
+        alert(`Babioles vendues pour un total de ${totalEarned} Sang !`);
         saveGame();
         updateUI();
         renderInventory();
@@ -1782,7 +1777,7 @@
     }
 
     /* ===================================================
-       TRAINING & LEVEL UP
+       ENTRAÎNEMENT & NIVEAUX
     =================================================== */
     function upgradeStat(statName) {
       const cost = Math.floor(15 * Math.pow(1.3, player[statName] - 5));
@@ -1806,12 +1801,12 @@
         player.str += 1;
         player.end += 1;
         player.dex += 1;
-        alert(`⚡ NIVEAU SUPÉRIEUR ! Vous êtes désormais Niveau ${player.level} !`);
+        alert(`⚡ NIVEAU SUPÉRIEUR ! Vous passez Niveau ${player.level} !`);
       }
     }
 
     /* ===================================================
-       UI & STORAGE
+       MISE À JOUR DE L'INTERFACE & SAUVEGARDE
     =================================================== */
     function updateUI() {
       document.getElementById('p-name').innerText = player.name;
@@ -1857,7 +1852,7 @@
           generateShopItems();
           updateUI();
         } catch(e) {
-          console.error("Erreur de sauvegarde", e);
+          console.error("Erreur de chargement", e);
         }
       }
     }
