@@ -180,7 +180,7 @@
       box-shadow: 0 0 20px rgba(217, 4, 41, 0.6);
     }
 
-    /* Barre de Navigation Haut */
+    /* Barre de Navigation Haut (Forcée sur 1 ligne sans retour à la ligne) */
     .main-nav {
       position: sticky;
       top: 0;
@@ -192,25 +192,27 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
       display: flex;
       justify-content: center;
-      gap: 12px;
-      padding: 10px 15px;
-      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 10px;
+      overflow-x: auto;
+      white-space: nowrap;
     }
 
     .nav-btn {
       background: rgba(21, 13, 24, 0.8);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 10px 20px;
+      padding: 8px 14px;
       border-radius: 6px;
       cursor: pointer;
       font-family: 'Cinzel', serif;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       transition: all 0.3s;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      flex-shrink: 0;
     }
 
     .nav-btn:hover {
@@ -801,6 +803,40 @@
       text-transform: uppercase;
     }
 
+    /* Tooltip Comparateur de stats */
+    .tooltip-compare {
+      position: absolute;
+      bottom: 105%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 8, 20, 0.95);
+      border: 1px solid var(--accent-gold);
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      width: 180px;
+      text-align: left;
+      z-index: 10;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    }
+
+    .item-card:hover .tooltip-compare {
+      display: block;
+    }
+
+    .compare-title {
+      font-weight: bold;
+      color: var(--accent-gold);
+      margin-bottom: 4px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 2px;
+    }
+
+    .stat-diff-pos { color: #00e676; }
+    .stat-diff-neg { color: #ff4d4d; }
+
     @media (max-width: 768px) {
       .player-header {
         grid-template-columns: 1fr;
@@ -809,8 +845,6 @@
       .player-avatar { margin: 0 auto; }
       .player-resources { justify-content: center; }
       .bar-container { margin: 0 auto; }
-      .main-nav { gap: 6px; padding: 8px 10px; }
-      .nav-btn { padding: 8px 12px; font-size: 0.8rem; }
       .doll-grid { max-width: 320px; gap: 8px; }
       .doll-slot { width: 75px; height: 75px; }
     }
@@ -857,12 +891,12 @@
   <!-- Écran 2: Interface Principale du Jeu -->
   <div id="game-screen" class="screen">
     
-    <!-- Barre de Navigation Supérieure -->
+    <!-- Barre de Navigation Supérieure (Sur 1 seule ligne) -->
     <nav class="main-nav">
       <button class="nav-btn active" data-tab="tab-character">👤 Personnage</button>
-      <button class="nav-btn" data-tab="tab-quests">🦇 Crypte (Quêtes)</button>
+      <button class="nav-btn" data-tab="tab-quests">🦇 Crypte</button>
       <button class="nav-btn" data-tab="tab-tower">🏰 La Tour</button>
-      <button class="nav-btn" data-tab="tab-shop">🗡️ Forge Sanglante</button>
+      <button class="nav-btn" data-tab="tab-shop">🗡️ Forge</button>
     </nav>
 
     <!-- En-tête Joueur -->
@@ -963,7 +997,7 @@
               <div class="item-name" style="color:#666;">Vide</div>
             </div>
           </div>
-          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px; text-align: center;">Cliquez sur un équipement pour le retirer.</p>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 15px; text-align: center;">Cliquez sur un emplacement pour le retirer.</p>
         </div>
 
         <!-- Boîte Statistiques, Entraînement et Sac à dos -->
@@ -973,7 +1007,7 @@
             <span>Sac à Dos (<span id="inv-count">0</span>/12)</span>
             <button class="btn-secondary" id="btn-sell-trinkets" style="border-color:var(--rarity-trinket); color:var(--rarity-trinket);">💰 Vendre babioles</button>
           </h3>
-          <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px;">Clic = Équiper | Bouton Vendre = Récupérer du Sang</p>
+          <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px;">Survolez un objet pour voir le comparateur de stats</p>
           <div class="items-grid" id="inventory-items-container" style="margin-bottom: 20px;"></div>
 
           <h3 style="border-top: 1px solid var(--border-color); padding-top: 15px;">Statistiques Globales</h3>
@@ -1243,7 +1277,7 @@
     }
 
     /* ===================================================
-       CALCUL DES STATISTIQUES GLOBALES DEPUIS L'ÉQUIPEMENT
+       CALCUL DES STATISTIQUES GLOBALES
     =================================================== */
     function getEquippedStatBonus(statKey) {
       let total = 0;
@@ -1571,7 +1605,6 @@
         const card = document.createElement('div');
         card.className = `item-card ${item.rarity}`;
         
-        // Texte descriptif des stats aléatoires pour le shop
         let statsHTML = '';
         for (let [key, val] of Object.entries(item.stats)) {
           let label = POSSIBLE_STATS.find(s => s.key === key)?.label || key;
@@ -1650,7 +1683,6 @@
       const baseNames = EQUIPMENT_NAMES[type];
       const name = `${baseNames[Math.floor(Math.random() * baseNames.length)]}`;
       
-      // Détermination du nombre de stats aléatoires selon la rareté (1 à 4 stats)
       let statCount = 1;
       if (rarity === 'rare') statCount = 2;
       if (rarity === 'epic') statCount = 3;
@@ -1663,7 +1695,6 @@
         let chosen = shuffledStats[i];
         let baseVal = Math.floor((2 + Math.random() * 4 * player.level) * mults[rarity]);
         
-        // Ajustement selon le type de stat (% ou valeurs brutes)
         if (chosen.key === 'crit' || chosen.key === 'dodge') {
           baseVal = Math.max(1, Math.floor(baseVal / 3));
         }
@@ -1691,6 +1722,47 @@
       }
     }
 
+    /* ===================================================
+       GÉNÉRATION DU COMPARATEUR DE STATS DANS L'INVENTAIRE
+    =================================================== */
+    function getStatDiffHTML(item) {
+      if (item.type === 'trinket') return '';
+      const equipped = player.equipped[item.type];
+      
+      let html = `<div class="compare-title">Comparaison (${ITEM_TYPES[item.type].name})</div>`;
+      
+      // Récupérer toutes les clés possibles impliquées
+      let allKeys = new Set([...Object.keys(item.stats)]);
+      if (equipped && equipped.stats) {
+        Object.keys(equipped.stats).forEach(k => allKeys.add(k));
+      }
+
+      allKeys.forEach(key => {
+        let label = POSSIBLE_STATS.find(s => s.key === key)?.label || key;
+        let valNew = item.stats[key] || 0;
+        let valCurr = (equipped && equipped.stats && equipped.stats[key]) ? equipped.stats[key] : 0;
+        let diff = valNew - valCurr;
+
+        let diffClass = '';
+        let diffText = '';
+        if (diff > 0) {
+          diffClass = 'stat-diff-pos';
+          diffText = ` (+${diff})`;
+        } else if (diff < 0) {
+          diffClass = 'stat-diff-neg';
+          diffText = ` (${diff})`;
+        }
+
+        html += `<div>${label}: <strong>${valNew}</strong> <span class="${diffClass}">${diffText}</span></div>`;
+      });
+
+      if (!equipped) {
+        html += `<div style="color:var(--text-muted); font-style:italic; margin-top:2px;">Emplacement actuellement vide</div>`;
+      }
+
+      return html;
+    }
+
     function renderInventory() {
       document.getElementById('inv-count').innerText = player.inventory.length;
       const container = document.getElementById('inventory-items-container');
@@ -1713,7 +1785,10 @@
         let sellVal = item.type === 'trinket' ? item.val : Math.floor(item.price / 2);
         let actionText = `Vendre (${sellVal} 🩸)`;
 
+        let compareTooltip = item.type !== 'trinket' ? `<div class="tooltip-compare">${getStatDiffHTML(item)}</div>` : '';
+
         card.innerHTML = `
+          ${compareTooltip}
           <div class="item-icon">${item.icon}</div>
           <div class="item-name">${item.name}</div>
           <div class="item-stat">${statsText}</div>
