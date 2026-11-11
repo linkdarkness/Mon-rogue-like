@@ -226,7 +226,7 @@
       box-shadow: 0 0 10px rgba(201, 160, 80, 0.3);
     }
 
-    /* Header Joueur (Stats de base) */
+    /* Header Joueur */
     .player-header {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -333,7 +333,7 @@
       display: block;
     }
 
-    /* Onglet Personnage (Silhouette & Stats) */
+    /* Onglet Personnage */
     .character-layout {
       display: grid;
       grid-template-columns: 1fr;
@@ -413,12 +413,12 @@
     .doll-slot.legendary { border-color: var(--rarity-legendary); box-shadow: 0 0 12px rgba(255,128,0,0.35); }
 
     .doll-slot .item-icon {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       margin-bottom: 2px;
     }
 
     .doll-slot .slot-label {
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       color: var(--text-muted);
       position: absolute;
       top: 2px;
@@ -426,7 +426,7 @@
     }
 
     .doll-slot .item-name {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       font-weight: bold;
       white-space: nowrap;
       overflow: hidden;
@@ -512,7 +512,7 @@
       color: var(--text-muted);
     }
 
-    /* Onglet Quêtes */
+    /* Quêtes */
     .quests-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -612,7 +612,7 @@
       transition: width 0.1s linear;
     }
 
-    /* Onglet La Tour */
+    /* La Tour */
     .tower-container {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -710,10 +710,10 @@
     .log-enemy { color: #f72585; }
     .log-crit { color: #ffb703; font-weight: bold; }
 
-    /* Onglet Forge & Inventaire */
+    /* Forge & Inventaire */
     .items-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
       gap: 10px;
     }
 
@@ -743,14 +743,14 @@
     .item-card.trinket { border-color: var(--rarity-trinket); background: rgba(255, 183, 3, 0.05); }
 
     .item-icon {
-      font-size: 1.6rem;
-      margin-bottom: 3px;
+      font-size: 1.5rem;
+      margin-bottom: 2px;
     }
 
     .item-name {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: bold;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -763,14 +763,15 @@
     .item-card.trinket .item-name { color: var(--rarity-trinket); }
 
     .item-stat {
-      font-size: 0.7rem;
-      color: var(--text-muted);
+      font-size: 0.68rem;
+      color: var(--accent-gold);
+      margin-bottom: 2px;
     }
 
     .item-price {
-      font-size: 0.7rem;
-      color: var(--accent-gold);
-      margin-top: 4px;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 2px;
       font-weight: bold;
     }
 
@@ -907,7 +908,7 @@
 
     <!-- CONTENU DES ONGLETS -->
 
-    <!-- ONGLET 1: PERSONNAGE (SILHOUETTE, INVENTAIRE & ENTRAÎNEMENT) -->
+    <!-- ONGLET 1: PERSONNAGE -->
     <div id="tab-character" class="tab-content active">
       <div class="character-layout">
         
@@ -972,9 +973,10 @@
             <span>Sac à Dos (<span id="inv-count">0</span>/12)</span>
             <button class="btn-secondary" id="btn-sell-trinkets" style="border-color:var(--rarity-trinket); color:var(--rarity-trinket);">💰 Vendre babioles</button>
           </h3>
+          <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px;">Clic = Équiper | Bouton Vendre = Récupérer du Sang</p>
           <div class="items-grid" id="inventory-items-container" style="margin-bottom: 20px;"></div>
 
-          <h3 style="border-top: 1px solid var(--border-color); padding-top: 15px;">Statistiques du Personnage</h3>
+          <h3 style="border-top: 1px solid var(--border-color); padding-top: 15px;">Statistiques Globales</h3>
           <div class="stats-grid-detailed">
             <div class="stat-card-detail">
               <span class="label">PV Max</span>
@@ -1071,7 +1073,7 @@
           <button class="btn-secondary" id="btn-refresh-shop">Renouveler (10 🩸)</button>
         </h3>
         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">
-          Achetez des pièces d'équipement puissantes directement contre du Sang.
+          Achetez des pièces d'équipement aux stats aléatoires directement contre du Sang.
         </p>
         <div class="items-grid" id="shop-items-container"></div>
       </div>
@@ -1124,6 +1126,16 @@
       amulet: { name: 'Amulette', icon: '📿' },
       trinket: { name: 'Babiole', icon: '💎' }
     };
+
+    const POSSIBLE_STATS = [
+      { key: 'dmg', label: 'Dégâts' },
+      { key: 'hp', label: 'PV Max' },
+      { key: 'crit', label: 'Critique (%)' },
+      { key: 'dodge', label: 'Esquive (%)' },
+      { key: 'str', label: 'Force' },
+      { key: 'end', label: 'Endurance' },
+      { key: 'dex', label: 'Dextérité' }
+    ];
 
     const TRINKETS_DB = [
       { name: "Coupe de Sang Ancienne", icon: "🍷", val: 25 },
@@ -1231,39 +1243,45 @@
     }
 
     /* ===================================================
-       CALCUL DES STATISTIQUES
+       CALCUL DES STATISTIQUES GLOBALES DEPUIS L'ÉQUIPEMENT
     =================================================== */
+    function getEquippedStatBonus(statKey) {
+      let total = 0;
+      Object.values(player.equipped).forEach(item => {
+        if (item && item.stats && item.stats[statKey]) {
+          total += item.stats[statKey];
+        }
+      });
+      return total;
+    }
+
     function getPlayerDamage() {
-      let baseDmg = player.str * 2;
-      if (player.equipped.weapon) baseDmg += player.equipped.weapon.val;
-      if (player.equipped.gloves) baseDmg += Math.floor(player.equipped.gloves.val * 0.5);
+      let baseDmg = (player.str * 2) + getEquippedStatBonus('dmg') + (player.level * 2);
+      baseDmg += getEquippedStatBonus('str') * 2;
       return baseDmg;
     }
 
     function getPlayerMaxHP() {
-      let baseHP = 100 + (player.end * 10);
-      if (player.equipped.chest) baseHP += player.equipped.chest.val * 5;
-      if (player.equipped.head) baseHP += player.equipped.head.val * 3;
-      if (player.equipped.amulet) baseHP += player.equipped.amulet.val * 2;
+      let baseHP = 100 + (player.end * 10) + getEquippedStatBonus('hp');
+      baseHP += getEquippedStatBonus('end') * 10;
       return baseHP;
     }
 
     function getCritChance() {
-      let crit = player.dex;
-      if (player.equipped.gloves) crit += player.equipped.gloves.val;
-      if (player.equipped.ring) crit += player.equipped.ring.val;
-      return Math.min(60, crit);
+      let crit = player.dex + getEquippedStatBonus('crit');
+      crit += getEquippedStatBonus('dex');
+      return Math.min(75, crit);
     }
 
     function getDodgeChance() {
-      let dodge = Math.floor(player.dex * 0.8);
+      let dodge = Math.floor(player.dex * 0.8) + getEquippedStatBonus('dodge');
       if (player.clan === 'Ombre') dodge += 5;
-      if (player.equipped.boots) dodge += player.equipped.boots.val;
-      return Math.min(50, dodge);
+      dodge += Math.floor(getEquippedStatBonus('dex') * 0.8);
+      return Math.min(60, dodge);
     }
 
     /* ===================================================
-       SYSTÈME DE QUÊTES (DYNAMIQUE SELON LE NIVEAU)
+       SYSTÈME DE QUÊTES (DYNAMIQUE)
     =================================================== */
     function generateQuests() {
       const lvl = player.level;
@@ -1552,10 +1570,18 @@
       shopInventory.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = `item-card ${item.rarity}`;
+        
+        // Texte descriptif des stats aléatoires pour le shop
+        let statsHTML = '';
+        for (let [key, val] of Object.entries(item.stats)) {
+          let label = POSSIBLE_STATS.find(s => s.key === key)?.label || key;
+          statsHTML += `<div>+${val} ${label}</div>`;
+        }
+
         card.innerHTML = `
           <div class="item-icon">${item.icon}</div>
           <div class="item-name">${item.name}</div>
-          <div class="item-stat">+${item.val} Stat</div>
+          <div class="item-stat">${statsHTML}</div>
           <div class="item-price">🩸 ${item.price}</div>
         `;
         card.onclick = () => buyShopItem(index);
@@ -1598,7 +1624,7 @@
     }
 
     /* ===================================================
-       OBJETS ET INVENTAIRE
+       GÉNÉRATEUR D'ÉQUIPEMENT (STATS ALÉATOIRES)
     =================================================== */
     function generateRandomEquipment(forcedRarity = null) {
       const types = ['head', 'gloves', 'chest', 'boots', 'weapon', 'ring', 'amulet'];
@@ -1620,12 +1646,32 @@
         }
       }
 
-      const mults = { common: 1, rare: 1.8, epic: 2.5, legendary: 4 };
+      const mults = { common: 1, rare: 1.6, epic: 2.3, legendary: 3.5 };
       const baseNames = EQUIPMENT_NAMES[type];
       const name = `${baseNames[Math.floor(Math.random() * baseNames.length)]}`;
       
-      const statVal = Math.floor((4 + Math.random() * 4 * player.level) * mults[rarity]);
-      const price = Math.floor(statVal * 4);
+      // Détermination du nombre de stats aléatoires selon la rareté (1 à 4 stats)
+      let statCount = 1;
+      if (rarity === 'rare') statCount = 2;
+      if (rarity === 'epic') statCount = 3;
+      if (rarity === 'legendary') statCount = 4;
+
+      let itemStats = {};
+      let shuffledStats = [...POSSIBLE_STATS].sort(() => 0.5 - Math.random());
+
+      for (let i = 0; i < statCount; i++) {
+        let chosen = shuffledStats[i];
+        let baseVal = Math.floor((2 + Math.random() * 4 * player.level) * mults[rarity]);
+        
+        // Ajustement selon le type de stat (% ou valeurs brutes)
+        if (chosen.key === 'crit' || chosen.key === 'dodge') {
+          baseVal = Math.max(1, Math.floor(baseVal / 3));
+        }
+        itemStats[chosen.key] = baseVal;
+      }
+
+      const totalValSum = Object.values(itemStats).reduce((a, b) => a + b, 0);
+      const price = Math.floor(totalValSum * 5);
 
       return {
         id: Date.now() + Math.random(),
@@ -1633,7 +1679,7 @@
         name: name,
         icon: ITEM_TYPES[type].icon,
         rarity: rarity,
-        val: statVal,
+        stats: itemStats,
         price: price
       };
     }
@@ -1654,19 +1700,32 @@
         const card = document.createElement('div');
         card.className = `item-card ${item.rarity}`;
         
-        let statText = item.type === 'trinket' ? `<span class="badge-trinket">Babiole</span>` : `+${item.val} Stat`;
-        let actionText = item.type === 'trinket' ? `Vendre (${item.val} 🩸)` : `Équiper`;
+        let statsText = '';
+        if (item.type === 'trinket') {
+          statsText = `<span class="badge-trinket">Babiole</span>`;
+        } else {
+          for (let [key, val] of Object.entries(item.stats)) {
+            let label = POSSIBLE_STATS.find(s => s.key === key)?.label || key;
+            statsText += `<div>+${val} ${label}</div>`;
+          }
+        }
+
+        let sellVal = item.type === 'trinket' ? item.val : Math.floor(item.price / 2);
+        let actionText = `Vendre (${sellVal} 🩸)`;
 
         card.innerHTML = `
           <div class="item-icon">${item.icon}</div>
           <div class="item-name">${item.name}</div>
-          <div class="item-stat">${statText}</div>
-          <div class="item-price" style="font-size:0.65rem; color:var(--accent-gold); margin-top:3px;">${actionText}</div>
+          <div class="item-stat">${statsText}</div>
+          <div style="display: flex; gap: 4px; margin-top: 4px;">
+            ${item.type !== 'trinket' ? `<button class="btn-secondary" style="flex:1; padding:2px; font-size:0.6rem;" onclick="event.stopPropagation(); equipItem(${idx});">Équiper</button>` : ''}
+            <button class="btn-secondary" style="flex:1; padding:2px; font-size:0.6rem; border-color:var(--accent-red-bright); color:var(--accent-red-bright);" onclick="event.stopPropagation(); sellItem(${idx});">${actionText}</button>
+          </div>
         `;
 
         card.onclick = () => {
           if (item.type === 'trinket') {
-            sellTrinket(idx);
+            sellItem(idx);
           } else {
             equipItem(idx);
           }
@@ -1744,15 +1803,17 @@
       renderInventory();
     }
 
-    function sellTrinket(invIndex) {
+    function sellItem(invIndex) {
       const item = player.inventory[invIndex];
-      if (item && item.type === 'trinket') {
-        player.gold += item.val;
-        player.inventory.splice(invIndex, 1);
-        saveGame();
-        updateUI();
-        renderInventory();
-      }
+      if (!item) return;
+
+      let sellPrice = item.type === 'trinket' ? item.val : Math.floor(item.price / 2);
+      player.gold += sellPrice;
+      player.inventory.splice(invIndex, 1);
+      
+      saveGame();
+      updateUI();
+      renderInventory();
     }
 
     function sellAllTrinkets() {
