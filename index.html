@@ -180,7 +180,7 @@
       box-shadow: 0 0 20px rgba(217, 4, 41, 0.6);
     }
 
-    /* Barre de Navigation Haut (Forcée sur 1 ligne sans retour à la ligne) */
+    /* Barre de Navigation Haut (1 ligne fixe) */
     .main-nav {
       position: sticky;
       top: 0;
@@ -1443,20 +1443,29 @@
         }
 
         const item = generateRandomEquipment(forcedRarity);
-        addItemToInventory(item);
-        lootMsg = ` et vous dénichez un équipement : ${item.name} (${item.rarity.toUpperCase()}) !`;
+        if (player.inventory.length >= 12) {
+          alert(`Sac à dos plein ! L'objet ${item.name} a été perdu.`);
+        } else {
+          addItemToInventory(item);
+          lootMsg = ` et vous dénichez un équipement : ${item.name} (${item.rarity.toUpperCase()}) !`;
+        }
       } else {
         const trinket = TRINKETS_DB[Math.floor(Math.random() * TRINKETS_DB.length)];
         const trinketVal = Math.floor(trinket.val * (1 + player.level * 0.3));
-        addItemToInventory({
+        const trinketItem = {
           id: Date.now(),
           type: 'trinket',
           name: trinket.name,
           icon: trinket.icon,
           rarity: 'trinket',
           val: trinketVal
-        });
-        lootMsg = ` et vous trouvez une babiole : ${trinket.name} (${trinketVal} 🩸)`;
+        };
+        if (player.inventory.length >= 12) {
+          alert(`Sac à dos plein ! La babiole ${trinket.name} a été perdue.`);
+        } else {
+          addItemToInventory(trinketItem);
+          lootMsg = ` et vous trouvez une babiole : ${trinket.name} (${trinketVal} 🩸)`;
+        }
       }
 
       alert(`Quête complétée !\nGains : ${quest.gold} Sang, ${quest.xp} XP${lootMsg}.`);
@@ -1571,10 +1580,12 @@
         const rareTypes = ['epic', 'legendary'];
         const chosenRarity = rareTypes[Math.floor(Math.random() * rareTypes.length)];
         const loot = generateRandomEquipment(chosenRarity);
-        addItemToInventory(loot);
-
-        alert(`🎉 ÉTAGE ${player.tower.floor} COMPLÉTÉ !\nBoss battu ! Vous gagnez l'objet : ${loot.name} (${chosenRarity.toUpperCase()}) !`);
-        
+        if (player.inventory.length >= 12) {
+          alert(`Sac à dos plein ! Le loot du boss ${loot.name} a été perdu.`);
+        } else {
+          addItemToInventory(loot);
+          alert(`🎉 ÉTAGE ${player.tower.floor} COMPLÉTÉ !\nBoss battu ! Vous gagnez l'objet : ${loot.name} (${chosenRarity.toUpperCase()}) !`);
+        }
         player.tower.floor++;
         player.tower.step = 1;
       } else {
@@ -1731,7 +1742,6 @@
       
       let html = `<div class="compare-title">Comparaison (${ITEM_TYPES[item.type].name})</div>`;
       
-      // Récupérer toutes les clés possibles impliquées
       let allKeys = new Set([...Object.keys(item.stats)]);
       if (equipped && equipped.stats) {
         Object.keys(equipped.stats).forEach(k => allKeys.add(k));
@@ -1971,6 +1981,7 @@
 
       renderTowerUI();
       renderInventory();
+      renderQuests(); // Met à jour l'état des boutons de quêtes (désactivés/activés selon la Soif de Sang)
     }
 
     function saveGame() {
