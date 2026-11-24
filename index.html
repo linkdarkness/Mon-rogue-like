@@ -10,14 +10,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
     <style>
         /* =====================================================================
-           1. STRICT 100dvh NO-SCROLL VIEWPORT & DARK MEDIEVAL FANTASY THEME
+           1. STRICT 100dvh NO-SCROLL VIEWPORT & DARK MEDIEVAL RPG PALETTE
         ===================================================================== */
         :root {
-            --bg-abyss: #090b12;
-            --bg-obsidian: #111625;
-            --bg-slate: #182036;
-            --gold-bright: #f59e0b;
-            --gold-soft: #fcd34d;
+            --bg-abyss: #0b0e14;
+            --bg-obsidian: #121722;
+            --bg-slate: #182030;
+            --gold-bright: #f5b841;
+            --gold-soft: #fde68a;
         }
 
         * {
@@ -35,6 +35,7 @@
             height: 100dvh;
             max-height: 100dvh;
             overflow: hidden;
+            overscroll-behavior: none;
             background-color: var(--bg-abyss);
             color: #f8fafc;
             font-family: 'Nunito', system-ui, -apple-system, sans-serif;
@@ -58,7 +59,7 @@
             display: none;
             pointer-events: none;
             padding: 10px 12px;
-            background: radial-gradient(circle at 50% 0%, #241c38 0%, var(--bg-abyss) 74%);
+            background: radial-gradient(circle at 50% 0%, #241b35 0%, var(--bg-abyss) 74%);
             z-index: 20;
         }
 
@@ -71,7 +72,7 @@
         #game-screen {
             display: none;
             pointer-events: none;
-            background: radial-gradient(circle at 50% 0%, #161d33 0%, var(--bg-abyss) 75%);
+            background: radial-gradient(circle at 50% 0%, #172034 0%, var(--bg-abyss) 75%);
             z-index: 10;
         }
 
@@ -132,9 +133,9 @@
 
         .class-card.is-selected,
         .class-card.selected {
-            border-color: #fbbf24;
-            background: linear-gradient(145deg, #1d2642, rgba(146, 64, 14, 0.38));
-            box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.55), 0 8px 20px rgba(0, 0, 0, 0.45);
+            border-color: var(--gold-bright);
+            background: linear-gradient(145deg, #1d273b, rgba(180, 115, 24, 0.34));
+            box-shadow: 0 0 0 1px rgba(245, 184, 65, 0.6), 0 8px 20px rgba(0, 0, 0, 0.45);
         }
 
         #game-viewport-frame {
@@ -159,7 +160,7 @@
             position: fixed;
             inset: 0;
             z-index: 70;
-            background: rgba(5, 7, 14, 0.86);
+            background: rgba(6, 8, 14, 0.87);
             backdrop-filter: blur(5px);
             align-items: center;
             justify-content: center;
@@ -178,10 +179,10 @@
             max-width: 490px;
             max-height: 89dvh;
             background: var(--bg-obsidian);
-            border: 1px solid rgba(245, 158, 11, 0.28);
+            border: 1px solid rgba(245, 184, 65, 0.32);
             border-radius: 18px;
             overflow: hidden;
-            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.88);
         }
 
         .modal-scroll {
@@ -194,9 +195,9 @@
         }
 
         /* =====================================================================
-           3. 8 RARITY TIERS (PALIER 7 = SET, PALIER 8 = UNIQUE)
+           3. 8 RARITY TIERS (PALIER 7 = MYTHIQUE/SET, PALIER 8 = DIVIN/UNIQUE)
         ====================================================================== */
-        .rarity-1 { border-color: #64748b; background: linear-gradient(145deg, #161d2e, var(--bg-obsidian)); }
+        .rarity-1 { border-color: #64748b; background: linear-gradient(145deg, #171e2c, var(--bg-obsidian)); }
         .rarity-2 { border-color: #22c55e; background: linear-gradient(145deg, #102a20, var(--bg-obsidian)); }
         .rarity-3 { border-color: #3b82f6; background: linear-gradient(145deg, #122544, var(--bg-obsidian)); }
         .rarity-4 { border-color: #a855f7; background: linear-gradient(145deg, #261440, var(--bg-obsidian)); }
@@ -214,23 +215,40 @@
         }
 
         /* =====================================================================
-           4. 4 EQUIPPED VIGNETTES WITH ICON-ONLY 2x5 STAT GRID
+           4. 4 EQUIPPED VIGNETTES (ICON-ONLY IMPROVED STATS GRID, NO EMPTY CELLS)
         ====================================================================== */
+        #equipped-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-rows: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            overflow: hidden;
+            place-items: center;
+        }
+
         .equip-vignette {
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            align-items: center;
+            justify-content: center;
             gap: 4px;
             border-width: 1.5px;
             border-style: solid;
             border-radius: 14px;
-            padding: 6px 7px;
+            padding: 5px 6px;
             min-height: 0;
             min-width: 0;
             width: 100%;
-            height: 100%;
+            max-width: 100%;
+            height: auto;
+            max-height: 100%;
+            margin: 0 auto;
             overflow: hidden;
             cursor: pointer;
+            text-align: center;
             transition: transform 0.12s ease, border-color 0.15s ease;
         }
 
@@ -238,51 +256,83 @@
             transform: scale(0.98);
         }
 
-        /* Icon-only 2x5 grid: icon + compact numeric value only, zero stat text labels */
-        .vignette-stats-2x5 {
-            display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-            grid-template-rows: repeat(2, minmax(0, 1fr));
-            gap: 3px;
-            flex: 1;
-            min-height: 0;
-            min-width: 0;
-            width: 100%;
-        }
-
-        .vignette-stat-chip {
+        .vignette-header {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1px;
-            min-width: 0;
-            min-height: 0;
+            gap: 2px;
             width: 100%;
-            height: 100%;
-            padding: 1px 2px;
-            border-radius: 8px;
-            background: rgba(9, 11, 18, 0.88);
-            border: 1px solid rgba(148, 163, 184, 0.16);
+            min-width: 0;
+            shrink: 0;
+        }
+
+        .vignette-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .vignette-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 3px;
+            font-size: 8px;
+            line-height: 1.1;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .vignette-stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            align-content: center;
+            gap: 3px;
+            width: 100%;
+            max-width: 100%;
+            min-height: 0;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .vignette-stat-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            min-width: 0;
+            max-width: 100%;
+            height: auto;
+            padding: 2px 5px;
+            border-radius: 7px;
+            background: rgba(11, 14, 20, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.18);
             font-size: 8.5px;
-            line-height: 1.05;
+            line-height: 1.1;
             font-weight: 800;
             font-variant-numeric: tabular-nums;
+            text-align: center;
             overflow: hidden;
         }
 
         .vignette-stat-icon {
-            font-size: 11px;
+            font-size: 10px;
             line-height: 1;
             flex-shrink: 0;
         }
 
         .vignette-stat-num {
-            width: 100%;
             min-width: 0;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: clip;
+            text-overflow: ellipsis;
             text-align: center;
         }
 
@@ -340,8 +390,8 @@
         }
 
         .spherier-node.unlockable-node {
-            border-color: #fbbf24;
-            box-shadow: 0 0 10px rgba(251, 191, 36, 0.55);
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 10px rgba(245, 184, 65, 0.55);
         }
 
         .spherier-node.picked-node {
@@ -361,7 +411,7 @@
                     <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/35 text-amber-300 text-[10px] font-extrabold uppercase tracking-wider">
                         <span>🧰</span> Chroniques du Coffre Infini
                     </div>
-                    <h1 class="font-fantasy text-xl font-black tracking-wide text-amber-100 leading-tight">Just Loot : Légendes du Coffre</h1>
+                    <h1 class="font-fantasy text-xl font-black tracking-wide text-[#fde68a] leading-tight">Just Loot : Légendes du Coffre</h1>
                     <p class="text-[10.5px] text-slate-300 leading-snug">
                         Choisissez votre vocation initiale. Tous les objets (Sets Palier 7 &amp; Uniques Palier 8) sont équipables par toutes les classes.
                     </p>
@@ -372,15 +422,15 @@
                         <div class="space-y-1">
                             <div class="flex items-center justify-between gap-1">
                                 <span class="font-fantasy font-black text-sm text-white">🗡️ Voleur</span>
-                                <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 shrink-0">Crit &amp; VdV</span>
+                                <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 shrink-0">Crit &amp; Esq</span>
                             </div>
-                            <p class="text-[10px] text-slate-300 leading-snug line-clamp-3">
-                                Assassin agile spécialisé dans les coups critiques, l'esquive et le vol de vie.
+                            <p class="text-[10px] text-slate-300 leading-snug line-clamp-2">
+                                Assassin agile spécialisé dans les coups critiques fréquents, l'esquive et la célérité.
                             </p>
                         </div>
-                        <div class="text-[9px] font-bold text-emerald-200/95 border-t border-slate-800 pt-1 tabular-nums leading-tight">
-                            ❤️ 130 • ⚔️ 30 • 🛡️ 9<br />
-                            💥 2.2% • ⚡ 1.8% • 🩸 0.6%
+                        <div class="text-[8.5px] font-bold text-emerald-200/95 border-t border-slate-800 pt-1 tabular-nums leading-tight">
+                            ⚔️ 48 • ❤️ 285 • 🛡️ 12 • 💚 3/s • ✨ 18<br />
+                            💥 1.8% • 🔥 18% • ⚡ 1.5% • 💨 1.4% • 🔰 0.6% • 🩸 0.4%
                         </div>
                     </button>
 
@@ -388,15 +438,15 @@
                         <div class="space-y-1">
                             <div class="flex items-center justify-between gap-1">
                                 <span class="font-fantasy font-black text-sm text-white">⚔️ Guerrier</span>
-                                <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 shrink-0">PV &amp; Régén</span>
+                                <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 shrink-0">ATQ &amp; PV</span>
                             </div>
-                            <p class="text-[10px] text-slate-300 leading-snug line-clamp-3">
-                                Champion cuirassé doté de PV massifs, d'une solide défense et d'une régénération constante.
+                            <p class="text-[10px] text-slate-300 leading-snug line-clamp-2">
+                                Champion cuirassé doté d'une attaque puissante, de PV massifs et d'une solide défense.
                             </p>
                         </div>
-                        <div class="text-[9px] font-bold text-amber-200/95 border-t border-slate-800 pt-1 tabular-nums leading-tight">
-                            ❤️ 175 • ⚔️ 26 • 🛡️ 16<br />
-                            💚 5/s • 💥 0.8% • 🩸 0.3%
+                        <div class="text-[8.5px] font-bold text-amber-200/95 border-t border-slate-800 pt-1 tabular-nums leading-tight">
+                            ⚔️ 54 • ❤️ 360 • 🛡️ 24 • 💚 6/s • ✨ 12<br />
+                            💥 0.8% • 🔥 15.5% • ⚡ 0.8% • 💨 0.5% • 🔰 0.8% • 🩸 0.3%
                         </div>
                     </button>
 
@@ -404,15 +454,15 @@
                         <div class="space-y-1">
                             <div class="flex items-center justify-between gap-1">
                                 <span class="font-fantasy font-black text-sm text-white">🔮 Mage</span>
-                                <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 shrink-0">Magie &amp; EXP</span>
+                                <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 shrink-0">Magie &amp; Rés</span>
                             </div>
-                            <p class="text-[10px] text-slate-300 leading-snug line-clamp-3">
+                            <p class="text-[10px] text-slate-300 leading-snug line-clamp-2">
                                 Arcaniste érudit à haute Magie et Résistance, accélérant la montée de niveau.
                             </p>
                         </div>
-                        <div class="text-[9px] font-bold text-cyan-200/95 border-t border-slate-800 pt-1 tabular-nums leading-tight">
-                            ❤️ 135 • ⚔️ 34 • ✨ 32<br />
-                            🔰 1.6% • 💚 3/s • +0.2% EXP
+                        <div class="text-[8.5px] font-bold text-cyan-200/95 border-t border-slate-800 pt-1 tabular-nums leading-tight">
+                            ⚔️ 24 • ❤️ 255 • 🛡️ 9 • 💚 6/s • ✨ 66<br />
+                            💥 1.2% • 🔥 17% • ⚡ 1% • 💨 0.7% • 🔰 1.6% • 🩸 0.3%
                         </div>
                     </button>
 
@@ -420,20 +470,20 @@
                         <div class="space-y-1">
                             <div class="flex items-center justify-between gap-1">
                                 <span class="font-fantasy font-black text-sm text-white">🛡️ Paladin</span>
-                                <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 shrink-0">DEF &amp; Or</span>
+                                <span class="text-[8.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 shrink-0">DEF &amp; Régén</span>
                             </div>
-                            <p class="text-[10px] text-slate-300 leading-snug line-clamp-3">
+                            <p class="text-[10px] text-slate-300 leading-snug line-clamp-2">
                                 Templier sacré unissant armure élevée, régénération bénie et fortune d'Or accrue.
                             </p>
                         </div>
-                        <div class="text-[9px] font-bold text-purple-200/95 border-t border-slate-800 pt-1 tabular-nums leading-tight">
-                            ❤️ 165 • ⚔️ 28 • 🛡️ 18<br />
-                            💚 6/s • 🔰 1.4% • +0.2% Or
+                        <div class="text-[8.5px] font-bold text-purple-200/95 border-t border-slate-800 pt-1 tabular-nums leading-tight">
+                            ⚔️ 39 • ❤️ 390 • 🛡️ 30 • 💚 12/s • ✨ 42<br />
+                            💥 0.6% • 🔥 15% • ⚡ 0.6% • 💨 0.4% • 🔰 1.8% • 🩸 0.6%
                         </div>
                     </button>
                 </div>
 
-                <button type="button" id="enter-game-btn" class="shrink-0 w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-orange-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 active:scale-[0.99] transition cursor-pointer">
+                <button type="button" id="enter-game-btn" class="shrink-0 w-full py-2.5 rounded-2xl bg-gradient-to-r from-[#f5b841] via-amber-500 to-orange-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 active:scale-[0.99] transition cursor-pointer">
                     ⚔️ Entrer dans le Donjon • <span id="enter-class-label">Guerrier</span>
                 </button>
             </div>
@@ -445,33 +495,35 @@
         <main id="game-screen" class="screen" aria-label="Écran principal du jeu">
             <div id="game-viewport-frame">
 
-                <!-- 1) TOP BAR: CURRENCIES, COFFRE LV + XP BAR & QUICK MODAL BUTTONS -->
-                <header class="shrink-0 rounded-2xl bg-[#111625] border border-amber-500/25 px-2 py-1.5 flex flex-col gap-1">
+                <!-- 1) TOP BAR: CLASS, STAGE/WAVE/DIFF, GOLD, GEMMES, COFFRE NIV. Z -->
+                <header class="shrink-0 rounded-2xl bg-[#121722] border border-[#f5b841]/30 px-2 py-1.5 flex flex-col gap-1">
                     <div class="flex items-center justify-between gap-1.5">
                         <div class="flex items-center gap-1.5 min-w-0">
-                            <button type="button" id="btn-hud-hero" class="w-7 h-7 rounded-xl bg-[#182036] border border-amber-500/35 flex items-center justify-center text-sm shrink-0 active:scale-95">
+                            <button type="button" id="btn-hud-hero" class="w-7 h-7 rounded-xl bg-[#182030] border border-[#f5b841]/40 flex items-center justify-center text-sm shrink-0 active:scale-95">
                                 <span id="hud-class-icon">⚔️</span>
                             </button>
                             <div class="min-w-0">
                                 <div class="flex items-center gap-1">
-                                    <span id="hud-class-name" class="font-fantasy text-[11px] font-black text-amber-100 truncate">Guerrier</span>
+                                    <span id="hud-class-name" class="font-fantasy text-[11px] font-black text-[#fde68a] truncate">Guerrier</span>
                                     <span id="hud-hero-level" class="text-[9px] font-extrabold px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 tabular-nums">Niv.1</span>
+                                    <span class="text-[9px] font-extrabold text-amber-300 tabular-nums">⚡<span id="hud-power">0</span></span>
                                 </div>
-                                <div class="text-[8.5px] font-bold text-slate-300 tabular-nums truncate">
-                                    ⚡ <span id="hud-power" class="text-amber-300">0</span> • 🧰 Coffre Niv.<span id="hud-top-chest-lvl" class="text-amber-200">1</span>
+                                <div class="flex items-center gap-1 text-[8.5px] font-extrabold tabular-nums truncate">
+                                    <span id="hud-stage-wave" class="text-cyan-300">Étage 1 • Vague 1/3</span>
+                                    <span id="hud-diff-badge" class="text-amber-300">×1 (2^0)</span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-1 shrink-0 text-[9px] font-extrabold tabular-nums">
-                            <div class="px-1.5 py-0.5 rounded-lg bg-[#090b12] border border-amber-500/30 text-amber-300">
+                            <div class="px-1.5 py-0.5 rounded-lg bg-[#0b0e14] border border-amber-500/30 text-amber-300">
                                 🪙 <span id="hud-gold">0</span>
                             </div>
-                            <div class="px-1.5 py-0.5 rounded-lg bg-[#090b12] border border-fuchsia-500/30 text-fuchsia-300">
+                            <div class="px-1.5 py-0.5 rounded-lg bg-[#0b0e14] border border-fuchsia-500/30 text-fuchsia-300">
                                 💎 <span id="hud-gems">0</span>
                             </div>
-                            <div class="px-1.5 py-0.5 rounded-lg bg-[#090b12] border border-cyan-500/30 text-cyan-300">
-                                💠 <span id="hud-shards">0</span>
+                            <div class="px-1.5 py-0.5 rounded-lg bg-[#0b0e14] border border-cyan-500/30 text-cyan-200">
+                                🧰 Niv.<span id="hud-top-chest-lvl">1</span>
                             </div>
                         </div>
                     </div>
@@ -483,34 +535,34 @@
                                 <span>🧰 XP</span>
                                 <span id="hud-top-chest-xp">0/20</span>
                             </div>
-                            <div class="w-full h-1.5 rounded-full bg-[#090b12] overflow-hidden border border-slate-800">
-                                <div id="hud-chest-xp-bar" class="h-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-all duration-150" style="width: 0%"></div>
+                            <div class="w-full h-1.5 rounded-full bg-[#0b0e14] overflow-hidden border border-slate-800">
+                                <div id="hud-chest-xp-bar" class="h-full bg-gradient-to-r from-[#f5b841] to-yellow-300 transition-all duration-150" style="width: 0%"></div>
                             </div>
                         </div>
 
                         <nav class="flex-1 grid grid-cols-6 gap-1">
-                            <button type="button" data-open-modal="hero-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182036] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 cursor-pointer">
+                            <button type="button" data-open-modal="hero-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182030] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 cursor-pointer">
                                 <span class="text-[11px] leading-none">👤</span>
                                 <span class="text-[7.5px] font-extrabold text-slate-200">Perso</span>
                             </button>
-                            <button type="button" data-open-modal="bag-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182036] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 cursor-pointer">
+                            <button type="button" data-open-modal="bag-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182030] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 cursor-pointer">
                                 <span class="text-[11px] leading-none">🎒</span>
                                 <span class="text-[7.5px] font-extrabold text-amber-300 tabular-nums"><span id="hud-bag-count">0/24</span></span>
                             </button>
-                            <button type="button" data-open-modal="sphere-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182036] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 cursor-pointer">
+                            <button type="button" data-open-modal="sphere-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182030] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 cursor-pointer">
                                 <span class="text-[11px] leading-none">💠</span>
                                 <span class="text-[7.5px] font-extrabold text-cyan-300">Sphérier</span>
                             </button>
-                            <button type="button" data-open-modal="codex-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182036] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 cursor-pointer">
+                            <button type="button" data-open-modal="codex-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182030] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 cursor-pointer">
                                 <span class="text-[11px] leading-none">📖</span>
                                 <span class="text-[7.5px] font-extrabold text-emerald-300">Codex</span>
                             </button>
-                            <button type="button" data-open-modal="missions-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182036] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 relative cursor-pointer">
+                            <button type="button" data-open-modal="missions-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182030] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 relative cursor-pointer">
                                 <span class="text-[11px] leading-none">📜</span>
                                 <span class="text-[7.5px] font-extrabold text-slate-200">Missions</span>
                                 <span id="badge-missions-ready" class="hidden absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                             </button>
-                            <button type="button" data-open-modal="achievements-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182036] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 relative cursor-pointer">
+                            <button type="button" data-open-modal="achievements-modal" class="rounded-lg py-0.5 px-0.5 bg-[#182030] hover:bg-slate-800 border border-slate-700/70 flex flex-col items-center justify-center active:scale-95 relative cursor-pointer">
                                 <span class="text-[11px] leading-none">🏆</span>
                                 <span class="text-[7.5px] font-extrabold text-slate-200">Succès</span>
                                 <span id="badge-achievements-ready" class="hidden absolute top-0.5 right-1 w-1.5 h-1.5 rounded-full bg-amber-400"></span>
@@ -519,14 +571,14 @@
                     </div>
                 </header>
 
-                <!-- 2) COMBAT ARENA (2^(stage-1) SCALING & RETREAT ON HERO DEATH) -->
-                <section class="shrink-0 rounded-2xl bg-[#111625] border border-slate-800/90 px-2.5 py-1.5 flex flex-col gap-1 relative overflow-hidden">
+                <!-- 2) COMBAT ARENA (2^(stage-1) SCALING & RETREAT TO PREVIOUS STAGE ON DEATH) -->
+                <section class="shrink-0 rounded-2xl bg-[#121722] border border-slate-800/90 px-2.5 py-1.5 flex flex-col gap-1 relative overflow-hidden">
                     <div class="flex items-center justify-between text-[9.5px] font-extrabold gap-1">
                         <div class="flex items-center gap-1.5 min-w-0">
-                            <span id="hud-stage-wave" class="text-cyan-300 tabular-nums shrink-0">Étage 1 • Vague 1/3</span>
-                            <span id="hud-diff-badge" class="px-1.5 py-0.2 rounded bg-amber-500/15 border border-amber-400/30 text-amber-300 tabular-nums truncate">Diff ×1 (2^0)</span>
+                            <span id="hud-arena-stage" class="text-cyan-300 tabular-nums shrink-0">Étage 1 • Vague 1/3</span>
+                            <span id="hud-arena-diff" class="px-1.5 py-0.2 rounded bg-amber-500/15 border border-amber-400/30 text-amber-300 tabular-nums truncate">Diff ×1 (2^0)</span>
                         </div>
-                        <span id="hud-enemy-name" class="text-rose-300 truncate max-w-[42%]">🟢 Slime des Cavernes</span>
+                        <span id="hud-enemy-name" class="text-rose-300 truncate max-w-[44%]">🟢 Slime des Cavernes</span>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 items-center relative">
@@ -534,14 +586,14 @@
                         <div class="relative">
                             <div class="flex items-center justify-between text-[8.5px] mb-0.5 tabular-nums">
                                 <span class="font-extrabold text-emerald-300">🛡️ Héros</span>
-                                <span id="hud-lifesteal-regen" class="font-extrabold text-lime-300">🩸 0.3% • 💚 5/s</span>
+                                <span id="hud-lifesteal-regen" class="font-extrabold text-lime-300">🩸 0.3% • 💚 6/s</span>
                             </div>
-                            <div class="w-full h-2 rounded-full bg-[#090b12] overflow-hidden border border-slate-800">
+                            <div class="w-full h-2 rounded-full bg-[#0b0e14] overflow-hidden border border-slate-800">
                                 <div id="hud-hero-hp-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-150" style="width: 100%"></div>
                             </div>
                             <div class="flex items-center justify-between text-[8.5px] font-bold text-slate-300 mt-0.5 tabular-nums">
-                                <span>❤️ <span id="hud-hero-hp-text">175/175</span></span>
-                                <span>⚔️ <span id="hud-hero-atk-text" class="text-amber-300">26</span></span>
+                                <span>❤️ <span id="hud-hero-hp-text">360/360</span></span>
+                                <span>⚔️ <span id="hud-hero-atk-text" class="text-amber-300">54</span></span>
                             </div>
                             <div id="hero-popup-layer" class="absolute inset-0 pointer-events-none"></div>
                         </div>
@@ -552,7 +604,7 @@
                                 <span id="hud-enemy-tag" class="font-extrabold text-rose-300">👾 Monstre</span>
                                 <span id="hud-enemy-atk-text" class="font-bold text-rose-300">⚔️ 6</span>
                             </div>
-                            <div class="w-full h-2 rounded-full bg-[#090b12] overflow-hidden border border-slate-800">
+                            <div class="w-full h-2 rounded-full bg-[#0b0e14] overflow-hidden border border-slate-800">
                                 <div id="hud-enemy-hp-bar" class="h-full bg-gradient-to-r from-rose-600 to-orange-500 transition-all duration-150" style="width: 100%"></div>
                             </div>
                             <div class="flex items-center justify-between text-[8.5px] font-bold text-slate-300 mt-0.5 tabular-nums">
@@ -564,22 +616,22 @@
                     </div>
 
                     <div class="flex items-center justify-between text-[8.5px] text-slate-400 tabular-nums gap-1 border-t border-slate-800/80 pt-1">
-                        <span id="hud-secondary-stats" class="truncate">💥 0.8% • 🔥 15% • ⚡ 1% • 💨 0.5% • ✨ 8 • 🔰 0.9%</span>
+                        <span id="hud-secondary-stats" class="truncate">💥 0.8% • 🔥 15.5% • ⚡ 0.8% • 💨 0.5% • ✨ 12 • 🔰 0.8%</span>
                         <span class="shrink-0">EXP <span id="hud-xp-text">0/100</span> • <span id="hud-sets-count" class="text-teal-300">0 set(s)</span></span>
                     </div>
 
-                    <div id="hud-combat-log" class="text-[8.5px] font-bold text-amber-200/90 bg-[#090b12]/80 rounded-lg px-2 py-0.5 truncate border border-slate-800/80">
+                    <div id="hud-combat-log" class="text-[8.5px] font-bold text-amber-200/90 bg-[#0b0e14]/85 rounded-lg px-2 py-0.5 truncate border border-slate-800/80">
                         ⚔️ Entrée dans le donjon : Étage 1 prêt au combat.
                     </div>
                 </section>
 
-                <!-- 3) EQUIPPED GEAR SECTION (2x2 VIGNETTES WITH ICON-ONLY 2x5 STAT GRID) -->
+                <!-- 3) EQUIPPED GEAR SECTION (2x2 VIGNETTES SHOWING ONLY IMPROVED STATS) -->
                 <section id="equipped-slots-grid" class="flex-1 min-h-0 grid grid-cols-2 grid-rows-2 gap-1.5 overflow-hidden"></section>
 
                 <!-- 4) BOTTOM CHEST BAR: OPEN CHEST, UPGRADE CHEST & AUTO-OPEN + PAUSE SETTINGS -->
-                <section class="shrink-0 rounded-2xl bg-[#111625] border border-amber-500/20 p-1.5 flex flex-col gap-1">
+                <section class="shrink-0 rounded-2xl bg-[#121722] border border-[#f5b841]/25 p-1.5 flex flex-col gap-1">
                     <div class="grid grid-cols-12 gap-1.5 items-stretch">
-                        <button type="button" id="btn-open-chest" class="col-span-6 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-slate-950 font-black px-2 py-1.5 flex items-center justify-between shadow-lg shadow-amber-500/20 active:scale-[0.98] transition cursor-pointer">
+                        <button type="button" id="btn-open-chest" class="col-span-6 rounded-xl bg-gradient-to-r from-[#f5b841] via-amber-500 to-orange-500 text-slate-950 font-black px-2 py-1.5 flex items-center justify-between shadow-lg shadow-amber-500/20 active:scale-[0.98] transition cursor-pointer">
                             <div class="flex items-center gap-1.5 min-w-0">
                                 <span class="text-base">🧰</span>
                                 <div class="text-left min-w-0">
@@ -590,26 +642,26 @@
                             <span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-slate-950/20">×1</span>
                         </button>
 
-                        <button type="button" id="btn-auto-open" class="col-span-3 rounded-xl bg-[#182036] border border-slate-700 text-slate-200 font-extrabold px-1 py-1 flex flex-col items-center justify-center active:scale-95 transition cursor-pointer">
+                        <button type="button" id="btn-auto-open" class="col-span-3 rounded-xl bg-[#182030] border border-slate-700 text-slate-200 font-extrabold px-1 py-1 flex flex-col items-center justify-center active:scale-95 transition cursor-pointer">
                             <span id="auto-open-icon" class="text-xs leading-none">⚡</span>
                             <span id="auto-open-text" class="text-[8.5px] font-black leading-tight mt-0.5">Auto: OFF</span>
                         </button>
 
-                        <button type="button" id="btn-auto-settings" class="col-span-3 rounded-xl bg-[#182036] border border-amber-500/35 text-amber-200 font-extrabold px-1 py-1 flex flex-col items-center justify-center active:scale-95 transition cursor-pointer">
+                        <button type="button" id="btn-auto-settings" class="col-span-3 rounded-xl bg-[#182030] border border-amber-500/35 text-amber-200 font-extrabold px-1 py-1 flex flex-col items-center justify-center active:scale-95 transition cursor-pointer">
                             <span class="text-xs leading-none">⚙️</span>
                             <span class="text-[8.5px] font-black leading-tight mt-0.5">Pauses</span>
                         </button>
                     </div>
 
                     <div class="grid grid-cols-12 gap-1.5 items-center">
-                        <button type="button" id="btn-upgrade-chest" class="col-span-9 rounded-xl bg-[#090b12] border border-amber-500/35 px-2 py-1 flex items-center justify-between text-left active:scale-[0.99] transition cursor-pointer">
-                            <span class="text-[9.5px] font-black text-amber-300 truncate">
+                        <button type="button" id="btn-upgrade-chest" class="col-span-9 rounded-xl bg-[#0b0e14] border border-[#f5b841]/35 px-2 py-1 flex items-center justify-between text-left active:scale-[0.99] transition cursor-pointer">
+                            <span class="text-[9.5px] font-black text-[#f5b841] truncate">
                                 ⬆️ Améliorer Coffre (Niv.<span id="hud-chest-level">1</span>)
                             </span>
                             <span id="hud-chest-cost" class="text-[9.5px] font-black text-white bg-amber-500/20 border border-amber-400/30 px-1.5 py-0.5 rounded-lg shrink-0 tabular-nums">50 🪙</span>
                         </button>
 
-                        <button type="button" id="btn-open-rates" class="col-span-3 rounded-xl bg-[#182036] border border-sky-500/40 text-sky-300 font-extrabold py-1 px-1 flex items-center justify-center gap-1 text-[9.5px] active:scale-95 transition cursor-pointer">
+                        <button type="button" id="btn-open-rates" class="col-span-3 rounded-xl bg-[#182030] border border-sky-500/40 text-sky-300 font-extrabold py-1 px-1 flex items-center justify-center gap-1 text-[9.5px] active:scale-95 transition cursor-pointer">
                             <span>📊</span>
                             <span>Taux</span>
                         </button>
@@ -620,7 +672,7 @@
     </div>
 
     <!-- TOAST FEEDBACK -->
-    <div id="toast-box" class="hidden fixed top-3 left-1/2 -translate-x-1/2 z-[95] max-w-[92vw] px-3.5 py-2 rounded-xl bg-[#182036] border border-amber-400/50 text-xs font-extrabold text-white shadow-2xl text-center pointer-events-none"></div>
+    <div id="toast-box" class="hidden fixed top-3 left-1/2 -translate-x-1/2 z-[95] max-w-[92vw] px-3.5 py-2 rounded-xl bg-[#182030] border border-[#f5b841]/60 text-xs font-extrabold text-white shadow-2xl text-center pointer-events-none"></div>
 
     <!-- ===================================================================
          MODALS (ALL CLOSED AT STARTUP UNLESS .active)
@@ -630,13 +682,13 @@
     <div id="loot-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">🎁 Butin du Coffre</h2>
-                <button type="button" data-close-modal="loot-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">🎁 Butin du Coffre</h2>
+                <button type="button" data-close-modal="loot-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div id="loot-modal-body" class="modal-scroll space-y-2.5"></div>
             <div class="p-2.5 border-t border-slate-800 grid grid-cols-3 gap-2">
                 <button type="button" id="btn-loot-equip" class="py-2 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs active:scale-95">Équiper</button>
-                <button type="button" id="btn-loot-bag" class="py-2 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-200 font-black text-xs active:scale-95">Garder</button>
+                <button type="button" id="btn-loot-bag" class="py-2 rounded-xl bg-sky-500/20 border border-sky-400/40 text-sky-200 font-black text-xs active:scale-95">Garder au Sac</button>
                 <button type="button" id="btn-loot-sell" class="py-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-black text-xs active:scale-95">Vendre</button>
             </div>
         </div>
@@ -646,14 +698,14 @@
     <div id="auto-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">⚙️ Pauses d'Auto-Ouverture</h2>
-                <button type="button" data-close-modal="auto-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">⚙️ Pauses d'Auto-Ouverture</h2>
+                <button type="button" data-close-modal="auto-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div class="modal-scroll space-y-2.5 text-xs">
                 <p class="text-[11px] text-slate-300">
                     Définissez les déclencheurs mettant en pause l'ouverture automatique des coffres :
                 </p>
-                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#090b12] border border-slate-800 cursor-pointer">
+                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b0e14] border border-slate-800 cursor-pointer">
                     <div>
                         <div class="font-black text-emerald-300">⚡ Pause si objet plus puissant</div>
                         <div class="text-[10px] text-slate-400">Arrête si le score de l'objet dépasse celui équipé.</div>
@@ -661,12 +713,12 @@
                     <input type="checkbox" id="chk-pause-better" class="w-4 h-4 accent-amber-400" />
                 </label>
 
-                <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#090b12] border border-slate-800 gap-2">
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b0e14] border border-slate-800 gap-2">
                     <div>
                         <div class="font-black text-amber-300">🏅 Pause si Palier ≥ X</div>
                         <div class="text-[10px] text-slate-400">Arrête dès qu'un objet atteint ce palier minimum.</div>
                     </div>
-                    <select id="sel-pause-min-tier" class="bg-[#182036] border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-black text-white">
+                    <select id="sel-pause-min-tier" class="bg-[#182030] border border-slate-700 rounded-lg px-2 py-1 text-[11px] font-black text-white">
                         <option value="9">Désactivé</option>
                         <option value="2">Palier 2+</option>
                         <option value="3">Palier 3+</option>
@@ -678,7 +730,7 @@
                     </select>
                 </div>
 
-                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#090b12] border border-slate-800 cursor-pointer">
+                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b0e14] border border-slate-800 cursor-pointer">
                     <div>
                         <div class="font-black text-teal-300">💠 Pause si Set (Palier 7)</div>
                         <div class="text-[10px] text-slate-400">Arrête à la découverte d'une pièce de Set.</div>
@@ -686,7 +738,7 @@
                     <input type="checkbox" id="chk-pause-set" class="w-4 h-4 accent-amber-400" />
                 </label>
 
-                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#090b12] border border-slate-800 cursor-pointer">
+                <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b0e14] border border-slate-800 cursor-pointer">
                     <div>
                         <div class="font-black text-pink-300">🌟 Pause si Unique (Palier 8)</div>
                         <div class="text-[10px] text-slate-400">Arrête à la découverte d'une relique Unique.</div>
@@ -701,12 +753,12 @@
     <div id="inspect-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">🔍 Détails de l'Équipement</h2>
-                <button type="button" data-close-modal="inspect-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">🔍 Détails de l'Équipement</h2>
+                <button type="button" data-close-modal="inspect-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div id="inspect-modal-body" class="modal-scroll space-y-2.5"></div>
             <div class="p-2.5 border-t border-slate-800 grid grid-cols-3 gap-1.5">
-                <button type="button" id="btn-inspect-lock" class="py-2 rounded-xl bg-[#182036] border border-slate-700 text-xs font-black text-amber-300">🔒 Verrouiller</button>
+                <button type="button" id="btn-inspect-lock" class="py-2 rounded-xl bg-[#182030] border border-slate-700 text-xs font-black text-amber-300">🔒 Verrouiller</button>
                 <button type="button" id="btn-inspect-unequip" class="py-2 rounded-xl bg-sky-500/20 border border-sky-400/40 text-xs font-black text-sky-200">Vers Sac</button>
                 <button type="button" id="btn-inspect-sell" class="py-2 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-black text-xs active:scale-95">Vendre</button>
             </div>
@@ -717,12 +769,12 @@
     <div id="rates-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">📊 Paliers &amp; Probabilités (Coffre Niv.<span id="rates-chest-lvl">1</span>)</h2>
-                <button type="button" data-close-modal="rates-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">📊 Paliers &amp; Probabilités (Coffre Niv.<span id="rates-chest-lvl">1</span>)</h2>
+                <button type="button" data-close-modal="rates-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div class="modal-scroll space-y-2">
                 <p class="text-[11px] text-slate-300">
-                    8 paliers chronologiques (<strong class="text-teal-300">Palier 7 = Set</strong>, <strong class="text-pink-300">Palier 8 = Unique</strong>), poids ÷1000 normalisés sur <strong class="text-emerald-300">100%</strong>.
+                    8 paliers chronologiques (<strong class="text-teal-300">Palier 7 = Mythique / Set</strong>, <strong class="text-pink-300">Palier 8 = Divin / Unique</strong>), poids ÷1000 normalisés sur <strong class="text-emerald-300">100%</strong>.
                 </p>
                 <div id="rates-modal-body" class="space-y-1.5"></div>
             </div>
@@ -733,28 +785,28 @@
     <div id="bag-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">🎒 Sac (<span id="bag-modal-count">0/24</span>)</h2>
-                <button type="button" data-close-modal="bag-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">🎒 Sac (<span id="bag-modal-count">0/24</span>)</h2>
+                <button type="button" data-close-modal="bag-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
-            <div class="px-3 py-2 bg-[#090b12]/75 border-b border-slate-800 flex flex-wrap items-center justify-between gap-1.5">
+            <div class="px-3 py-2 bg-[#0b0e14]/75 border-b border-slate-800 flex flex-wrap items-center justify-between gap-1.5">
                 <div class="flex items-center gap-1">
-                    <select id="bag-filter-slot" class="bg-[#111625] border border-slate-700 rounded-lg px-2 py-1 text-[10.5px] font-bold text-white">
+                    <select id="bag-filter-slot" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-1 text-[10.5px] font-bold text-white">
                         <option value="all">Tous emplacements</option>
                         <option value="arme">⚔️ Arme</option>
                         <option value="armure">🛡️ Armure</option>
                         <option value="casque">🪖 Casque</option>
                         <option value="bottes">🥾 Bottes</option>
                     </select>
-                    <select id="bag-filter-tier" class="bg-[#111625] border border-slate-700 rounded-lg px-2 py-1 text-[10.5px] font-bold text-white">
+                    <select id="bag-filter-tier" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-1 text-[10.5px] font-bold text-white">
                         <option value="all">Tous paliers</option>
-                        <option value="8">Palier 8 • Unique</option>
-                        <option value="7">Palier 7 • Set</option>
-                        <option value="6">Palier 6</option>
-                        <option value="5">Palier 5</option>
-                        <option value="4">Palier 4</option>
-                        <option value="3">Palier 3</option>
-                        <option value="2">Palier 2</option>
-                        <option value="1">Palier 1</option>
+                        <option value="8">Palier 8 • Divin / Unique</option>
+                        <option value="7">Palier 7 • Mythique / Set</option>
+                        <option value="6">Palier 6 • Légendaire</option>
+                        <option value="5">Palier 5 • Épique</option>
+                        <option value="4">Palier 4 • Rare</option>
+                        <option value="3">Palier 3 • Inhabituel</option>
+                        <option value="2">Palier 2 • Commun</option>
+                        <option value="1">Palier 1 • Normal</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-1.5">
@@ -770,8 +822,8 @@
     <div id="hero-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">👤 Perso &amp; 11 Statistiques</h2>
-                <button type="button" data-close-modal="hero-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">👤 Perso &amp; 11 Statistiques</h2>
+                <button type="button" data-close-modal="hero-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div id="hero-modal-body" class="modal-scroll space-y-2.5"></div>
         </div>
@@ -781,8 +833,8 @@
     <div id="class-switcher-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">🔄 Changer de Classe</h2>
-                <button type="button" data-close-modal="class-switcher-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">🔄 Changer de Classe</h2>
+                <button type="button" data-close-modal="class-switcher-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div id="class-switcher-modal-body" class="modal-scroll space-y-2"></div>
         </div>
@@ -792,15 +844,15 @@
     <div id="codex-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">📖 Codex (<span id="codex-completion-pct">0%</span>)</h2>
-                <button type="button" data-close-modal="codex-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">📖 Codex (<span id="codex-completion-pct">0%</span>)</h2>
+                <button type="button" data-close-modal="codex-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div class="px-2.5 py-2 border-b border-slate-800 grid grid-cols-5 gap-1">
-                <button type="button" data-codex-tab="classes" class="codex-tab py-1.5 rounded-lg bg-[#182036] text-[9.5px] font-black text-slate-300">Classes</button>
-                <button type="button" data-codex-tab="tiers" class="codex-tab py-1.5 rounded-lg bg-[#182036] text-[9.5px] font-black text-slate-300">Paliers</button>
+                <button type="button" data-codex-tab="classes" class="codex-tab py-1.5 rounded-lg bg-[#182030] text-[9.5px] font-black text-slate-300">Classes</button>
+                <button type="button" data-codex-tab="tiers" class="codex-tab py-1.5 rounded-lg bg-[#182030] text-[9.5px] font-black text-slate-300">Paliers</button>
                 <button type="button" data-codex-tab="sets" class="codex-tab py-1.5 rounded-lg bg-teal-500/20 border border-teal-400/50 text-[9.5px] font-black text-teal-200">Sets</button>
-                <button type="button" data-codex-tab="uniques" class="codex-tab py-1.5 rounded-lg bg-[#182036] text-[9.5px] font-black text-slate-300">Uniques</button>
-                <button type="button" data-codex-tab="enemies" class="codex-tab py-1.5 rounded-lg bg-[#182036] text-[9.5px] font-black text-slate-300">Ennemis</button>
+                <button type="button" data-codex-tab="uniques" class="codex-tab py-1.5 rounded-lg bg-[#182030] text-[9.5px] font-black text-slate-300">Uniques</button>
+                <button type="button" data-codex-tab="enemies" class="codex-tab py-1.5 rounded-lg bg-[#182030] text-[9.5px] font-black text-slate-300">Ennemis</button>
             </div>
             <div id="codex-modal-body" class="modal-scroll space-y-2"></div>
         </div>
@@ -810,8 +862,8 @@
     <div id="missions-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">📜 Missions Quotidiennes &amp; Hebdo (×10)</h2>
-                <button type="button" data-close-modal="missions-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">📜 Missions Quotidiennes &amp; Hebdo (×10)</h2>
+                <button type="button" data-close-modal="missions-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div id="missions-modal-body" class="modal-scroll space-y-2"></div>
         </div>
@@ -821,12 +873,12 @@
     <div id="achievements-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-amber-100">🏆 Succès Infinis</h2>
-                <button type="button" data-close-modal="achievements-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">🏆 Succès Infinis</h2>
+                <button type="button" data-close-modal="achievements-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div class="px-3 py-1.5 border-b border-slate-800 flex items-center justify-between">
                 <span class="text-[10.5px] text-slate-400">Paliers infinis récompensés en Gemmes.</span>
-                <button type="button" id="btn-claim-all-achievements" class="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 text-[10.5px] font-black active:scale-95">Tout Réclamer</button>
+                <button type="button" id="btn-claim-all-achievements" class="px-2.5 py-1 rounded-lg bg-[#f5b841] text-slate-950 text-[10.5px] font-black active:scale-95">Tout Réclamer</button>
             </div>
             <div id="achievements-modal-body" class="modal-scroll space-y-2"></div>
         </div>
@@ -837,20 +889,20 @@
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
                 <div>
-                    <h2 class="font-fantasy text-sm font-black text-amber-100">💠 Sphérier Astral</h2>
-                    <div class="text-[10px] text-cyan-300 font-bold tabular-nums">Éclats de Renaissance : <span id="sphere-shards-value">0</span> 💠</div>
+                    <h2 class="font-fantasy text-sm font-black text-[#fde68a]">💠 Sphérier Astral</h2>
+                    <div class="text-[10px] text-cyan-300 font-bold tabular-nums">Éclats d'Âme : <span id="sphere-shards-value">0</span> 💠</div>
                 </div>
-                <button type="button" data-close-modal="sphere-modal" class="px-2.5 py-1 rounded-lg bg-[#182036] text-xs font-bold text-slate-300">✕</button>
+                <button type="button" data-close-modal="sphere-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300">✕</button>
             </div>
             <div class="modal-scroll space-y-2">
                 <div id="sphere-canvas" class="spherier-canvas">
                     <svg id="sphere-lines-svg" class="absolute inset-0 w-full h-full pointer-events-none"></svg>
                     <div id="sphere-nodes-container" class="absolute inset-0"></div>
-                    <button type="button" id="btn-sphere-recenter" class="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-[#111625]/95 border border-slate-700 text-[10px] font-bold text-slate-200">Centrer</button>
+                    <button type="button" id="btn-sphere-recenter" class="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-[#121722]/95 border border-slate-700 text-[10px] font-bold text-slate-200">Centrer</button>
                 </div>
-                <div id="sphere-inspector" class="rounded-xl bg-[#090b12] border border-slate-800 p-2.5 space-y-1.5">
+                <div id="sphere-inspector" class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 space-y-1.5">
                     <div class="text-xs font-black text-white">Sélectionnez un nœud</div>
-                    <div class="text-[11px] text-slate-300">Glissez la grille ou touchez un nœud connecté pour dépenser vos Éclats de Renaissance.</div>
+                    <div class="text-[11px] text-slate-300">Glissez la grille ou touchez un nœud connecté pour dépenser vos Éclats d'Âme.</div>
                 </div>
             </div>
         </div>
@@ -863,7 +915,7 @@
         /* =====================================================================
            1. UTILITIES & NUMBER FORMATTING (÷10 PERCENTAGE STATS, ÷1000 WEIGHTS)
         ====================================================================== */
-        const STORAGE_KEY = 'just_loot_legendes_du_coffre_v11';
+        const STORAGE_KEY = 'just_loot_legendes_du_coffre_v14';
         let isInitialized = false;
 
         function toNum(v, fallback = 0) {
@@ -885,10 +937,17 @@
             return num.toExponential(2).replace('+', '');
         }
 
-        // Percentage-based stats are divided by 10
+        // Percentage-based stats are divided by 10 (raw decimal 0.18 -> 1.8%), formatted with French comma
         function formatDiv10Pct(rawDecimal) {
             const pct = (toNum(rawDecimal, 0) * 100) / 10;
-            const trimmed = pct.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+            const trimmed = pct.toFixed(3).replace(/0+$/, '').replace(/\.$/, '').replace('.', ',');
+            return `${trimmed || '0'}%`;
+        }
+
+        // Formats a character + gear percentage stat that is already stored as a ÷10 decimal (e.g. 0.065 -> 6,5%)
+        function formatCombinedPct(combinedDecimal) {
+            const pct = toNum(combinedDecimal, 0) * 100;
+            const trimmed = pct.toFixed(3).replace(/0+$/, '').replace(/\.$/, '').replace('.', ',');
             return `${trimmed || '0'}%`;
         }
 
@@ -921,23 +980,32 @@
         const PALIER_SET = 7;
         const PALIER_UNIQUE = 8;
 
-        // Unlock levels: 1, 50, 100, 150, 200, 250, 300, 350 (hidden from UI tier labels)
+        // Unlock formula: chestLevel >= (tier - 1) * 50 + 1 (1, 51, 101, 151, 201, 251, 301, 351)
         const TIERS = [
-            { tier: 1, name: 'Commun',     color: 'text-slate-300',   badge: 'bg-slate-700/70 text-slate-200',     unlockLevel: 1,   weight: 540 / 1000,  mult: 1.0 },
-            { tier: 2, name: 'Inhabituel', color: 'text-emerald-300', badge: 'bg-emerald-500/20 text-emerald-300', unlockLevel: 50,  weight: 245 / 1000,  mult: 1.48 },
-            { tier: 3, name: 'Rare',       color: 'text-sky-300',     badge: 'bg-sky-500/20 text-sky-300',         unlockLevel: 100, weight: 120 / 1000,  mult: 2.2 },
-            { tier: 4, name: 'Épique',     color: 'text-purple-300',  badge: 'bg-purple-500/20 text-purple-300',   unlockLevel: 150, weight: 55 / 1000,   mult: 3.3 },
-            { tier: 5, name: 'Légendaire', color: 'text-amber-300',   badge: 'bg-amber-500/20 text-amber-300',     unlockLevel: 200, weight: 25 / 1000,   mult: 5.0 },
-            { tier: 6, name: 'Mythique',   color: 'text-rose-300',    badge: 'bg-rose-500/20 text-rose-300',       unlockLevel: 250, weight: 10 / 1000,   mult: 7.5 },
-            { tier: 7, name: 'Set',        color: 'text-teal-300',    badge: 'bg-teal-500/25 text-teal-200',       unlockLevel: 300, weight: 3.5 / 1000,  mult: 10.2 },
-            { tier: 8, name: 'Unique',     color: 'text-pink-300',    badge: 'bg-pink-500/25 text-pink-200',       unlockLevel: 350, weight: 1.5 / 1000,  mult: 14.0 }
+            { tier: 1, name: 'Normal',          color: 'text-slate-300',   badge: 'bg-slate-700/70 text-slate-200',     weight: 540 / 1000,  mult: 1.0 },
+            { tier: 2, name: 'Commun',          color: 'text-emerald-300', badge: 'bg-emerald-500/20 text-emerald-300', weight: 245 / 1000,  mult: 1.48 },
+            { tier: 3, name: 'Inhabituel',      color: 'text-sky-300',     badge: 'bg-sky-500/20 text-sky-300',         weight: 120 / 1000,  mult: 2.2 },
+            { tier: 4, name: 'Rare',            color: 'text-purple-300',  badge: 'bg-purple-500/20 text-purple-300',   weight: 55 / 1000,   mult: 3.3 },
+            { tier: 5, name: 'Épique',          color: 'text-amber-300',   badge: 'bg-amber-500/20 text-amber-300',     weight: 25 / 1000,   mult: 5.0 },
+            { tier: 6, name: 'Légendaire',      color: 'text-rose-300',    badge: 'bg-rose-500/20 text-rose-300',       weight: 10 / 1000,   mult: 7.5 },
+            { tier: 7, name: 'Mythique / Set',  color: 'text-teal-300',    badge: 'bg-teal-500/25 text-teal-200',       weight: 3.5 / 1000,  mult: 10.2 },
+            { tier: 8, name: 'Divin (Unique)',  color: 'text-pink-300',    badge: 'bg-pink-500/25 text-pink-200',       weight: 1.5 / 1000,  mult: 14.0 }
         ];
 
-        function getUnlockedTierMax(chestLevel) {
+        function getTierInfo(tier) {
+            return TIERS.find(t => t.tier === tier) || TIERS[0];
+        }
+
+        function isTierUnlocked(tier, chestLevel) {
             const lvl = Math.max(1, Math.round(toNum(chestLevel, 1)));
+            const requiredLevel = (Math.max(1, tier) - 1) * 50 + 1;
+            return lvl >= requiredLevel;
+        }
+
+        function getUnlockedTierMax(chestLevel) {
             let maxTier = 1;
             for (const t of TIERS) {
-                if (lvl >= t.unlockLevel) {
+                if (isTierUnlocked(t.tier, chestLevel)) {
                     maxTier = t.tier;
                 }
             }
@@ -951,105 +1019,108 @@
             { id: 'bottes', label: 'Bottes', icon: '🥾' }
         ];
 
+        // Exact ×3 base class stats with percentage stats stored as raw decimals divided by 10 on display/combat
         const CLASSES = {
             rogue: {
                 id: 'rogue',
                 name: 'Voleur',
                 icon: '🗡️',
-                desc: 'Assassin agile spécialisé dans les coups critiques fréquents, l\'esquive et le vol de vie.',
-                atk: 30,
-                maxHp: 130,
-                def: 9,
-                crit: 0.22,
-                critDmg: 1.75,
-                atkSpd: 0.18,
-                dodge: 0.15,
-                mag: 10,
-                magRes: 0.06,
-                lifesteal: 0.06,
+                desc: 'Assassin agile spécialisé dans les coups critiques fréquents, l\'esquive et la célérité.',
+                atk: 48,
+                maxHp: 285,
+                def: 12,
+                crit: 0.18,      // 1.8%
+                critDmg: 1.80,   // 18%
+                atkSpd: 0.15,    // 1.5%
+                dodge: 0.14,     // 1.4%
+                mag: 18,
+                magRes: 0.06,    // 0.6%
+                lifesteal: 0.04, // 0.4%
                 regen: 3,
-                goldBonus: 0.001,
-                xpBonus: 0.001
+                goldBonus: 0.003,
+                xpBonus: 0.003
             },
             warrior: {
                 id: 'warrior',
                 name: 'Guerrier',
                 icon: '⚔️',
-                desc: 'Champion cuirassé doté de PV massifs, d\'une solide défense et d\'une régénération constante.',
-                atk: 26,
-                maxHp: 175,
-                def: 16,
-                crit: 0.08,
-                critDmg: 1.50,
-                atkSpd: 0.10,
-                dodge: 0.05,
-                mag: 8,
-                magRes: 0.09,
-                lifesteal: 0.03,
-                regen: 5,
-                goldBonus: 0.0005,
-                xpBonus: 0.0005
+                desc: 'Champion cuirassé doté d\'une attaque puissante, de PV massifs et d\'une solide défense.',
+                atk: 54,
+                maxHp: 360,
+                def: 24,
+                crit: 0.08,      // 0.8%
+                critDmg: 1.55,   // 15.5%
+                atkSpd: 0.08,    // 0.8%
+                dodge: 0.05,     // 0.5%
+                mag: 12,
+                magRes: 0.08,    // 0.8%
+                lifesteal: 0.03, // 0.3%
+                regen: 6,
+                goldBonus: 0.0015,
+                xpBonus: 0.0015
             },
             mage: {
                 id: 'mage',
                 name: 'Mage',
                 icon: '🔮',
                 desc: 'Arcaniste érudit à haute Magie et Résistance, accélérant la montée de niveau.',
-                atk: 34,
-                maxHp: 135,
-                def: 8,
-                crit: 0.14,
-                critDmg: 1.65,
-                atkSpd: 0.11,
-                dodge: 0.08,
-                mag: 32,
-                magRes: 0.16,
-                lifesteal: 0.02,
-                regen: 3,
-                goldBonus: 0.0005,
-                xpBonus: 0.002
+                atk: 24,
+                maxHp: 255,
+                def: 9,
+                crit: 0.12,      // 1.2%
+                critDmg: 1.70,   // 17%
+                atkSpd: 0.10,    // 1%
+                dodge: 0.07,     // 0.7%
+                mag: 66,
+                magRes: 0.16,    // 1.6%
+                lifesteal: 0.03, // 0.3%
+                regen: 6,
+                goldBonus: 0.0015,
+                xpBonus: 0.006
             },
             paladin: {
                 id: 'paladin',
                 name: 'Paladin',
                 icon: '🛡️',
                 desc: 'Templier sacré unissant armure élevée, régénération bénie et fortune d\'Or accrue.',
-                atk: 28,
-                maxHp: 165,
-                def: 18,
-                crit: 0.12,
-                critDmg: 1.55,
-                atkSpd: 0.11,
-                dodge: 0.07,
-                mag: 16,
-                magRes: 0.14,
-                lifesteal: 0.04,
-                regen: 6,
-                goldBonus: 0.002,
-                xpBonus: 0.001
+                atk: 39,
+                maxHp: 390,
+                def: 30,
+                crit: 0.06,      // 0.6%
+                critDmg: 1.50,   // 15%
+                atkSpd: 0.06,    // 0.6%
+                dodge: 0.04,     // 0.4%
+                mag: 42,
+                magRes: 0.18,    // 1.8%
+                lifesteal: 0.06, // 0.6%
+                regen: 12,
+                goldBonus: 0.006,
+                xpBonus: 0.003
             }
         };
 
+        // Set bonuses scaled by ×10
         const SETS = [
-            { id: 'set_iron_bastion',  name: 'Bastion de Fer',   icon: '🏰', b2: { label: '+0.15% DEF & +0.08% Rés', defPct: 0.0015, resAdd: 0.0008 }, b4: { label: '+0.3% PV, +0.25% ATQ & +0.1% Esq', hpPct: 0.003, atkPct: 0.0025, dodgeAdd: 0.001 } },
-            { id: 'set_night_fang',    name: 'Croc Nocturne',    icon: '🌑', b2: { label: '+0.1% Crit & +0.1% Esq', critAdd: 0.001, dodgeAdd: 0.001 }, b4: { label: '+0.3% ATQ, +0.2% D.Crit & +0.12% Crit', atkPct: 0.003, critDmgAdd: 0.002, critAdd: 0.0012 } },
-            { id: 'set_astral_weaver', name: 'Tisseur Astral',   icon: '✨', b2: { label: '+0.2% EXP & +0.2% Mag', xpPct: 0.002, magPct: 0.002 }, b4: { label: '+0.35% ATQ, +0.1% Rés & +0.25% EXP', atkPct: 0.0035, resAdd: 0.001, xpPct: 0.0025 } },
-            { id: 'set_wyrm_slayer',   name: 'Tueur de Wyrm',    icon: '🐉', b2: { label: '+0.2% Or & +0.15% D.Crit', goldPct: 0.002, critDmgAdd: 0.0015 }, b4: { label: '+0.32% ATQ, +0.18% PV & +0.25% Or', atkPct: 0.0032, hpPct: 0.0018, goldPct: 0.0025 } },
-            { id: 'set_sun_warden',    name: 'Gardien Solaire',  icon: '☀️', b2: { label: '+0.18% PV & +0.1% Rés', hpPct: 0.0018, resAdd: 0.001 }, b4: { label: '+0.28% DEF, +0.25% PV & +0.25% ATQ', defPct: 0.0028, hpPct: 0.0025, atkPct: 0.0025 } },
-            { id: 'set_phantom_step',  name: 'Pas Fantôme',      icon: '👻', b2: { label: '+0.08% Crit & +0.12% Esq', critAdd: 0.0008, dodgeAdd: 0.0012 }, b4: { label: '+0.3% ATQ, +0.18% V.Atk & +0.15% Crit', atkPct: 0.003, spdAdd: 0.0018, critAdd: 0.0015 } },
-            { id: 'set_storm_caller',  name: 'Mande-Foudre',     icon: '⚡', b2: { label: '+0.18% ATQ & +0.25% Mag', atkPct: 0.0018, magPct: 0.0025 }, b4: { label: '+0.35% ATQ, +0.12% Crit & +0.2% EXP', atkPct: 0.0035, critAdd: 0.0012, xpPct: 0.002 } },
-            { id: 'set_blood_pact',    name: 'Pacte de Sang',    icon: '🩸', b2: { label: '+0.22% PV & +0.05% VdV', hpPct: 0.0022, lsAdd: 0.0005 }, b4: { label: '+0.38% ATQ & +0.08% VdV', atkPct: 0.0038, lsAdd: 0.0008 } }
+            { id: 'set_iron_bastion',  name: 'Bastion de Fer',   icon: '🏰', b2: { label: '+15% DEF & +8% Rés', defPct: 0.15, resAdd: 0.08 }, b4: { label: '+30% PV, +25% ATQ & +10% Esq', hpPct: 0.30, atkPct: 0.25, dodgeAdd: 0.10 } },
+            { id: 'set_night_fang',    name: 'Croc Nocturne',    icon: '🌑', b2: { label: '+10% Crit & +10% Esq', critAdd: 0.10, dodgeAdd: 0.10 }, b4: { label: '+30% ATQ, +20% D.Crit & +12% Crit', atkPct: 0.30, critDmgAdd: 0.20, critAdd: 0.12 } },
+            { id: 'set_astral_weaver', name: 'Tisseur Astral',   icon: '✨', b2: { label: '+20% EXP & +20% Mag', xpPct: 0.20, magPct: 0.20 }, b4: { label: '+35% ATQ, +10% Rés & +25% EXP', atkPct: 0.35, resAdd: 0.10, xpPct: 0.25 } },
+            { id: 'set_wyrm_slayer',   name: 'Tueur de Wyrm',    icon: '🐉', b2: { label: '+20% Or & +15% D.Crit', goldPct: 0.20, critDmgAdd: 0.15 }, b4: { label: '+32% ATQ, +18% PV & +25% Or', atkPct: 0.32, hpPct: 0.18, goldPct: 0.25 } },
+            { id: 'set_sun_warden',    name: 'Gardien Solaire',  icon: '☀️', b2: { label: '+18% PV & +10% Rés', hpPct: 0.18, resAdd: 0.10 }, b4: { label: '+28% DEF, +25% PV & +25% ATQ', defPct: 0.28, hpPct: 0.25, atkPct: 0.25 } },
+            { id: 'set_phantom_step',  name: 'Pas Fantôme',      icon: '👻', b2: { label: '+8% Crit & +12% Esq', critAdd: 0.08, dodgeAdd: 0.12 }, b4: { label: '+30% ATQ, +18% V.Atk & +15% Crit', atkPct: 0.30, spdAdd: 0.18, critAdd: 0.15 } },
+            { id: 'set_storm_caller',  name: 'Mande-Foudre',     icon: '⚡', b2: { label: '+18% ATQ & +25% Mag', atkPct: 0.18, magPct: 0.25 }, b4: { label: '+35% ATQ, +12% Crit & +20% EXP', atkPct: 0.35, critAdd: 0.12, xpPct: 0.20 } },
+            { id: 'set_blood_pact',    name: 'Pacte de Sang',    icon: '🩸', b2: { label: '+22% PV & +5% VdV', hpPct: 0.22, lsAdd: 0.05 }, b4: { label: '+38% ATQ & +8% VdV', atkPct: 0.38, lsAdd: 0.08 } }
         ];
 
+        // Unique passives scaled by ×10
         const UNIQUES = [
-            { id: 'u_soul_reaver',    name: 'Dévoreuse d\'Âmes',      slot: 'arme',   icon: '🗡️', passive: 'Moisson',   desc: '+0.25% ATQ, +0.05% VdV et soin de 0.06% PV max par élimination.' },
-            { id: 'u_starfall_blade', name: 'Lame Chute-d\'Étoile',  slot: 'arme',   icon: '🌠', passive: 'Éclat',     desc: '+0.15% Crit, +0.3% D.Crit et +0.15% V.Atk.' },
-            { id: 'u_aegis_dawn',     name: 'Égide de l\'Aube',      slot: 'armure', icon: '🦺', passive: 'Aurore',    desc: '+0.3% DEF, +0.1% Rés et soin de 0.04% PV max par coup.' },
-            { id: 'u_titan_cuirass',  name: 'Cuirasse du Colosse',   slot: 'armure', icon: '🛡️', passive: 'Rempart',   desc: '+0.28% PV, +0.25% DEF et +0.12% Rés.' },
-            { id: 'u_crown_omens',    name: 'Couronne des Présages', slot: 'casque', icon: '👑', passive: 'Fortune',   desc: '+0.22% Or, +0.12% ATQ et +0.2% Mag.' },
-            { id: 'u_helm_undying',   name: 'Heaume des Immortels',  slot: 'casque', icon: '🪖', passive: 'Endurance', desc: '+0.25% PV, +0.2% DEF et +0.1% Rés.' },
-            { id: 'u_windstrider',    name: 'Bottes Marche-Vent',    slot: 'bottes', icon: '🥾', passive: 'Zéphyr',    desc: '+0.15% V.Atk, +0.12% Esq et +0.2% Or.' },
-            { id: 'u_shadow_greaves', name: 'Grèves de l\'Ombre',    slot: 'bottes', icon: '👢', passive: 'Mirage',    desc: '+0.16% Esq, +0.12% Crit et +0.18% V.Atk.' }
+            { id: 'u_soul_reaver',    name: 'Dévoreuse d\'Âmes',      slot: 'arme',   icon: '🗡️', passive: 'Moisson',   desc: '+25% ATQ, +5% VdV et soin de 6% PV max par élimination.' },
+            { id: 'u_starfall_blade', name: 'Lame Chute-d\'Étoile',  slot: 'arme',   icon: '🌠', passive: 'Éclat',     desc: '+15% Crit, +30% D.Crit et +15% V.Atk.' },
+            { id: 'u_aegis_dawn',     name: 'Égide de l\'Aube',      slot: 'armure', icon: '🦺', passive: 'Aurore',    desc: '+30% DEF, +10% Rés et soin de 4% PV max par coup.' },
+            { id: 'u_titan_cuirass',  name: 'Cuirasse du Colosse',   slot: 'armure', icon: '🛡️', passive: 'Rempart',   desc: '+28% PV, +25% DEF et +12% Rés.' },
+            { id: 'u_crown_omens',    name: 'Couronne des Présages', slot: 'casque', icon: '👑', passive: 'Fortune',   desc: '+22% Or, +12% ATQ et +20% Mag.' },
+            { id: 'u_helm_undying',   name: 'Heaume des Immortels',  slot: 'casque', icon: '🪖', passive: 'Endurance', desc: '+25% PV, +20% DEF et +10% Rés.' },
+            { id: 'u_windstrider',    name: 'Bottes Marche-Vent',    slot: 'bottes', icon: '🥾', passive: 'Zéphyr',    desc: '+15% V.Atk, +12% Esq et +20% Or.' },
+            { id: 'u_shadow_greaves', name: 'Grèves de l\'Ombre',    slot: 'bottes', icon: '👢', passive: 'Mirage',    desc: '+16% Esq, +12% Crit et +18% V.Atk.' }
         ];
 
         const ENEMIES = [
@@ -1072,7 +1143,7 @@
         };
 
         /* =====================================================================
-           3. SPHERIER CONSTELLATION BUILDER (ÉCLATS DE RENAISSANCE)
+           3. SPHERIER CONSTELLATION BUILDER (ÉCLATS D'ÂME)
         ====================================================================== */
         function buildSpherier(ringsCount) {
             const rings = Math.max(2, Math.min(18, Math.round(toNum(ringsCount, 2))));
@@ -1180,7 +1251,7 @@
                 maxStage: 1,
                 wave: 1,
                 waveMax: 3,
-                heroHp: 175,
+                heroHp: 360,
                 enemy: null,
                 equipped: {
                     arme: null,
@@ -1465,27 +1536,28 @@
             return Math.max(1, Math.min(8, Math.round(toNum(item.tier, 1))));
         }
 
-        function getTierInfo(tier) {
-            return TIERS.find(t => t.tier === tier) || TIERS[0];
+        // Number of stats equals 2 + tier (3 on Palier 1 Normal up to 10 on Palier 8 Divin/Unique)
+        function getGearStatCountForTier(tier) {
+            const safeTier = Math.max(1, Math.min(8, Math.round(toNum(tier, 1))));
+            return Math.min(10, safeTier + 2);
         }
 
         function scoreGearItem(item) {
             if (!item) return 0;
             const tier = getEffectiveTier(item);
-            const tierWeight = tier === PALIER_UNIQUE ? 320 : tier === PALIER_SET ? 200 : tier * 24;
             return Math.round(
                 toNum(item.atk) * 3.0 +
-                toNum(item.maxHp) * 1.0 +
+                toNum(item.maxHp) * 0.75 +
                 toNum(item.def) * 2.2 +
-                toNum(item.regen) * 4.5 +
-                toNum(item.mag) * 2.5 +
-                toNum(item.crit) * 160 +
-                toNum(item.critDmg) * 85 +
-                toNum(item.atkSpd) * 130 +
-                toNum(item.dodge) * 130 +
-                toNum(item.magRes) * 125 +
-                toNum(item.lifesteal) * 190 +
-                tierWeight
+                toNum(item.mag) * 2.4 +
+                toNum(item.regen) * 4.0 +
+                toNum(item.crit) * 180 +
+                toNum(item.critDmg) * 90 +
+                toNum(item.atkSpd) * 180 +
+                toNum(item.dodge) * 160 +
+                toNum(item.magRes) * 160 +
+                toNum(item.lifesteal) * 220 +
+                tier * 40
             );
         }
 
@@ -1528,6 +1600,27 @@
             }[slot];
 
             const pick = (min, max) => min + Math.random() * (max - min);
+            // All equipment stat values are multiplied by 10 (×10)
+            const statPool = [
+                { key: 'atk',       val: Math.max(10, Math.round(pick(6, 11) * scale * slotFactor.atk * 10)) },
+                { key: 'maxHp',     val: Math.max(50, Math.round(pick(24, 40) * scale * slotFactor.hp * 10)) },
+                { key: 'def',       val: Math.max(10, Math.round(pick(4, 8) * scale * slotFactor.def * 10)) },
+                { key: 'regen',     val: Math.max(10, Math.round(pick(2, 5) * scale * slotFactor.regen * 10)) },
+                { key: 'mag',       val: Math.max(10, Math.round(pick(5, 10) * scale * slotFactor.mag * 10)) },
+                { key: 'crit',      val: Number(((pick(0.02, 0.06) * slotFactor.crit + (tier - 1) * 0.002) * 10).toFixed(4)) },
+                { key: 'critDmg',   val: Number(((pick(0.12, 0.28) * slotFactor.crit + (tier - 1) * 0.005) * 10).toFixed(4)) },
+                { key: 'atkSpd',    val: Number(((pick(0.02, 0.06) * slotFactor.spd + (tier - 1) * 0.002) * 10).toFixed(4)) },
+                { key: 'dodge',     val: Number(((pick(0.015, 0.045) * slotFactor.dodge + (tier - 1) * 0.0015) * 10).toFixed(4)) },
+                { key: 'magRes',    val: Number(((pick(0.015, 0.045) * slotFactor.res + (tier - 1) * 0.0015) * 10).toFixed(4)) },
+                { key: 'lifesteal', val: Number(((pick(0.01, 0.03) * (slot === 'arme' ? 1.3 : 0.8) + (tier - 1) * 0.001) * 10).toFixed(4)) }
+            ];
+
+            // Palier 1 (Normal) gets 3 stats; each new tier adds +1 stat (tier + 2 stats, up to 10 at Palier 8)
+            const targetStatCount = getGearStatCountForTier(tier);
+            const shuffled = statPool.slice().sort(() => Math.random() - 0.5);
+            const chosenStats = shuffled.slice(0, targetStatCount);
+            const chosenKeys = new Set(chosenStats.map(s => s.key));
+            const getChosenVal = key => (chosenKeys.has(key) ? chosenStats.find(s => s.key === key).val : 0);
 
             return {
                 id: makeId(),
@@ -1539,17 +1632,17 @@
                 setId,
                 uniqueId,
                 locked: tier >= PALIER_SET,
-                atk: Math.max(1, Math.round(pick(6, 11) * scale * slotFactor.atk)),
-                maxHp: Math.max(5, Math.round(pick(24, 40) * scale * slotFactor.hp)),
-                def: Math.max(1, Math.round(pick(4, 8) * scale * slotFactor.def)),
-                crit: Number(Math.min(0.95, pick(0.02, 0.06) * slotFactor.crit + (tier - 1) * 0.002).toFixed(4)),
-                critDmg: Number(Math.min(2.5, pick(0.12, 0.28) * slotFactor.crit + (tier - 1) * 0.005).toFixed(4)),
-                atkSpd: Number(Math.min(1.2, pick(0.02, 0.06) * slotFactor.spd + (tier - 1) * 0.002).toFixed(4)),
-                dodge: Number(Math.min(0.85, pick(0.015, 0.045) * slotFactor.dodge + (tier - 1) * 0.0015).toFixed(4)),
-                mag: Math.max(1, Math.round(pick(5, 10) * scale * slotFactor.mag)),
-                magRes: Number(Math.min(0.85, pick(0.015, 0.045) * slotFactor.res + (tier - 1) * 0.0015).toFixed(4)),
-                lifesteal: Number(Math.min(0.75, pick(0.01, 0.03) * (slot === 'arme' ? 1.3 : 0.8) + (tier - 1) * 0.001).toFixed(4)),
-                regen: Math.max(1, Math.round(pick(2, 5) * scale * slotFactor.regen))
+                atk: getChosenVal('atk'),
+                maxHp: getChosenVal('maxHp'),
+                def: getChosenVal('def'),
+                crit: getChosenVal('crit'),
+                critDmg: getChosenVal('critDmg'),
+                atkSpd: getChosenVal('atkSpd'),
+                dodge: getChosenVal('dodge'),
+                mag: getChosenVal('mag'),
+                magRes: getChosenVal('magRes'),
+                lifesteal: getChosenVal('lifesteal'),
+                regen: getChosenVal('regen')
             };
         }
 
@@ -1725,14 +1818,14 @@
             let uGoldPct = 0, uXpPct = 0, healKillPct = 0, healHitPct = 0;
 
             for (const u of uniques) {
-                if (u.id === 'u_soul_reaver')    { uAtkPct += 0.0025; uLsAdd += 0.0005; healKillPct += 0.0006; }
-                if (u.id === 'u_starfall_blade') { uCritAdd += 0.0015; uCritDmgAdd += 0.003; uSpdAdd += 0.0015; }
-                if (u.id === 'u_aegis_dawn')     { uDefPct += 0.003; uResAdd += 0.001; healHitPct += 0.0004; }
-                if (u.id === 'u_titan_cuirass')  { uHpPct += 0.0028; uDefPct += 0.0025; uResAdd += 0.0012; }
-                if (u.id === 'u_crown_omens')    { uGoldPct += 0.0022; uAtkPct += 0.0012; uMagPct += 0.002; }
-                if (u.id === 'u_helm_undying')   { uHpPct += 0.0025; uDefPct += 0.002; uResAdd += 0.001; }
-                if (u.id === 'u_windstrider')    { uSpdAdd += 0.0015; uDodgeAdd += 0.0012; uGoldPct += 0.002; }
-                if (u.id === 'u_shadow_greaves') { uDodgeAdd += 0.0016; uCritAdd += 0.0012; uSpdAdd += 0.0018; }
+                if (u.id === 'u_soul_reaver')    { uAtkPct += 0.25; uLsAdd += 0.05; healKillPct += 0.06; }
+                if (u.id === 'u_starfall_blade') { uCritAdd += 0.15; uCritDmgAdd += 0.30; uSpdAdd += 0.15; }
+                if (u.id === 'u_aegis_dawn')     { uDefPct += 0.30; uResAdd += 0.10; healHitPct += 0.04; }
+                if (u.id === 'u_titan_cuirass')  { uHpPct += 0.28; uDefPct += 0.25; uResAdd += 0.12; }
+                if (u.id === 'u_crown_omens')    { uGoldPct += 0.22; uAtkPct += 0.12; uMagPct += 0.20; }
+                if (u.id === 'u_helm_undying')   { uHpPct += 0.25; uDefPct += 0.20; uResAdd += 0.10; }
+                if (u.id === 'u_windstrider')    { uSpdAdd += 0.15; uDodgeAdd += 0.12; uGoldPct += 0.20; }
+                if (u.id === 'u_shadow_greaves') { uDodgeAdd += 0.16; uCritAdd += 0.12; uSpdAdd += 0.18; }
             }
 
             const sph = getSphereBonusSummary();
@@ -1741,19 +1834,26 @@
             const atkMult = 1 + sph.atkPct + sAtkPct + uAtkPct + cdx.atkPct;
             const hpMult = 1 + sph.hpPct + sHpPct + uHpPct + cdx.hpPct;
 
-            // 11 attributes (all percentage-based stats divided by 10)
+            // 11 attributes: character percentage stats (class + Sphérier) add directly with gear, Set & Unique percentage stats (e.g. 1,5% + 5% = 6,5%)
             const atk = Math.max(1, Math.round((cls.atk + (lvl - 1) * 5 + gAtk + sph.atkFlat) * atkMult));
             const maxHp = Math.max(20, Math.round((cls.maxHp + (lvl - 1) * 22 + gHp + sph.hpFlat) * hpMult));
             const def = Math.max(0, Math.round((cls.def + (lvl - 1) * 3 + gDef + sph.defFlat) * (1 + sph.defPct + sDefPct + uDefPct)));
             const mag = Math.max(0, Math.round((cls.mag + (lvl - 1) * 3 + gMag + sph.magFlat) * (1 + sph.magPct + sMagPct + uMagPct)));
             const regen = Math.max(0, Math.round((cls.regen + (lvl - 1) * 2 + gRegen + sph.regenFlat) * hpMult));
 
-            const crit = Math.max(0, Math.min(0.95, (cls.crit + gCrit + sph.critAdd + sCritAdd + uCritAdd) / 10));
-            const critDmg = Math.max(0.01, (cls.critDmg + gCritDmg + sph.critDmgAdd + sCritDmgAdd + uCritDmgAdd) / 10);
-            const atkSpd = Math.max(0.005, (cls.atkSpd + gSpd + sph.spdAdd + sSpdAdd + uSpdAdd) / 10);
-            const dodge = Math.max(0, Math.min(0.75, (cls.dodge + gDodge + sph.dodgeAdd + sDodgeAdd + uDodgeAdd) / 10));
-            const magRes = Math.max(0, Math.min(0.80, (cls.magRes + gRes + sph.resAdd + sResAdd + uResAdd) / 10));
-            const lifesteal = Math.max(0, Math.min(0.75, (cls.lifesteal + gLs + sph.lsAdd + sLsAdd + uLsAdd) / 10));
+            const sumCharacterAndGearPct = (charBase, charSphere, gearTotal, setTotal, uniqueTotal, cap) => {
+                const characterPct = (toNum(charBase, 0) + toNum(charSphere, 0)) / 10;
+                const gearAndBonusPct = (toNum(gearTotal, 0) + toNum(setTotal, 0) + toNum(uniqueTotal, 0)) / 10;
+                const combinedPct = characterPct + gearAndBonusPct;
+                return Math.max(0, Math.min(cap, Number(combinedPct.toFixed(6))));
+            };
+
+            const crit = sumCharacterAndGearPct(cls.crit, sph.critAdd, gCrit, sCritAdd, uCritAdd, 0.95);
+            const critDmg = sumCharacterAndGearPct(cls.critDmg, sph.critDmgAdd, gCritDmg, sCritDmgAdd, uCritDmgAdd, 5.0);
+            const atkSpd = sumCharacterAndGearPct(cls.atkSpd, sph.spdAdd, gSpd, sSpdAdd, uSpdAdd, 2.5);
+            const dodge = sumCharacterAndGearPct(cls.dodge, sph.dodgeAdd, gDodge, sDodgeAdd, uDodgeAdd, 0.75);
+            const magRes = sumCharacterAndGearPct(cls.magRes, sph.resAdd, gRes, sResAdd, uResAdd, 0.80);
+            const lifesteal = sumCharacterAndGearPct(cls.lifesteal, sph.lsAdd, gLs, sLsAdd, uLsAdd, 0.75);
 
             const goldMult = 1 + ((cls.goldBonus + sph.goldPct + sGoldPct + uGoldPct + cdx.goldPct) / 10);
             const xpMult = 1 + ((cls.xpBonus + sph.xpPct + sXpPct + uXpPct + cdx.xpPct) / 10);
@@ -1786,8 +1886,8 @@
                 goldMult,
                 xpMult,
                 chestXpMult,
-                healKillPct,
-                healHitPct,
+                healKillPct: healKillPct / 10,
+                healHitPct: healHitPct / 10,
                 activeSets,
                 uniques,
                 power
@@ -2127,7 +2227,7 @@
                 icon.textContent = '⏸️';
                 txt.textContent = 'Auto: ON';
             } else {
-                btn.className = 'col-span-3 rounded-xl bg-[#182036] border border-slate-700 text-slate-200 font-extrabold px-1 py-1 flex flex-col items-center justify-center active:scale-95 transition cursor-pointer';
+                btn.className = 'col-span-3 rounded-xl bg-[#182030] border border-slate-700 text-slate-200 font-extrabold px-1 py-1 flex flex-col items-center justify-center active:scale-95 transition cursor-pointer';
                 icon.textContent = '⚡';
                 txt.textContent = 'Auto: OFF';
             }
@@ -2157,21 +2257,25 @@
         }
 
         /* =====================================================================
-           9. HUD & ICON-ONLY 2x5 EQUIPPED VIGNETTES (4 SLOTS)
+           9. HUD & ICON-ONLY IMPROVED STATS EQUIPPED VIGNETTES (4 SLOTS)
         ====================================================================== */
-        function getVignetteTenStats(item) {
-            return [
-                { icon: '⚔️', val: formatCompact(toNum(item?.atk)),        tone: 'text-amber-300' },
-                { icon: '❤️', val: formatCompact(toNum(item?.maxHp)),      tone: 'text-emerald-300' },
-                { icon: '🛡️', val: formatCompact(toNum(item?.def)),        tone: 'text-sky-300' },
-                { icon: '💥', val: formatDiv10Pct(toNum(item?.crit)),      tone: 'text-orange-300' },
-                { icon: '🔥', val: formatDiv10Pct(toNum(item?.critDmg)),   tone: 'text-rose-300' },
-                { icon: '⚡', val: formatDiv10Pct(toNum(item?.atkSpd)),    tone: 'text-purple-300' },
-                { icon: '💨', val: formatDiv10Pct(toNum(item?.dodge)),     tone: 'text-cyan-300' },
-                { icon: '✨', val: formatCompact(toNum(item?.mag)),        tone: 'text-indigo-300' },
-                { icon: '🔰', val: formatDiv10Pct(toNum(item?.magRes)),    tone: 'text-teal-300' },
-                { icon: '🩸', val: formatDiv10Pct(toNum(item?.lifesteal)), tone: 'text-lime-300' }
+        // Returns ONLY the stats actually present/improved (> 0) on this item (no empty cells)
+        function getImprovedGearStats(item) {
+            if (!item) return [];
+            const allStats = [
+                { icon: '⚔️', raw: toNum(item.atk),       val: formatCompact(toNum(item.atk)),        tone: 'text-amber-300' },
+                { icon: '❤️', raw: toNum(item.maxHp),     val: formatCompact(toNum(item.maxHp)),      tone: 'text-emerald-300' },
+                { icon: '🛡️', raw: toNum(item.def),       val: formatCompact(toNum(item.def)),        tone: 'text-sky-300' },
+                { icon: '💚', raw: toNum(item.regen),     val: `${formatCompact(toNum(item.regen))}/s`, tone: 'text-emerald-300' },
+                { icon: '✨', raw: toNum(item.mag),       val: formatCompact(toNum(item.mag)),        tone: 'text-indigo-300' },
+                { icon: '💥', raw: toNum(item.crit),      val: formatDiv10Pct(toNum(item.crit)),      tone: 'text-orange-300' },
+                { icon: '🔥', raw: toNum(item.critDmg),   val: formatDiv10Pct(toNum(item.critDmg)),   tone: 'text-rose-300' },
+                { icon: '⚡', raw: toNum(item.atkSpd),    val: formatDiv10Pct(toNum(item.atkSpd)),    tone: 'text-purple-300' },
+                { icon: '💨', raw: toNum(item.dodge),     val: formatDiv10Pct(toNum(item.dodge)),     tone: 'text-cyan-300' },
+                { icon: '🔰', raw: toNum(item.magRes),    val: formatDiv10Pct(toNum(item.magRes)),    tone: 'text-teal-300' },
+                { icon: '🩸', raw: toNum(item.lifesteal), val: formatDiv10Pct(toNum(item.lifesteal)), tone: 'text-lime-300' }
             ];
+            return allStats.filter(st => st.raw > 0);
         }
 
         function renderEquippedVignettes() {
@@ -2182,10 +2286,10 @@
                 const item = state.equipped[slot.id];
                 if (!item) {
                     return `
-                        <div class="equip-vignette border-slate-800/90 bg-[#111625]/75 items-center justify-center text-center">
-                            <div class="text-lg opacity-45 leading-none">${slot.icon}</div>
-                            <div class="font-fantasy text-[10px] font-extrabold text-slate-400">${slot.label}</div>
-                            <div class="text-[8.5px] text-slate-500">Emplacement vide</div>
+                        <div class="equip-vignette border-slate-800/90 bg-[#121722]/80 items-center justify-center text-center">
+                            <div class="text-base opacity-45 leading-none">${slot.icon}</div>
+                            <div class="font-fantasy text-[10px] font-extrabold text-slate-400 text-center">${slot.label}</div>
+                            <div class="text-[8.5px] text-slate-500 text-center">Emplacement vide</div>
                         </div>
                     `;
                 }
@@ -2193,16 +2297,16 @@
                 const tier = getEffectiveTier(item);
                 const tInfo = getTierInfo(tier);
                 const score = scoreGearItem(item);
-                const chips = getVignetteTenStats(item);
+                const improvedStats = getImprovedGearStats(item);
 
                 return `
-                    <button type="button" data-inspect-slot="${slot.id}" class="equip-vignette rarity-${tier} text-left">
-                        <div class="flex items-center justify-between gap-1 min-w-0">
-                            <div class="flex items-center gap-1 min-w-0">
+                    <button type="button" data-inspect-slot="${slot.id}" class="equip-vignette rarity-${tier}">
+                        <div class="vignette-header">
+                            <div class="vignette-title-row">
                                 <span class="text-xs shrink-0 leading-none">${slot.icon}</span>
-                                <span class="text-[9.5px] font-black text-white truncate">${item.name}</span>
+                                <span class="text-[9.5px] font-black text-white truncate text-center">${item.name}</span>
                             </div>
-                            <div class="flex items-center gap-0.5 shrink-0 text-[8px] font-black tabular-nums">
+                            <div class="vignette-meta-row">
                                 ${item.locked ? '<span>🔒</span>' : ''}
                                 <span class="px-1 rounded ${tInfo.badge}">P${tier}</span>
                                 <span class="text-amber-200">N.${item.level}</span>
@@ -2210,8 +2314,8 @@
                             </div>
                         </div>
 
-                        <div class="vignette-stats-2x5">
-                            ${chips.map(ch => `
+                        <div class="vignette-stats-grid">
+                            ${improvedStats.map(ch => `
                                 <div class="vignette-stat-chip">
                                     <span class="vignette-stat-icon">${ch.icon}</span>
                                     <span class="vignette-stat-num ${ch.tone}">${ch.val}</span>
@@ -2238,21 +2342,22 @@
             setText('hud-class-name', stats.cls.name);
             setText('hud-hero-level', `Niv.${state.heroLevel}`);
             setText('hud-power', formatCompact(stats.power));
-            setText('hud-top-chest-lvl', state.chestLevel);
+            setText('hud-stage-wave', `Étage ${st} • Vague ${state.wave}/${state.waveMax}`);
+            setText('hud-diff-badge', `×${formatCompact(factor)} (2^${exp})`);
             setText('hud-gold', formatCompact(state.gold));
             setText('hud-gems', formatCompact(state.gems));
-            setText('hud-shards', formatCompact(state.astralShards));
+            setText('hud-top-chest-lvl', state.chestLevel);
 
             setText('hud-top-chest-xp', `${state.chestXp}/${state.chestXpNext}`);
             const chestPct = Math.max(0, Math.min(100, (state.chestXp / Math.max(1, state.chestXpNext)) * 100));
             const chestBar = document.getElementById('hud-chest-xp-bar');
             if (chestBar) chestBar.style.width = `${chestPct}%`;
 
-            setText('hud-stage-wave', `Étage ${st} • Vague ${state.wave}/${state.waveMax}`);
-            setText('hud-diff-badge', `Diff ×${formatCompact(factor)} (2^${exp})`);
+            setText('hud-arena-stage', `Étage ${st} • Vague ${state.wave}/${state.waveMax}`);
+            setText('hud-arena-diff', `Diff ×${formatCompact(factor)} (2^${exp})`);
             setText('hud-enemy-name', `${enemy.icon} ${enemy.name}`);
             setText('hud-enemy-tag', enemy.isBoss ? '👑 BOSS' : '👾 Monstre');
-            setText('hud-lifesteal-regen', `🩸 ${formatDiv10Pct(stats.lifesteal)} • 💚 ${formatCompact(stats.regen)}/s`);
+            setText('hud-lifesteal-regen', `🩸 ${formatCombinedPct(stats.lifesteal)} • 💚 ${formatCompact(stats.regen)}/s`);
 
             const heroPct = Math.max(0, Math.min(100, (state.heroHp / Math.max(1, stats.maxHp)) * 100));
             const heroBar = document.getElementById('hud-hero-hp-bar');
@@ -2269,7 +2374,7 @@
 
             setText(
                 'hud-secondary-stats',
-                `💥 ${formatDiv10Pct(stats.crit)} • 🔥 ${formatDiv10Pct(stats.critDmg)} • ⚡ ${formatDiv10Pct(stats.atkSpd)} • 💨 ${formatDiv10Pct(stats.dodge)} • ✨ ${formatCompact(stats.mag)} • 🔰 ${formatDiv10Pct(stats.magRes)}`
+                `💥 ${formatCombinedPct(stats.crit)} • 🔥 ${formatCombinedPct(stats.critDmg)} • ⚡ ${formatCombinedPct(stats.atkSpd)} • 💨 ${formatCombinedPct(stats.dodge)} • ✨ ${formatCompact(stats.mag)} • 🔰 ${formatCombinedPct(stats.magRes)}`
             );
             setText('hud-xp-text', `${formatCompact(state.xp)}/${formatCompact(state.xpNext)}`);
             setText('hud-sets-count', `${stats.activeSets.length} set(s)`);
@@ -2338,7 +2443,7 @@
                         deltaHtml = `<span class="text-rose-400">-${f.pct ? formatDiv10Pct(Math.abs(diff)) : formatCompact(Math.abs(diff))}</span>`;
                     }
                     return `
-                        <div class="bg-[#090b12] border border-slate-800 rounded-lg px-2 py-1 flex items-center justify-between gap-1">
+                        <div class="bg-[#0b0e14] border border-slate-800 rounded-lg px-2 py-1 flex items-center justify-between gap-1">
                             <span class="text-slate-300 truncate">${f.lbl}</span>
                             <span class="shrink-0"><span class="text-white">${valTxt}</span> <span class="text-[9px]">(${deltaHtml})</span></span>
                         </div>
@@ -2465,14 +2570,14 @@
 
             const rows = getTierDropTable(state.chestLevel);
             body.innerHTML = rows.map(r => `
-                <div class="rounded-xl p-2.5 border ${r.unlocked ? `rarity-${r.tier}` : 'border-slate-800 bg-[#090b12]/70 opacity-65'} flex items-center justify-between gap-2">
+                <div class="rounded-xl p-2.5 border ${r.unlocked ? `rarity-${r.tier}` : 'border-slate-800 bg-[#0b0e14]/70 opacity-65'} flex items-center justify-between gap-2">
                     <div>
                         <div class="flex items-center gap-1.5">
                             <span class="text-[10px] font-black px-1.5 py-0.5 rounded ${r.badge}">Palier ${r.tier}</span>
                             <span class="text-xs font-black ${r.color}">${r.name}</span>
                         </div>
                         <div class="text-[10px] text-slate-300 mt-0.5 tabular-nums">
-                            ${r.unlocked ? '✅ Disponible' : '🔒 Verrouillé'} • Poids ÷1000 : ${(r.weight * 100).toFixed(4)}%
+                            ${r.unlocked ? '✅ Disponible' : '🔒 Verrouillé'} • Poids ÷1000 : ${(r.weight * 100).toFixed(4)}% • ${getGearStatCountForTier(r.tier)} stats
                         </div>
                     </div>
                     <div class="text-xs font-black ${r.unlocked ? 'text-white' : 'text-slate-500'} tabular-nums">
@@ -2509,6 +2614,7 @@
                 const nextScore = scoreGearItem(item);
                 const curScore = equipped ? scoreGearItem(equipped) : 0;
                 const diff = nextScore - curScore;
+                const improvedStats = getImprovedGearStats(item);
 
                 return `
                     <div class="rounded-2xl border-2 rarity-${tier} p-2.5 space-y-2">
@@ -2518,7 +2624,7 @@
                                 <div class="min-w-0">
                                     <div class="text-xs font-black text-white truncate">${item.locked ? '🔒 ' : ''}${item.name}</div>
                                     <div class="text-[10px] font-bold ${tInfo.color}">
-                                        Palier ${tier} (${tInfo.name}) • ${slotObj ? slotObj.label : item.slot} Niv.${item.level} • 💚 +${formatCompact(item.regen)}
+                                        Palier ${tier} (${tInfo.name}) • ${slotObj ? slotObj.label : item.slot} Niv.${item.level}
                                     </div>
                                 </div>
                             </div>
@@ -2530,9 +2636,9 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-5 gap-1 text-[8px] font-extrabold tabular-nums">
-                            ${getVignetteTenStats(item).map(ch => `
-                                <div class="bg-[#090b12]/85 rounded px-1 py-0.5 flex items-center justify-between gap-0.5 truncate">
+                        <div class="grid grid-cols-3 gap-1 text-[8.5px] font-extrabold tabular-nums">
+                            ${improvedStats.map(ch => `
+                                <div class="bg-[#0b0e14]/85 rounded px-1.5 py-0.5 flex items-center justify-between gap-1 truncate">
                                     <span>${ch.icon}</span>
                                     <span class="${ch.tone} truncate">${ch.val}</span>
                                 </div>
@@ -2541,7 +2647,7 @@
 
                         <div class="grid grid-cols-3 gap-1.5">
                             <button type="button" data-equip-bag-id="${item.id}" class="py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-black text-[10.5px]">Équiper</button>
-                            <button type="button" data-lock-bag-id="${item.id}" class="py-1.5 rounded-lg bg-[#182036] border border-slate-700 text-amber-300 font-black text-[10.5px]">${item.locked ? 'Déverrouiller' : 'Verrouiller'}</button>
+                            <button type="button" data-lock-bag-id="${item.id}" class="py-1.5 rounded-lg bg-[#182030] border border-slate-700 text-amber-300 font-black text-[10.5px]">${item.locked ? 'Déverrouiller' : 'Verrouiller'}</button>
                             <button type="button" data-sell-bag-id="${item.id}" class="py-1.5 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-200 font-black text-[10.5px]">Vendre +${formatCompact(getSellPrice(item))}🪙</button>
                         </div>
                     </div>
@@ -2584,8 +2690,8 @@
             renderMainHUD();
             startCombat();
             saveStateSafe();
-            setCombatLog(`🔮 Renaissance accomplie ! +${gain} Éclat(s) de Renaissance.`);
-            showToast(`🔮 Renaissance ! +${gain} Éclat(s) de Renaissance.`);
+            setCombatLog(`🔮 Renaissance accomplie ! +${gain} Éclat(s) d'Âme.`);
+            showToast(`🔮 Renaissance ! +${gain} Éclat(s) d'Âme.`);
         }
 
         function renderHeroModal() {
@@ -2614,60 +2720,60 @@
                 : `<div class="text-[10px] text-slate-400">Aucune relique Unique équipée (Palier 8).</div>`;
 
             body.innerHTML = `
-                <div class="rounded-xl p-2.5 bg-[#090b12] border border-slate-800 flex items-center justify-between gap-2">
+                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 flex items-center justify-between gap-2">
                     <div>
                         <div class="text-xs font-black text-white">${st.cls.icon} ${st.cls.name} • Niveau ${state.heroLevel}</div>
                         <div class="text-[10px] text-slate-400 tabular-nums">Étage Max : ${state.maxStage} • Renaissances : ${state.rebirths} • Éclats : ${state.astralShards} 💠</div>
                     </div>
-                    <button type="button" id="btn-open-class-switcher" class="px-2.5 py-1.5 rounded-xl bg-amber-400 text-slate-950 text-[10.5px] font-black shrink-0">
+                    <button type="button" id="btn-open-class-switcher" class="px-2.5 py-1.5 rounded-xl bg-[#f5b841] text-slate-950 text-[10.5px] font-black shrink-0">
                         Changer Classe
                     </button>
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#090b12] border border-slate-800 space-y-1.5">
+                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
                     <div class="text-[10px] font-black uppercase tracking-wider text-amber-300">11 Statistiques du Héros</div>
                     <div class="grid grid-cols-2 gap-1.5 text-[10.5px] font-extrabold tabular-nums">
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>⚔️ ATQ</span><span class="text-amber-300">${formatCompact(st.atk)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>❤️ PV</span><span class="text-emerald-300">${formatCompact(st.maxHp)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>🛡️ DEF</span><span class="text-sky-300">${formatCompact(st.def)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>💚 Régén</span><span class="text-emerald-300">${formatCompact(st.regen)}/s</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>✨ Mag</span><span class="text-indigo-300">${formatCompact(st.mag)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>💥 Crit</span><span class="text-orange-300">${formatDiv10Pct(st.crit)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>🔥 D.Crit</span><span class="text-rose-300">${formatDiv10Pct(st.critDmg)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>⚡ V.Atk</span><span class="text-purple-300">${formatDiv10Pct(st.atkSpd)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>💨 Esq</span><span class="text-cyan-300">${formatDiv10Pct(st.dodge)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 flex justify-between"><span>🔰 Rés</span><span class="text-teal-300">${formatDiv10Pct(st.magRes)}</span></div>
-                        <div class="bg-[#111625] rounded-lg px-2 py-1.5 col-span-2 flex justify-between"><span>🩸 VdV</span><span class="text-lime-300">${formatDiv10Pct(st.lifesteal)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>⚔️ ATQ</span><span class="text-amber-300">${formatCompact(st.atk)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>❤️ PV</span><span class="text-emerald-300">${formatCompact(st.maxHp)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>🛡️ DEF</span><span class="text-sky-300">${formatCompact(st.def)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>💚 Régén</span><span class="text-emerald-300">${formatCompact(st.regen)}/s</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>✨ Mag</span><span class="text-indigo-300">${formatCompact(st.mag)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>💥 Crit</span><span class="text-orange-300">${formatCombinedPct(st.crit)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>🔥 D.Crit</span><span class="text-rose-300">${formatCombinedPct(st.critDmg)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>⚡ V.Atk</span><span class="text-purple-300">${formatCombinedPct(st.atkSpd)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>💨 Esq</span><span class="text-cyan-300">${formatCombinedPct(st.dodge)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>🔰 Rés</span><span class="text-teal-300">${formatCombinedPct(st.magRes)}</span></div>
+                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 col-span-2 flex justify-between"><span>🩸 VdV</span><span class="text-lime-300">${formatCombinedPct(st.lifesteal)}</span></div>
                     </div>
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#090b12] border border-cyan-500/35 space-y-1.5">
+                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-cyan-500/35 space-y-1.5">
                     <div class="flex items-center justify-between gap-2">
                         <div class="text-[10.5px] font-black uppercase tracking-wider text-cyan-300">🔮 Renaissance (Étage ≥ 10)</div>
                         <span class="text-[10px] font-black text-cyan-200 tabular-nums">+${formatCompact(rebirthGain)} 💠</span>
                     </div>
                     <p class="text-[10px] text-slate-300 leading-snug">
-                        Réinitialise l'Étage (1), le Niveau (1), l'Or et le Coffre (1) contre des Éclats de Renaissance pour le Sphérier. Équipements, Sac, Gemmes et Codex conservés.
+                        Réinitialise l'Étage (1), le Niveau (1), l'Or et le Coffre (1) contre des Éclats d'Âme pour le Sphérier. Équipements, Sac, Gemmes et Codex conservés.
                     </p>
                     <button type="button" id="btn-trigger-rebirth" ${rebirthGain > 0 ? '' : 'disabled'}
-                        class="w-full py-2 rounded-xl text-xs font-black ${rebirthGain > 0 ? 'bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950 active:scale-95' : 'bg-[#182036] text-slate-500'}">
-                        ${rebirthGain > 0 ? `Renaître (+${formatCompact(rebirthGain)} Éclats 💠)` : `Atteignez l'Étage 10 (Actuel : Étage ${state.stage})`}
+                        class="w-full py-2 rounded-xl text-xs font-black ${rebirthGain > 0 ? 'bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950 active:scale-95' : 'bg-[#182030] text-slate-500'}">
+                        ${rebirthGain > 0 ? `Renaître (+${formatCompact(rebirthGain)} Éclats d'Âme 💠)` : `Atteignez l'Étage 10 (Actuel : Étage ${state.stage})`}
                     </button>
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#090b12] border border-slate-800 space-y-1.5">
+                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
                     <div class="text-[10px] font-black uppercase tracking-wider text-teal-300">Bonus de Sets (Palier 7) &amp; Uniques (Palier 8)</div>
                     ${setsHtml}
                     ${uniquesHtml}
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#090b12] border border-slate-800 space-y-1 text-[10px] text-slate-300 tabular-nums">
+                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1 text-[10px] text-slate-300 tabular-nums">
                     <div class="font-black text-cyan-300 uppercase">Bonus Globaux</div>
                     <div>• Sphérier : +${formatDiv10Pct(sph.atkPct)} ATQ, +${formatDiv10Pct(sph.hpPct)} PV, +${formatDiv10Pct(sph.goldPct)} Or, +${formatDiv10Pct(sph.chestXpPct)} EXP Coffre</div>
                     <div>• Codex (${cdx.pct}%) : +${formatDiv10Pct(cdx.atkPct)} ATQ, +${formatDiv10Pct(cdx.hpPct)} PV, +${formatDiv10Pct(cdx.goldPct)} Or, +${formatDiv10Pct(cdx.xpPct)} EXP</div>
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#090b12] border border-rose-500/30 flex items-center justify-between gap-2">
+                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-rose-500/30 flex items-center justify-between gap-2">
                     <div class="text-[10px] text-slate-300">
                         <div class="font-black text-rose-300">Nouvelle Partie</div>
                         <div>Réinitialise toute la sauvegarde et rouvre le choix de classe.</div>
@@ -2686,13 +2792,13 @@
             body.innerHTML = Object.values(CLASSES).map(c => {
                 const active = c.id === state.classId;
                 return `
-                    <button type="button" data-pick-class="${c.id}" class="w-full text-left p-3 rounded-xl bg-[#090b12] border ${active ? 'border-amber-400' : 'border-slate-800'} flex items-center justify-between gap-2">
+                    <button type="button" data-pick-class="${c.id}" class="w-full text-left p-3 rounded-xl bg-[#0b0e14] border ${active ? 'border-[#f5b841]' : 'border-slate-800'} flex items-center justify-between gap-2">
                         <div>
                             <div class="font-fantasy font-black text-xs text-white">${c.icon} ${c.name}</div>
                             <div class="text-[10px] text-slate-300">${c.desc}</div>
                             <div class="text-[9.5px] text-amber-200/90 mt-0.5 tabular-nums">❤️ ${c.maxHp} • ⚔️ ${c.atk} • 🛡️ ${c.def} • 💚 ${c.regen}/s • 💥 ${formatDiv10Pct(c.crit)} • 🩸 ${formatDiv10Pct(c.lifesteal)}</div>
                         </div>
-                        <span class="px-2 py-1 rounded text-[10px] font-black shrink-0 ${active ? 'bg-amber-400 text-slate-950' : 'bg-[#182036] text-slate-200'}">${active ? 'Active' : 'Choisir'}</span>
+                        <span class="px-2 py-1 rounded text-[10px] font-black shrink-0 ${active ? 'bg-[#f5b841] text-slate-950' : 'bg-[#182030] text-slate-200'}">${active ? 'Active' : 'Choisir'}</span>
                     </button>
                 `;
             }).join('');
@@ -2709,12 +2815,12 @@
                 const sel = btn.getAttribute('data-codex-tab') === codexTab;
                 btn.className = sel
                     ? 'codex-tab py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-400/50 text-[9.5px] font-black text-emerald-200'
-                    : 'codex-tab py-1.5 rounded-lg bg-[#182036] text-[9.5px] font-black text-slate-300';
+                    : 'codex-tab py-1.5 rounded-lg bg-[#182030] text-[9.5px] font-black text-slate-300';
             });
 
             if (codexTab === 'classes') {
                 body.innerHTML = Object.values(CLASSES).map(c => `
-                    <div class="rounded-xl p-2.5 bg-[#090b12] border ${c.id === state.classId ? 'border-amber-400' : 'border-slate-800'} space-y-1">
+                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${c.id === state.classId ? 'border-[#f5b841]' : 'border-slate-800'} space-y-1">
                         <div class="flex items-center justify-between">
                             <span class="font-fantasy text-xs font-black text-white">${c.icon} ${c.name}</span>
                             <span class="text-[10px] font-bold text-amber-300">❤️ ${c.maxHp} • ⚔️ ${c.atk} • 🛡️ ${c.def} • 💚 ${c.regen}/s</span>
@@ -2727,10 +2833,10 @@
                 // No unlock level labels displayed on tier cards
                 const rows = getTierDropTable(state.chestLevel);
                 body.innerHTML = rows.map(r => `
-                    <div class="rounded-xl p-2.5 border ${r.unlocked ? `rarity-${r.tier}` : 'border-slate-800 bg-[#090b12]/60 opacity-70'} flex items-center justify-between">
+                    <div class="rounded-xl p-2.5 border ${r.unlocked ? `rarity-${r.tier}` : 'border-slate-800 bg-[#0b0e14]/60 opacity-70'} flex items-center justify-between">
                         <div>
                             <div class="text-xs font-black ${r.color}">Palier ${r.tier} • ${r.name}</div>
-                            <div class="text-[10px] text-slate-300 tabular-nums">Multiplicateur de stats ×${r.mult}</div>
+                            <div class="text-[10px] text-slate-300 tabular-nums">Multiplicateur de stats ×${r.mult} • ${getGearStatCountForTier(r.tier)} stats</div>
                         </div>
                         <span class="text-[10px] font-black px-2 py-0.5 rounded ${r.unlocked ? 'bg-emerald-500/20 text-emerald-200' : 'bg-slate-800 text-slate-400'}">
                             ${r.unlocked ? formatRatePercent(r.pct) : 'Verrouillé'}
@@ -2743,7 +2849,7 @@
                     const seen = state.foundSets.includes(st.id);
                     const eqCnt = counts[st.id] || 0;
                     return `
-                        <div class="rounded-xl p-2.5 border ${seen ? 'rarity-7' : 'border-slate-800 bg-[#090b12]/60 opacity-75'} space-y-1">
+                        <div class="rounded-xl p-2.5 border ${seen ? 'rarity-7' : 'border-slate-800 bg-[#0b0e14]/60 opacity-75'} space-y-1">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-black text-white">${st.icon} ${st.name}</span>
                                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-teal-500/20 text-teal-200">${seen ? `Découvert (${eqCnt}/4)` : 'Inconnu'}</span>
@@ -2757,7 +2863,7 @@
                     const seen = state.foundUniques.includes(u.id);
                     const sl = GEAR_SLOTS.find(s => s.id === u.slot);
                     return `
-                        <div class="rounded-xl p-2.5 border ${seen ? 'rarity-8' : 'border-slate-800 bg-[#090b12]/60 opacity-75'} space-y-1">
+                        <div class="rounded-xl p-2.5 border ${seen ? 'rarity-8' : 'border-slate-800 bg-[#0b0e14]/60 opacity-75'} space-y-1">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs font-black text-white">${u.icon} ${u.name}</span>
                                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded bg-pink-500/20 text-pink-200">${sl ? sl.label : u.slot} • ${seen ? 'Découvert' : 'Inconnu'}</span>
@@ -2770,7 +2876,7 @@
                 body.innerHTML = ENEMIES.map(e => {
                     const seen = state.seenEnemies.includes(e.id);
                     return `
-                        <div class="rounded-xl p-2.5 bg-[#090b12] border border-slate-800 flex items-center justify-between">
+                        <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 flex items-center justify-between">
                             <span class="text-xs font-black text-white">${e.icon} ${e.name}</span>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded ${seen ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-400'}">${seen ? 'Rencontré' : 'Inconnu'}</span>
                         </div>
@@ -2808,16 +2914,16 @@
                         const ready = !claimed && m.cur >= m.target;
                         const pct = Math.min(100, Math.round((m.cur / m.target) * 100));
                         return `
-                            <div class="rounded-xl p-2.5 bg-[#090b12] border ${ready ? 'border-emerald-400' : 'border-slate-800'} flex items-center justify-between gap-2">
+                            <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${ready ? 'border-emerald-400' : 'border-slate-800'} flex items-center justify-between gap-2">
                                 <div class="min-w-0 flex-1">
                                     <div class="text-xs font-black text-white truncate">${m.title}</div>
-                                    <div class="w-full h-1.5 rounded-full bg-[#111625] overflow-hidden my-1">
-                                        <div class="h-full bg-amber-400" style="width:${pct}%"></div>
+                                    <div class="w-full h-1.5 rounded-full bg-[#121722] overflow-hidden my-1">
+                                        <div class="h-full bg-[#f5b841]" style="width:${pct}%"></div>
                                     </div>
                                     <div class="text-[10px] text-slate-300 tabular-nums">${Math.min(m.cur, m.target)}/${m.target} • +${formatCompact(m.gems)} 💎 +${formatCompact(m.gold)} 🪙</div>
                                 </div>
                                 <button type="button" data-claim-mission="${weeklyFlag ? 'w' : 'd'}:${m.id}" ${ready ? '' : 'disabled'}
-                                    class="px-2.5 py-1.5 rounded-xl text-[10px] font-black shrink-0 ${claimed ? 'bg-slate-800 text-slate-500' : ready ? 'bg-emerald-500 text-slate-950' : 'bg-[#182036] text-slate-400'}">
+                                    class="px-2.5 py-1.5 rounded-xl text-[10px] font-black shrink-0 ${claimed ? 'bg-slate-800 text-slate-500' : ready ? 'bg-emerald-500 text-slate-950' : 'bg-[#182030] text-slate-400'}">
                                     ${claimed ? 'Réclamé' : ready ? 'Réclamer' : 'En cours'}
                                 </button>
                             </div>
@@ -2856,19 +2962,19 @@
             body.innerHTML = list.map(a => {
                 const pct = Math.min(100, Math.round((a.cur / a.target) * 100));
                 return `
-                    <div class="rounded-xl p-2.5 bg-[#090b12] border ${a.ready ? 'border-amber-400' : 'border-slate-800'} flex items-center justify-between gap-2">
+                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${a.ready ? 'border-[#f5b841]' : 'border-slate-800'} flex items-center justify-between gap-2">
                         <div class="min-w-0 flex-1">
                             <div class="flex items-center gap-1.5">
                                 <span class="text-xs font-black text-white">${a.name}</span>
                                 <span class="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">Rang ∞ #${a.rank + 1}</span>
                             </div>
-                            <div class="w-full h-1.5 rounded-full bg-[#111625] overflow-hidden my-1">
-                                <div class="h-full bg-amber-400" style="width:${pct}%"></div>
+                            <div class="w-full h-1.5 rounded-full bg-[#121722] overflow-hidden my-1">
+                                <div class="h-full bg-[#f5b841]" style="width:${pct}%"></div>
                             </div>
                             <div class="text-[10px] text-slate-300 tabular-nums">${formatCompact(Math.min(a.cur, a.target))}/${formatCompact(a.target)} • +${formatCompact(a.gems)} 💎</div>
                         </div>
                         <button type="button" data-claim-ach="${a.key}" ${a.ready ? '' : 'disabled'}
-                            class="px-2.5 py-1.5 rounded-xl text-[10px] font-black shrink-0 ${a.ready ? 'bg-amber-400 text-slate-950' : 'bg-[#182036] text-slate-400'}">
+                            class="px-2.5 py-1.5 rounded-xl text-[10px] font-black shrink-0 ${a.ready ? 'bg-[#f5b841] text-slate-950' : 'bg-[#182030] text-slate-400'}">
                             ${a.ready ? 'Réclamer' : 'En cours'}
                         </button>
                     </div>
@@ -2968,7 +3074,7 @@
                 <div class="text-[11px] text-slate-300">${sel.desc}</div>
                 ${!isAct ? `
                     <button type="button" id="btn-unlock-sphere-node" ${isAvail && state.astralShards >= sel.cost ? '' : 'disabled'}
-                        class="w-full py-2 rounded-xl text-xs font-black ${isAvail && state.astralShards >= sel.cost ? 'bg-cyan-400 text-slate-950' : 'bg-[#182036] text-slate-400'}">
+                        class="w-full py-2 rounded-xl text-xs font-black ${isAvail && state.astralShards >= sel.cost ? 'bg-cyan-400 text-slate-950' : 'bg-[#182030] text-slate-400'}">
                         ${!isAvail ? 'Reliez un nœud activé adjacent' : state.astralShards < sel.cost ? `Éclats insuffisants (${sel.cost} 💠)` : `Activer (-${sel.cost} 💠)`}
                     </button>
                 ` : ''}
@@ -2984,7 +3090,7 @@
                 return;
             }
             if (state.astralShards < node.cost) {
-                showToast(`💠 ${node.cost} Éclats de Renaissance requis.`);
+                showToast(`💠 ${node.cost} Éclats d'Âme requis.`);
                 return;
             }
 
