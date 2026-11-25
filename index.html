@@ -905,12 +905,12 @@
     <div id="rates-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">📊 Paliers &amp; Interpolation (Coffre Niv.<span id="rates-chest-lvl">1</span>)</h2>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">📊 Paliers &amp; Interpolation Inversée (Coffre Niv.<span id="rates-chest-lvl">1</span>)</h2>
                 <button type="button" data-close-modal="rates-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300 cursor-pointer">✕</button>
             </div>
             <div class="modal-scroll space-y-2">
                 <p class="text-[11px] text-slate-300">
-                    Paliers de coffre débloqués à <strong class="text-amber-300">50, 100, 150, 200, 250, 300, 350</strong> (<strong class="text-teal-300">P7 = Set</strong>, <strong class="text-pink-300">P8 = Unique</strong>). À chaque niveau d'amélioration, les <strong class="text-rose-300">paliers inférieurs diminuent</strong> et les <strong class="text-emerald-300">paliers supérieurs augmentent</strong> progressivement, normalisés sur <strong class="text-emerald-300">100%</strong>.
+                    Paliers de coffre débloqués à <strong class="text-amber-300">50, 100, 150, 200, 250, 300, 350</strong> (<strong class="text-teal-300">P7 = Set</strong>, <strong class="text-pink-300">P8 = Unique</strong>). Interpolation inversée <span class="text-cyan-300 font-bold">1 − (1 − α)²</span> : les <strong class="text-rose-300">paliers inférieurs diminuent</strong> et les <strong class="text-emerald-300">paliers supérieurs augmentent</strong>, normalisés sur <strong class="text-emerald-300">100%</strong>.
                 </p>
                 <div id="rates-interp-banner" class="rounded-xl bg-[#0b0e14] border border-cyan-500/35 p-2.5 space-y-1"></div>
                 <div id="rates-modal-body" class="space-y-1.5"></div>
@@ -2631,9 +2631,14 @@
         }
 
         /* =====================================================================
-           6. PROGRESSIVE INTERPOLATED TIER PROBABILITIES
-              (UNLOCKS AT 1, 50, 100, 150, 200, 250, 300, 350 — SMOOTH STEP BY LEVEL)
+           6. PROGRESSIVE INVERTED INTERPOLATED TIER PROBABILITIES
+              (UNLOCKS AT 1, 50, 100, 150, 200, 250, 300, 350 — INVERTED CURVE)
         ====================================================================== */
+        function invertInterpolationFactor(t) {
+            const clamped = Math.max(0, Math.min(1, toNum(t, 0)));
+            return 1 - Math.pow(1 - clamped, 2);
+        }
+
         function computeMilestoneWeights(maxUnlockedTier, extraPostCapSteps = 0) {
             const maxT = Math.max(1, Math.min(8, Math.round(maxUnlockedTier)));
             const shiftSteps = Math.max(0, maxT - 1) + Math.max(0, extraPostCapSteps);
@@ -2660,26 +2665,32 @@
 
             if (nextTierObj) {
                 const span = Math.max(1, nextTierObj.unlockLevel - lowerTierObj.unlockLevel);
-                const alpha = Math.max(0, Math.min(1, (lvl - lowerTierObj.unlockLevel) / span));
+                const rawAlpha = Math.max(0, Math.min(1, (lvl - lowerTierObj.unlockLevel) / span));
+                const invertedAlpha = invertInterpolationFactor(rawAlpha);
                 return {
                     level: lvl,
                     maxUnlocked,
                     lowerTier: lowerTierObj,
                     nextTier: nextTierObj,
-                    alpha,
+                    rawAlpha,
+                    alpha: invertedAlpha,
+                    invertedAlpha,
                     isPostCap: false
                 };
             }
 
-            // Au-delà du niveau 350 (Palier 8 débloqué), poursuite douce de l'interpolation par tranches de 50 niveaux
             const extraSteps = Math.max(0, (lvl - lowerTierObj.unlockLevel) / 50);
+            const frac = extraSteps - Math.floor(extraSteps);
+            const invertedFrac = invertInterpolationFactor(frac);
             return {
                 level: lvl,
                 maxUnlocked,
                 lowerTier: lowerTierObj,
                 nextTier: null,
-                alpha: Math.min(1, extraSteps - Math.floor(extraSteps)),
-                extraSteps,
+                rawAlpha: frac,
+                alpha: invertedFrac,
+                invertedAlpha: invertedFrac,
+                extraSteps: Math.floor(extraSteps) + invertedFrac,
                 isPostCap: true
             };
         }
@@ -2688,20 +2699,16 @@
             const ctx = getInterpolationContext(chestLevel);
             const wInfList = computeMilestoneWeights(ctx.maxUnlocked, 0);
 
-            // Profil cible du palier supérieur (en incluant progressivement le prochain palier à débloquer)
             const wSupList = ctx.nextTier
                 ? computeMilestoneWeights(ctx.nextTier.tier, 0)
                 : computeMilestoneWeights(ctx.maxUnlocked, ctx.extraSteps);
 
-            // Interpolation linéaire Lerp entre palier inférieur et palier supérieur
             const interpolatedWeights = TIERS.map((t, idx) => {
-                // Un palier non encore débloqué reste à 0% jusqu'à son niveau de déblocage exact,
-                // tandis que tous les paliers déjà débloqués glissent progressivement vers leurs cibles.
                 if (t.tier > ctx.maxUnlocked) return 0;
 
                 const wInf = wInfList[idx];
                 const wSup = wSupList[idx];
-                const blend = ctx.nextTier ? ctx.alpha : 1;
+                const blend = ctx.nextTier ? ctx.invertedAlpha : 1;
                 return Math.max(0.00001, wInf + blend * (wSup - wInf));
             });
 
@@ -2719,7 +2726,9 @@
                     effectiveWeight,
                     deltaFactor,
                     pct,
-                    alpha: ctx.alpha,
+                    rawAlpha: ctx.rawAlpha,
+                    alpha: ctx.invertedAlpha,
+                    invertedAlpha: ctx.invertedAlpha,
                     nextUnlockLevel: ctx.nextTier ? ctx.nextTier.unlockLevel : null
                 };
             });
@@ -3474,7 +3483,7 @@
                 const t = getTierInfo(nextMax);
                 showToast(`🎉 Coffre Niv.${state.chestLevel} • Palier ${t.tier} (${t.name}) débloqué !`);
             } else if (ctx.nextTier) {
-                showToast(`⬆️ Coffre Niv.${state.chestLevel} • Progression vers P${ctx.nextTier.tier} : ${Math.round(ctx.alpha * 100)}%`);
+                showToast(`⬆️ Coffre Niv.${state.chestLevel} • α_inv vers P${ctx.nextTier.tier} : ${Math.round(ctx.invertedAlpha * 100)}%`);
             } else {
                 showToast(`⬆️ Coffre amélioré au Niveau ${state.chestLevel} (taux supérieurs renforcés).`);
             }
@@ -3800,21 +3809,22 @@
             const nextLvlRows = getTierDropTable(state.chestLevel + 1);
 
             if (bannerEl) {
-                const alphaPct = Math.round(ctx.alpha * 100);
+                const invPct = Math.round(ctx.invertedAlpha * 100);
+                const rawPct = Math.round(ctx.rawAlpha * 100);
                 bannerEl.innerHTML = ctx.nextTier
                     ? `
-                        <div class="flex items-center justify-between text-[10.5px] font-black">
-                            <span class="text-cyan-300">🔄 Interpolation : P${ctx.lowerTier.tier} (Niv.${ctx.lowerTier.unlockLevel}) → P${ctx.nextTier.tier} (Niv.${ctx.nextTier.unlockLevel})</span>
-                            <span class="text-amber-300 tabular-nums">α = ${ctx.alpha.toFixed(2)} (${alphaPct}%)</span>
+                        <div class="flex items-center justify-between text-[10.5px] font-black gap-1">
+                            <span class="text-cyan-300 truncate">🔄 P${ctx.lowerTier.tier} (N.${ctx.lowerTier.unlockLevel}) → P${ctx.nextTier.tier} (N.${ctx.nextTier.unlockLevel})</span>
+                            <span class="text-amber-300 tabular-nums shrink-0">α_inv=${ctx.invertedAlpha.toFixed(2)} (${invPct}%) • α=${rawPct}%</span>
                         </div>
                         <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-cyan-400 to-amber-400 transition-all" style="width:${alphaPct}%"></div>
+                            <div class="h-full bg-gradient-to-r from-cyan-400 to-amber-400 transition-all" style="width:${invPct}%"></div>
                         </div>
                     `
                     : `
                         <div class="flex items-center justify-between text-[10.5px] font-black">
                             <span class="text-pink-300">🌟 Tous les paliers (P1 → P8) débloqués</span>
-                            <span class="text-emerald-300 tabular-nums">Bonus continu actif (Niv.${state.chestLevel})</span>
+                            <span class="text-emerald-300 tabular-nums">Interpolation inversée active (Niv.${state.chestLevel})</span>
                         </div>
                     `;
             }
@@ -3908,19 +3918,18 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-1 text-[8.5px] font-extrabold tabular-nums">
-                            ${improvedStats.map(ch => `
-                                <div class="bg-[#0b0e14]/85 rounded px-1.5 py-0.5 flex items-center justify-between gap-1 truncate">
-                                    <span>${ch.icon}</span>
-                                    <span class="${ch.tone} truncate">${ch.val}</span>
-                                </div>
+                        <div class="flex flex-wrap gap-1">
+                            ${improvedStats.map(st => `
+                                <span class="px-1.5 py-0.5 rounded bg-[#0b0e14]/90 border border-slate-800 text-[9.5px] font-extrabold ${st.tone} tabular-nums">
+                                    ${st.icon} ${st.val}
+                                </span>
                             `).join('')}
                         </div>
 
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button type="button" data-equip-bag-id="${item.id}" class="py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-black text-[10.5px] cursor-pointer">Équiper</button>
-                            <button type="button" data-lock-bag-id="${item.id}" class="py-1.5 rounded-lg bg-[#182030] border border-slate-700 font-black text-[10.5px] text-amber-300 cursor-pointer">${item.locked ? 'Déverrouiller' : 'Verrouiller'}</button>
-                            <button type="button" data-sell-bag-id="${item.id}" class="py-1.5 rounded-lg bg-amber-500/20 border border-amber-400/40 font-black text-[10.5px] text-amber-200 cursor-pointer">Vendre +${formatCompact(getSellPrice(item))}🪙</button>
+                        <div class="flex items-center gap-1.5 pt-0.5">
+                            <button type="button" data-bag-equip="${item.id}" class="flex-1 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-[11px] active:scale-95 cursor-pointer">Équiper</button>
+                            <button type="button" data-bag-lock="${item.id}" class="px-2.5 py-1.5 rounded-xl bg-[#182030] border border-slate-700 text-[11px] font-bold text-amber-200 cursor-pointer">${item.locked ? '🔓' : '🔒'}</button>
+                            <button type="button" data-bag-sell="${item.id}" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-[11px] font-black text-amber-200 cursor-pointer">Vendre +${formatCompact(getSellPrice(item))}🪙</button>
                         </div>
                     </div>
                 `;
@@ -3930,77 +3939,65 @@
         function renderHeroModal() {
             const body = document.getElementById('hero-modal-body');
             if (!body) return;
+            const st = computeStats();
+            const sph = getSphereBonusSummary();
+            const cdx = getCodexBonusSummary();
+            const { st: stageNum, exp, factor } = getStageFactor(state.stage);
 
-            const stats = computeStats();
-            const shardsGain = Math.max(0, Math.floor((state.maxStage - 1) / 3) + Math.floor(state.heroLevel / 5));
-
-            const all11 = [
-                { lbl: '⚔️ Attaque (ATQ)',       val: formatCompact(stats.atk) },
-                { lbl: '❤️ Points de Vie (PV)',  val: formatCompact(stats.maxHp) },
-                { lbl: '🛡️ Défense (DEF)',       val: formatCompact(stats.def) },
-                { lbl: '💥 Chance Critique',     val: formatCombinedPct(stats.crit) },
-                { lbl: '🔥 Dégâts Critiques',    val: formatCombinedPct(stats.critDmg) },
-                { lbl: '⚡ Vitesse d\'Attaque',  val: formatCombinedPct(stats.atkSpd) },
-                { lbl: '💨 Esquive',             val: formatCombinedPct(stats.dodge) },
-                { lbl: '✨ Magie',               val: formatCompact(stats.mag) },
-                { lbl: '🔰 Résistance Magique',  val: formatCombinedPct(stats.magRes) },
-                { lbl: '🩸 Vol de Vie',          val: formatCombinedPct(stats.lifesteal) },
-                { lbl: '💚 Régénération / sec',  val: `${formatCompact(stats.regen)} /s` }
+            const statsRows = [
+                { icon: '⚔️', label: '1. Attaque (ATQ)',       val: formatCompact(st.atk) },
+                { icon: '❤️', label: '2. PV Max',              val: formatCompact(st.maxHp) },
+                { icon: '🛡️', label: '3. Défense (DEF)',       val: formatCompact(st.def) },
+                { icon: '💥', label: '4. Chance Critique',     val: formatCombinedPct(st.crit) },
+                { icon: '🔥', label: '5. Dégâts Critiques',    val: formatCombinedPct(st.critDmg) },
+                { icon: '⚡', label: '6. Vitesse d\'Attaque',   val: formatCombinedPct(st.atkSpd) },
+                { icon: '💨', label: '7. Esquive',             val: formatCombinedPct(st.dodge) },
+                { icon: '✨', label: '8. Magie',               val: formatCompact(st.mag) },
+                { icon: '🔰', label: '9. Résistance Magique', val: formatCombinedPct(st.magRes) },
+                { icon: '🩸', label: '10. Vol de Vie (VdV)',   val: formatCombinedPct(st.lifesteal) },
+                { icon: '💚', label: '11. Régénération / s',   val: `${formatCompact(st.regen)} / s` }
             ];
 
             body.innerHTML = `
-                <div class="rounded-2xl bg-[#0b0e14] border border-[#f5b841]/30 p-3 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <span class="text-3xl">${stats.cls.icon}</span>
-                        <div class="min-w-0">
-                            <div class="font-fantasy text-sm font-black text-white truncate">${stats.cls.name} • Niv.${state.heroLevel}</div>
-                            <div class="text-[10.5px] text-slate-300 truncate">⚡ ${formatCompact(stats.power)} • Or ×${stats.goldMult.toFixed(4)} • EXP ×${stats.xpMult.toFixed(4)}</div>
+                <div class="rounded-2xl bg-[#0b0e14] border border-amber-500/30 p-3 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-2xl">${st.cls.icon}</span>
+                        <div>
+                            <div class="text-sm font-black text-[#fde68a]">${st.cls.name} • Niv.${state.heroLevel}</div>
+                            <div class="text-[10.5px] text-slate-300">${st.cls.desc}</div>
+                            <div class="text-[10px] font-bold text-amber-300 mt-0.5 tabular-nums">
+                                Puissance : ⚡${formatCompact(st.power)} • Étage ${stageNum} (Diff ×${formatCompact(factor)} / 2^${exp})
+                            </div>
                         </div>
                     </div>
-                    <button type="button" id="btn-open-class-switcher" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/50 text-[10.5px] font-black text-amber-200 shrink-0 cursor-pointer">
-                        Changer
+                    <button type="button" id="btn-open-class-switcher" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-[11px] font-black text-amber-200 shrink-0 cursor-pointer">
+                        🔄 Classe
                     </button>
                 </div>
 
-                <div class="grid grid-cols-2 gap-1.5 text-[10.5px] font-extrabold tabular-nums">
-                    ${all11.map(s => `
-                        <div class="rounded-xl bg-[#0b0e14] border border-slate-800 px-2.5 py-1.5 flex items-center justify-between">
-                            <span class="text-slate-300">${s.lbl}</span>
-                            <span class="text-white">${s.val}</span>
+                <div class="grid grid-cols-2 gap-1.5 text-[11px] font-extrabold tabular-nums">
+                    ${statsRows.map(r => `
+                        <div class="rounded-xl bg-[#0b0e14] border border-slate-800 px-2.5 py-1.5 flex items-center justify-between gap-1">
+                            <span class="text-slate-300 truncate">${r.icon} ${r.label}</span>
+                            <span class="text-white shrink-0">${r.val}</span>
                         </div>
                     `).join('')}
                 </div>
 
-                ${stats.activeSets.length > 0 ? `
-                    <div class="rounded-xl bg-teal-950/35 border border-teal-500/35 p-2.5 space-y-1">
-                        <div class="text-[10.5px] font-black text-teal-300 uppercase">💠 Bonus de Sets Actifs</div>
-                        ${stats.activeSets.map(x => `
-                            <div class="text-[10.5px] text-teal-100">
-                                <strong>${x.set.icon} ${x.set.name} (${x.count}/4) :</strong> ${x.set.b2.label}${x.count >= 4 ? ` • ${x.set.b4.label}` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
+                <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 text-[10.5px] text-slate-300 space-y-1 tabular-nums">
+                    <div class="font-black text-amber-300">Bonus Multiplicateurs &amp; Passifs</div>
+                    <div>🪙 Bonus Or : ×${st.goldMult.toFixed(3)} • ✨ Bonus EXP : ×${st.xpMult.toFixed(3)} • 🧰 Bonus EXP Coffre : ×${st.chestXpMult.toFixed(3)}</div>
+                    <div>💠 Sphérier : ${state.sphereActive.length} nœuds actifs • 📖 Codex : ${cdx.pct}% complété (${state.foundSets.length}/${SETS.length} Sets, ${state.foundUniques.length}/${UNIQUES.length} Uniques)</div>
+                    <div>🌀 Éclats d'Âme (${state.astralShards} 💠) : ${sph.atkPct > 0 ? `+${formatCombinedPct(sph.atkPct)} ATQ` : 'Prêt pour Renaissance'}</div>
+                </div>
 
-                ${stats.uniques.length > 0 ? `
-                    <div class="rounded-xl bg-pink-950/35 border border-pink-500/35 p-2.5 space-y-1">
-                        <div class="text-[10.5px] font-black text-pink-300 uppercase">🌟 Reliques Uniques Équipées</div>
-                        ${stats.uniques.map(u => `
-                            <div class="text-[10.5px] text-pink-100"><strong>${u.icon} ${u.name} (${u.passive}) :</strong> ${u.desc}</div>
-                        `).join('')}
+                <div class="rounded-xl bg-rose-950/35 border border-rose-500/35 p-2.5 flex items-center justify-between gap-2">
+                    <div>
+                        <div class="text-xs font-black text-rose-200">🌀 Renaissance Astrale (Niv. Héros ≥ 10 ou Étage ≥ 10)</div>
+                        <div class="text-[10px] text-rose-100/80">Réinitialise Niveau/Étage/Or et octroie des Éclats d'Âme (💠) pour le Sphérier.</div>
                     </div>
-                ` : ''}
-
-                <div class="rounded-2xl bg-gradient-to-br from-cyan-950/70 to-indigo-950/70 border border-cyan-400/40 p-3 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="font-fantasy text-xs font-black text-cyan-200">🌀 Ascension / Renaissance (${state.rebirths})</span>
-                        <span class="text-[10.5px] font-black text-cyan-300">Éclats : ${state.astralShards} 💠</span>
-                    </div>
-                    <p class="text-[10.5px] text-slate-200">
-                        Réinitialise Niveau, Or et Étage contre <strong class="text-cyan-300">+${shardsGain} Éclats d'Âme 💠</strong> (requis : Étage 4+). Coffre, Sac, Sets, Uniques et Sphérier sont conservés.
-                    </p>
-                    <button type="button" id="btn-do-rebirth" class="w-full py-2 rounded-xl bg-cyan-400 text-slate-950 font-black text-xs active:scale-95 cursor-pointer">
-                        🌀 Renaître (+${shardsGain} Éclats 💠)
+                    <button type="button" id="btn-trigger-rebirth" class="px-3 py-1.5 rounded-xl bg-rose-500 text-white font-black text-[11px] shrink-0 active:scale-95 cursor-pointer">
+                        Renaître
                     </button>
                 </div>
             `;
@@ -4009,20 +4006,17 @@
         function renderClassSwitcherModal() {
             const body = document.getElementById('class-switcher-modal-body');
             if (!body) return;
-
             body.innerHTML = CLASS_ORDER.map(id => {
                 const c = CLASSES[id];
-                const isCur = state.classId === id;
+                const active = state.classId === id;
                 return `
-                    <button type="button" data-switch-class="${id}" class="w-full text-left rounded-2xl p-2.5 border ${isCur ? 'border-[#f5b841] bg-amber-500/15' : 'border-slate-800 bg-[#0b0e14]'} space-y-1 cursor-pointer">
-                        <div class="flex items-center justify-between">
-                            <span class="font-fantasy text-xs font-black text-white">${c.icon} ${c.name}</span>
-                            <span class="text-[10px] font-black ${isCur ? 'text-amber-300' : 'text-slate-400'}">${isCur ? 'Active' : 'Choisir'}</span>
+                    <button type="button" data-switch-class="${id}" class="w-full text-left rounded-2xl p-3 border ${active ? 'border-[#f5b841] bg-amber-500/15' : 'border-slate-800 bg-[#0b0e14]'} flex items-center justify-between gap-2 cursor-pointer">
+                        <div>
+                            <div class="text-xs font-black text-white">${c.icon} ${c.name} ${active ? '<span class="text-[10px] text-amber-300">(Active)</span>' : ''}</div>
+                            <div class="text-[10.5px] text-slate-300">${c.desc}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5 tabular-nums">⚔️ ${c.atk} • ❤️ ${c.maxHp} • 🛡️ ${c.def} • ✨ ${c.mag}</div>
                         </div>
-                        <p class="text-[10.5px] text-slate-300">${c.desc}</p>
-                        <div class="text-[9.5px] text-amber-200 font-bold tabular-nums">
-                            ⚔️ ${c.atk} • ❤️ ${c.maxHp} • 🛡️ ${c.def} • 💥 ${formatDiv10Pct(c.crit)} • 🔥 ${formatDiv10Pct(c.critDmg)} • ⚡ ${formatDiv10Pct(c.atkSpd)} • 💨 ${formatDiv10Pct(c.dodge)} • ✨ ${c.mag} • 🔰 ${formatDiv10Pct(c.magRes)} • 🩸 ${formatDiv10Pct(c.lifesteal)} • 💚 ${c.regen}/s
-                        </div>
+                        <span class="px-2.5 py-1 rounded-xl bg-[#182030] text-[10.5px] font-black text-amber-200 shrink-0">Choisir</span>
                     </button>
                 `;
             }).join('');
@@ -4032,75 +4026,69 @@
             const pctEl = document.getElementById('codex-completion-pct');
             const body = document.getElementById('codex-modal-body');
             if (!body) return;
-
             const cdx = getCodexBonusSummary();
             if (pctEl) pctEl.textContent = `${cdx.pct}%`;
 
             document.querySelectorAll('.codex-tab').forEach(btn => {
-                const active = btn.getAttribute('data-codex-tab') === codexTab;
-                btn.className = active
-                    ? 'codex-tab py-1.5 rounded-lg bg-teal-500/20 border border-teal-400/50 text-[9.5px] font-black text-teal-200 cursor-pointer'
-                    : 'codex-tab py-1.5 rounded-lg bg-[#182030] text-[9.5px] font-black text-slate-300 cursor-pointer';
+                const isTab = btn.dataset.codexTab === codexTab;
+                btn.className = isTab
+                    ? 'codex-tab py-1.5 rounded-lg bg-teal-500/25 border border-teal-400 text-[9.5px] font-black text-teal-100 cursor-pointer'
+                    : 'codex-tab py-1.5 rounded-lg bg-[#182030] border border-transparent text-[9.5px] font-black text-slate-300 cursor-pointer';
             });
 
             if (codexTab === 'classes') {
-                body.innerHTML = `
-                    <div class="text-[11px] text-slate-300 mb-1">Les 8 classes jouables et leurs 11 statistiques de base :</div>
-                    ${CLASS_ORDER.map(id => {
-                        const c = CLASSES[id];
-                        return `
-                            <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 space-y-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="font-fantasy text-xs font-black text-white">${c.icon} ${c.name}</span>
-                                    <span class="text-[10px] font-bold text-amber-300">${state.classId === id ? 'Classe active' : '4 Sets & 16 Uniques dédiés'}</span>
-                                </div>
-                                <p class="text-[10.5px] text-slate-300">${c.desc}</p>
-                                <div class="text-[9.5px] text-slate-200 font-bold tabular-nums">
-                                    ⚔️ ${c.atk} • ❤️ ${c.maxHp} • 🛡️ ${c.def} • 💥 ${formatDiv10Pct(c.crit)} • 🔥 ${formatDiv10Pct(c.critDmg)} • ⚡ ${formatDiv10Pct(c.atkSpd)} • 💨 ${formatDiv10Pct(c.dodge)} • ✨ ${c.mag} • 🔰 ${formatDiv10Pct(c.magRes)} • 🩸 ${formatDiv10Pct(c.lifesteal)} • 💚 ${c.regen}/s
-                                </div>
+                body.innerHTML = CLASS_ORDER.map(id => {
+                    const c = CLASSES[id];
+                    return `
+                        <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 space-y-1">
+                            <div class="text-xs font-black text-[#fde68a]">${c.icon} ${c.name}</div>
+                            <div class="text-[10.5px] text-slate-300">${c.desc}</div>
+                            <div class="text-[10px] text-slate-400 tabular-nums">
+                                ⚔️ ${c.atk} • ❤️ ${c.maxHp} • 🛡️ ${c.def} • 💚 ${c.regen}/s • ✨ ${c.mag} • 💥 ${formatDiv10Pct(c.crit)} • 🔥 ${formatDiv10Pct(c.critDmg)} • ⚡ ${formatDiv10Pct(c.atkSpd)} • 💨 ${formatDiv10Pct(c.dodge)} • 🔰 ${formatDiv10Pct(c.magRes)} • 🩸 ${formatDiv10Pct(c.lifesteal)}
                             </div>
-                        `;
-                    }).join('')}
-                `;
+                        </div>
+                    `;
+                }).join('');
                 return;
             }
 
             if (codexTab === 'tiers') {
-                const table = getTierDropTable(state.chestLevel);
-                body.innerHTML = `
-                    <div class="text-[11px] text-slate-300 mb-1">
-                        Paliers d'équipement (débloqués à <strong class="text-amber-300">50, 100, 150, 200, 250, 300, 350</strong>) :
-                    </div>
-                    ${table.map(t => `
-                        <div class="rounded-xl p-2.5 border ${t.unlocked ? `rarity-${t.tier}` : 'border-slate-800 bg-[#0b0e14]/75 opacity-70'} flex items-center justify-between gap-2">
+                body.innerHTML = TIERS.map(t => {
+                    const unlocked = isTierUnlocked(t.tier, state.chestLevel);
+                    return `
+                        <div class="rounded-xl border rarity-${t.tier} p-2.5 flex items-center justify-between gap-2">
                             <div>
                                 <div class="text-xs font-black ${t.color}">Palier ${t.tier} • ${t.name}</div>
-                                <div class="text-[10px] text-slate-300">
-                                    ${t.unlocked ? '✅ Débloqué' : `🔒 Coffre Niv.${t.unlockLevel}`} • Multiplicateur ×${t.mult.toFixed(2)} • ${getGearStatCountForTier(t.tier)} stats
+                                <div class="text-[10px] text-slate-300 tabular-nums">
+                                    Déblocage : Coffre Niv.${t.unlockLevel} • ${getGearStatCountForTier(t.tier)} stats • Multiplicateur ×${t.mult}
                                 </div>
                             </div>
-                            <span class="text-xs font-black text-white tabular-nums">${t.unlocked ? formatRatePercent(t.pct) : '0%'}</span>
+                            <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${unlocked ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-400'}">
+                                ${unlocked ? 'Débloqué' : `Niv.${t.unlockLevel}`}
+                            </span>
                         </div>
-                    `).join('')}
-                `;
+                    `;
+                }).join('');
                 return;
             }
 
             if (codexTab === 'sets') {
+                const counts = getEquippedSetCounts();
                 body.innerHTML = `
-                    <div class="text-[11px] text-slate-300 mb-1">
-                        Sets Mythiques (Palier 7) : <strong class="text-teal-300">${state.foundSets.length}/${SETS.length}</strong> découverts (4 Sets par classe, équipables par tous).
+                    <div class="text-[10.5px] text-teal-200 font-bold bg-teal-950/40 border border-teal-500/30 rounded-xl p-2">
+                        32 Sets (4 par classe). Équipables par toutes les classes • Découverts : ${state.foundSets.length}/${SETS.length}
                     </div>
-                    ${SETS.map(st => {
-                        const found = state.foundSets.includes(st.id);
+                    ${SETS.map(s => {
+                        const found = state.foundSets.includes(s.id);
+                        const eqCount = counts[s.id] || 0;
                         return `
-                            <div class="rounded-xl p-2.5 border ${found ? 'rarity-7' : 'border-slate-800 bg-[#0b0e14] opacity-75'} space-y-1">
-                                <div class="flex items-center justify-between gap-1">
-                                    <span class="text-xs font-black text-white">${st.icon} ${st.name} <span class="text-[10px] text-teal-300 font-bold">(${st.className})</span></span>
-                                    <span class="text-[10px] font-black ${found ? 'text-teal-300' : 'text-slate-500'}">${found ? 'Découvert' : 'Inconnu'}</span>
+                            <div class="rounded-xl bg-[#0b0e14] border ${found ? 'border-teal-500/45' : 'border-slate-800'} p-2.5 space-y-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black ${found ? 'text-teal-200' : 'text-slate-400'}">${s.icon} ${s.name} <span class="text-[10px] text-slate-400">(${s.className})</span></span>
+                                    <span class="text-[10px] font-black text-amber-300 tabular-nums">${eqCount > 0 ? `Équipé ×${eqCount}` : (found ? 'Découvert' : 'Non découvert')}</span>
                                 </div>
-                                <div class="text-[10px] text-teal-200">(2 pièces) ${st.b2.label}</div>
-                                <div class="text-[10px] text-amber-200">(4 pièces) ${st.b4.label}</div>
+                                <div class="text-[10px] text-slate-300">(2) ${s.b2.label}</div>
+                                <div class="text-[10px] text-emerald-300">(4) ${s.b4.label}</div>
                             </div>
                         `;
                     }).join('')}
@@ -4109,48 +4097,51 @@
             }
 
             if (codexTab === 'uniques') {
-                const filteredUniques = UNIQUES.filter(u => {
+                const slotOptions = [
+                    { id: 'all', label: 'Tous' },
+                    { id: 'arme', label: '⚔️ Arme' },
+                    { id: 'armure', label: '🛡️ Armure' },
+                    { id: 'casque', label: '🪖 Casque' },
+                    { id: 'bottes', label: '🥾 Bottes' }
+                ];
+                const classOptions = [
+                    { id: 'all', label: 'Toutes classes' },
+                    ...CLASS_ORDER.map(cid => ({ id: cid, label: `${CLASSES[cid].icon} ${CLASSES[cid].name}` }))
+                ];
+
+                const list = UNIQUES.filter(u => {
                     if (codexUniqueSlotFilter !== 'all' && u.slot !== codexUniqueSlotFilter) return false;
                     if (codexUniqueClassFilter !== 'all' && u.classId !== codexUniqueClassFilter) return false;
                     return true;
                 });
 
                 body.innerHTML = `
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between text-[11px] text-slate-300">
-                            <span>Reliques Uniques (Palier 8) : <strong class="text-pink-300">${state.foundUniques.length}/${UNIQUES.length}</strong></span>
-                            <span class="text-[10px] text-slate-400">32 par emplacement • 16 par classe</span>
+                    <div class="rounded-xl bg-pink-950/35 border border-pink-500/35 p-2 space-y-1.5">
+                        <div class="flex items-center justify-between text-[10.5px] font-black text-pink-200">
+                            <span>128 Reliques Uniques (Palier 8 • Équipables par toutes les classes)</span>
+                            <span class="tabular-nums">${state.foundUniques.length}/${UNIQUES.length}</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <select id="codex-unique-slot-filter" class="bg-[#0b0e14] border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white">
-                                <option value="all" ${codexUniqueSlotFilter === 'all' ? 'selected' : ''}>Tous emplacements (128)</option>
-                                <option value="arme" ${codexUniqueSlotFilter === 'arme' ? 'selected' : ''}>⚔️ Armes (32)</option>
-                                <option value="armure" ${codexUniqueSlotFilter === 'armure' ? 'selected' : ''}>🛡️ Armures (32)</option>
-                                <option value="casque" ${codexUniqueSlotFilter === 'casque' ? 'selected' : ''}>🪖 Casques (32)</option>
-                                <option value="bottes" ${codexUniqueSlotFilter === 'bottes' ? 'selected' : ''}>🥾 Bottes (32)</option>
-                            </select>
-                            <select id="codex-unique-class-filter" class="bg-[#0b0e14] border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white">
-                                <option value="all" ${codexUniqueClassFilter === 'all' ? 'selected' : ''}>Toutes vocations (8)</option>
-                                ${CLASS_ORDER.map(cid => `
-                                    <option value="${cid}" ${codexUniqueClassFilter === cid ? 'selected' : ''}>${CLASSES[cid].icon} ${CLASSES[cid].name} (16)</option>
-                                `).join('')}
-                            </select>
+                        <div class="flex flex-wrap gap-1">
+                            ${slotOptions.map(so => `
+                                <button type="button" data-codex-u-slot="${so.id}" class="px-2 py-0.5 rounded-lg text-[10px] font-black cursor-pointer ${codexUniqueSlotFilter === so.id ? 'bg-pink-500 text-white' : 'bg-[#182030] text-slate-300'}">${so.label}</button>
+                            `).join('')}
+                        </div>
+                        <div class="flex flex-wrap gap-1">
+                            ${classOptions.map(co => `
+                                <button type="button" data-codex-u-class="${co.id}" class="px-2 py-0.5 rounded-lg text-[10px] font-black cursor-pointer ${codexUniqueClassFilter === co.id ? 'bg-amber-400 text-slate-950' : 'bg-[#182030] text-slate-300'}">${co.label}</button>
+                            `).join('')}
                         </div>
                     </div>
-
-                    ${filteredUniques.map(u => {
+                    ${list.map(u => {
                         const found = state.foundUniques.includes(u.id);
-                        const slotObj = GEAR_SLOTS.find(s => s.id === u.slot);
+                        const sl = GEAR_SLOTS.find(s => s.id === u.slot);
                         return `
-                            <div class="rounded-xl p-2.5 border ${found ? 'rarity-8' : 'border-slate-800 bg-[#0b0e14] opacity-75'} space-y-1">
+                            <div class="rounded-xl bg-[#0b0e14] border ${found ? 'border-pink-500/45' : 'border-slate-800'} p-2 space-y-0.5">
                                 <div class="flex items-center justify-between gap-1">
-                                    <span class="text-xs font-black text-white truncate">${u.icon} ${u.name}</span>
-                                    <span class="text-[9.5px] font-black shrink-0 ${found ? 'text-pink-300' : 'text-slate-500'}">${found ? 'Découvert' : 'Inconnu'}</span>
+                                    <span class="text-xs font-black ${found ? 'text-pink-200' : 'text-slate-400'}">${u.icon} ${u.name}</span>
+                                    <span class="text-[9.5px] font-bold text-slate-400">${sl ? sl.label : u.slot} • ${u.className}</span>
                                 </div>
-                                <div class="text-[9.5px] text-amber-200 font-bold">
-                                    ${slotObj ? `${slotObj.icon} ${slotObj.label}` : u.slot} • Vocation ${u.className} • Effet : ${u.passive}
-                                </div>
-                                <div class="text-[10px] text-pink-200">${u.desc}</div>
+                                <div class="text-[10px] font-extrabold text-amber-300">${u.passive} — <span class="text-slate-200 font-semibold">${u.desc}</span></div>
                             </div>
                         `;
                     }).join('')}
@@ -4158,581 +4149,647 @@
                 return;
             }
 
-            body.innerHTML = `
-                <div class="text-[11px] text-slate-300 mb-1">
-                    Bestiaire : <strong class="text-amber-300">${state.seenEnemies.length}/${ENEMIES.length}</strong> monstres rencontrés (difficulté ×2<sup>Étage−1</sup>).
-                </div>
-                ${ENEMIES.map((e, idx) => {
-                    const seen = state.seenEnemies.includes(e.id);
-                    const { factor } = getStageFactor(idx + 1);
-                    return `
-                        <div class="rounded-xl p-2.5 border ${seen ? 'border-slate-700 bg-[#0b0e14]' : 'border-slate-800 bg-[#0b0e14]/60 opacity-65'} flex items-center justify-between">
+            body.innerHTML = ENEMIES.map(en => {
+                const seen = state.seenEnemies.includes(en.id);
+                return `
+                    <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">${en.icon}</span>
                             <div>
-                                <div class="text-xs font-black text-white">${e.icon} ${e.name}</div>
-                                <div class="text-[10px] text-slate-400">Étage ${idx + 1}+ • Facteur ×${formatCompact(factor)} (2^${idx})</div>
+                                <div class="text-xs font-black ${seen ? 'text-white' : 'text-slate-400'}">${en.name}</div>
+                                <div class="text-[10px] text-slate-400">Échelle exponentielle 2^(Étage-1)</div>
                             </div>
-                            <span class="text-[10px] font-black ${seen ? 'text-emerald-300' : 'text-slate-500'}">${seen ? 'Rencontré' : 'Inconnu'}</span>
                         </div>
-                    `;
-                }).join('')}
-            `;
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${seen ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-800 text-slate-500'}">
+                            ${seen ? 'Rencontré' : 'Inconnu'}
+                        </span>
+                    </div>
+                `;
+            }).join('');
         }
 
+        /* =====================================================================
+           12. MISSIONS (×10 TARGETS & REWARDS) & INFINITE ACHIEVEMENTS
+        ====================================================================== */
         function getDailyMissions() {
             return [
-                { id: 'd_chests', title: 'Ouvrir 100 Coffres',           prog: state.dailyProg.chests,   target: 100, rewardTxt: '+250 💎 & +150 🔑', gems: 250, keys: 150 },
-                { id: 'd_kills',  title: 'Vaincre 150 Monstres',         prog: state.dailyProg.kills,    target: 150, rewardTxt: '+300 💎 & +100 🔑', gems: 300, keys: 100 },
-                { id: 'd_upg',    title: 'Améliorer le Coffre 10 fois',  prog: state.dailyProg.upgrades, target: 10,  rewardTxt: '+350 💎 & +200 🔑', gems: 350, keys: 200 }
+                { id: 'd_chests', title: 'Ouvrir 100 Coffres', prog: state.dailyProg.chests, target: 100, rewardGold: 800, rewardGems: 50 },
+                { id: 'd_kills',  title: 'Vaincre 150 Ennemis', prog: state.dailyProg.kills, target: 150, rewardGold: 1000, rewardGems: 60 },
+                { id: 'd_upgs',   title: 'Améliorer le Coffre 50 fois', prog: state.dailyProg.upgrades, target: 50, rewardGold: 900, rewardGems: 50 }
             ];
         }
 
         function getWeeklyMissions() {
             return [
-                { id: 'w_chests', title: 'Hebdo : Ouvrir 800 Coffres',   prog: state.weeklyProg.chests, target: 800,  rewardTxt: '+1 200 💎 & +600 🔑', gems: 1200, keys: 600 },
-                { id: 'w_kills',  title: 'Hebdo : Vaincre 1 200 Ennemis',prog: state.weeklyProg.kills,  target: 1200, rewardTxt: '+1 500 💎 & +500 🔑', gems: 1500, keys: 500 },
-                { id: 'w_stages', title: 'Hebdo : Franchir 50 Étages',   prog: state.weeklyProg.stages, target: 50,   rewardTxt: '+1 800 💎 & +800 🔑', gems: 1800, keys: 800 }
+                { id: 'w_chests', title: 'Ouvrir 500 Coffres (Hebdo)', prog: state.weeklyProg.chests, target: 500, rewardGold: 4500, rewardGems: 200 },
+                { id: 'w_kills',  title: 'Vaincre 800 Ennemis (Hebdo)', prog: state.weeklyProg.kills, target: 800, rewardGold: 5000, rewardGems: 250 },
+                { id: 'w_stages', title: 'Atteindre 50 Étages (Hebdo)', prog: state.weeklyProg.stages, target: 50, rewardGold: 6000, rewardGems: 300 }
             ];
         }
 
         function getInfiniteAchievements() {
             const defs = [
-                { key: 'kills',      name: 'Chasseur Infini',    cur: state.counters.kills,      base: 25,  growth: 2.2 },
-                { key: 'chests',     name: 'Maître des Coffres', cur: state.counters.chests,     base: 20,  growth: 2.2 },
-                { key: 'gold',       name: 'Trésorier Royal',    cur: state.counters.goldEarned, base: 500, growth: 2.6 },
-                { key: 'stage',      name: 'Conquérant',         cur: state.maxStage,            base: 3,   growth: 1.75 },
-                { key: 'rebirths',   name: 'Âme Éternelle',      cur: state.counters.rebirths,   base: 1,   growth: 1.7 },
-                { key: 'collection', name: 'Archiviste',         cur: state.foundSets.length + state.foundUniques.length, base: 1, growth: 1.6 }
+                { key: 'kills',      name: 'Chasseur Infini',    icon: '⚔️', current: state.counters.kills,      baseTarget: 100,   stepMult: 2.2, baseGems: 15 },
+                { key: 'chests',     name: 'Maître des Coffres',  icon: '🧰', current: state.counters.chests,     baseTarget: 50,    stepMult: 2.2, baseGems: 15 },
+                { key: 'gold',       name: 'Baron d\'Or',         icon: '🪙', current: state.counters.goldEarned, baseTarget: 1000,  stepMult: 2.5, baseGems: 20 },
+                { key: 'stage',      name: 'Explorateur d\'Abîme',icon: '🏰', current: state.maxStage,            baseTarget: 5,     stepMult: 1.6, baseGems: 25 },
+                { key: 'rebirths',   name: 'Cycle Astral',        icon: '🌀', current: state.counters.rebirths,   baseTarget: 1,     stepMult: 1.5, baseGems: 35 },
+                { key: 'collection', name: 'Archiviste du Codex', icon: '📖', current: state.foundSets.length + state.foundUniques.length, baseTarget: 5, stepMult: 1.6, baseGems: 20 }
             ];
 
             return defs.map(d => {
-                const rank = state.achRanks[d.key] || 0;
-                const target = Math.max(1, Math.round(d.base * Math.pow(d.growth, rank)));
-                const rewardGems = 12 + rank * 6;
+                const rank = Math.max(0, Math.round(toNum(state.achRanks[d.key], 0)));
+                const target = Math.max(1, Math.round(d.baseTarget * Math.pow(d.stepMult, rank)));
+                const gems = Math.max(5, Math.round(d.baseGems * (1 + rank * 0.45)));
                 return {
                     ...d,
-                    rank,
+                    rank: rank + 1,
                     target,
-                    rewardGems,
-                    ready: d.cur >= target
+                    gems,
+                    ready: d.current >= target
                 };
             });
         }
 
-        function syncReadyBadges() {
-            const mReady = getDailyMissions().some(m => !state.dailyClaimed[m.id] && m.prog >= m.target) ||
-                           getWeeklyMissions().some(m => !state.weeklyClaimed[m.id] && m.prog >= m.target);
-            const aReady = getInfiniteAchievements().some(a => a.ready);
+        function hasReadyMission() {
+            const dReady = getDailyMissions().some(m => !state.dailyClaimed[m.id] && m.prog >= m.target);
+            const wReady = getWeeklyMissions().some(m => !state.weeklyClaimed[m.id] && m.prog >= m.target);
+            return dReady || wReady;
+        }
 
-            const bm = document.getElementById('badge-missions-ready');
-            const ba = document.getElementById('badge-achievements-ready');
-            if (bm) bm.classList.toggle('hidden', !mReady);
-            if (ba) ba.classList.toggle('hidden', !aReady);
+        function hasReadyAchievement() {
+            return getInfiniteAchievements().some(a => a.ready);
+        }
+
+        function syncReadyBadges() {
+            const mBadge = document.getElementById('badge-missions-ready');
+            const aBadge = document.getElementById('badge-achievements-ready');
+            if (mBadge) mBadge.classList.toggle('hidden', !hasReadyMission());
+            if (aBadge) aBadge.classList.toggle('hidden', !hasReadyAchievement());
         }
 
         function renderMissionsModal() {
             const body = document.getElementById('missions-modal-body');
             if (!body) return;
+            const daily = getDailyMissions();
+            const weekly = getWeeklyMissions();
 
-            const renderList = (title, list, claimedMap, scope) => `
-                <div class="text-[11px] font-black text-amber-300 uppercase tracking-wider">${title}</div>
-                ${list.map(m => {
-                    const claimed = Boolean(claimedMap[m.id]);
-                    const ready = !claimed && m.prog >= m.target;
-                    const pct = Math.min(100, Math.round((m.prog / Math.max(1, m.target)) * 100));
-                    return `
-                        <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 space-y-1.5">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-black text-white">${m.title}</span>
-                                <span class="text-[10.5px] font-bold text-slate-300 tabular-nums">${Math.min(m.prog, m.target)}/${m.target}</span>
+            const renderList = (items, isWeekly) => items.map(m => {
+                const claimed = isWeekly ? Boolean(state.weeklyClaimed[m.id]) : Boolean(state.dailyClaimed[m.id]);
+                const canClaim = !claimed && m.prog >= m.target;
+                const pct = Math.max(0, Math.min(100, (m.prog / Math.max(1, m.target)) * 100));
+                return `
+                    <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 space-y-1.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <div class="text-xs font-black text-white">${m.title}</div>
+                                <div class="text-[10px] text-amber-300 font-bold tabular-nums">+${formatCompact(m.rewardGold)} 🪙 • +${formatCompact(m.rewardGems)} 💎</div>
                             </div>
-                            <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
-                                <div class="h-full bg-amber-400" style="width:${pct}%"></div>
-                            </div>
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-[10.5px] font-bold text-amber-200">${m.rewardTxt}</span>
-                                ${claimed
-                                    ? `<span class="text-[10px] font-black text-emerald-400">Réclamée ✓</span>`
-                                    : ready
-                                        ? `<button type="button" data-claim-mission="${scope}:${m.id}" class="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-black text-[10.5px] cursor-pointer">Réclamer</button>`
-                                        : `<span class="text-[10px] text-slate-500">En cours</span>`
-                                }
-                            </div>
+                            <button type="button" data-claim-mission="${isWeekly ? 'w' : 'd'}:${m.id}" ${canClaim ? '' : 'disabled'} class="px-2.5 py-1 rounded-xl text-[10.5px] font-black shrink-0 ${canClaim ? 'bg-[#f5b841] text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-500 cursor-not-allowed'}">
+                                ${claimed ? 'Réclamé' : (canClaim ? 'Réclamer' : `${formatCompact(m.prog)}/${formatCompact(m.target)}`)}
+                            </button>
                         </div>
-                    `;
-                }).join('')}
-            `;
+                        <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
+                            <div class="h-full bg-emerald-400" style="width:${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
 
-            body.innerHTML = renderList('Quotidiennes (×10)', getDailyMissions(), state.dailyClaimed, 'daily') +
-                             renderList('Hebdomadaires (×10)', getWeeklyMissions(), state.weeklyClaimed, 'weekly');
+            body.innerHTML = `
+                <div class="text-[10.5px] font-black uppercase tracking-wider text-amber-300">Missions Quotidiennes (×10)</div>
+                ${renderList(daily, false)}
+                <div class="text-[10.5px] font-black uppercase tracking-wider text-cyan-300 pt-1">Missions Hebdomadaires (×10)</div>
+                ${renderList(weekly, true)}
+            `;
+        }
+
+        function claimMission(scope, id) {
+            const list = scope === 'w' ? getWeeklyMissions() : getDailyMissions();
+            const m = list.find(x => x.id === id);
+            if (!m || m.prog < m.target) return;
+            const map = scope === 'w' ? state.weeklyClaimed : state.dailyClaimed;
+            if (map[id]) return;
+
+            map[id] = true;
+            earnGold(m.rewardGold);
+            state.gems += m.rewardGems;
+            showToast(`🎁 Récompense : +${formatCompact(m.rewardGold)} 🪙 & +${formatCompact(m.rewardGems)} 💎 !`);
+            renderMissionsModal();
+            renderMainHUD();
+            saveStateSafe();
         }
 
         function renderAchievementsModal() {
             const body = document.getElementById('achievements-modal-body');
             if (!body) return;
-
             const list = getInfiniteAchievements();
+
             body.innerHTML = list.map(a => {
-                const pct = Math.min(100, Math.round((a.cur / Math.max(1, a.target)) * 100));
+                const pct = Math.max(0, Math.min(100, (a.current / Math.max(1, a.target)) * 100));
                 return `
                     <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 space-y-1.5">
                         <div class="flex items-center justify-between gap-2">
-                            <span class="text-xs font-black text-white">${a.name} (Rang ${a.rank + 1})</span>
-                            <span class="text-[10.5px] font-bold text-slate-300 tabular-nums">${formatCompact(a.cur)} / ${formatCompact(a.target)}</span>
+                            <div>
+                                <div class="text-xs font-black text-white">${a.icon} ${a.name} <span class="text-[10px] text-amber-300">(Palier ${a.rank})</span></div>
+                                <div class="text-[10px] text-slate-300 tabular-nums">${formatCompact(a.current)} / ${formatCompact(a.target)} • Récompense : +${a.gems} 💎</div>
+                            </div>
+                            <button type="button" data-claim-ach="${a.key}" ${a.ready ? '' : 'disabled'} class="px-2.5 py-1 rounded-xl text-[10.5px] font-black shrink-0 ${a.ready ? 'bg-[#f5b841] text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-500 cursor-not-allowed'}">
+                                ${a.ready ? 'Réclamer' : 'En cours'}
+                            </button>
                         </div>
                         <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
                             <div class="h-full bg-amber-400" style="width:${pct}%"></div>
-                        </div>
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-[10.5px] font-bold text-fuchsia-300">Récompense : +${a.rewardGems} 💎</span>
-                            ${a.ready
-                                ? `<button type="button" data-claim-ach="${a.key}" class="px-2.5 py-1 rounded-lg bg-[#f5b841] text-slate-950 font-black text-[10.5px] cursor-pointer">Réclamer</button>`
-                                : `<span class="text-[10px] text-slate-500">En cours</span>`
-                            }
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function renderSpherierModal() {
+        function claimSingleAchievement(key) {
+            const list = getInfiniteAchievements();
+            const ach = list.find(a => a.key === key);
+            if (!ach || !ach.ready) return false;
+            state.achRanks[key] = toNum(state.achRanks[key], 0) + 1;
+            state.gems += ach.gems;
+            return true;
+        }
+
+        function claimAllAchievements() {
+            let claimedCount = 0;
+            let totalGems = 0;
+            let guard = 0;
+            while (guard < 200) {
+                guard += 1;
+                const readyList = getInfiniteAchievements().filter(a => a.ready);
+                if (!readyList.length) break;
+                for (const a of readyList) {
+                    if (claimSingleAchievement(a.key)) {
+                        claimedCount += 1;
+                        totalGems += a.gems;
+                    }
+                }
+            }
+            if (claimedCount > 0) {
+                showToast(`🏆 ${claimedCount} succès réclamé(s) (+${totalGems} 💎) !`);
+                renderAchievementsModal();
+                renderMainHUD();
+                saveStateSafe();
+            } else {
+                showToast('Aucun succès prêt à être réclamé.');
+            }
+        }
+
+        /* =====================================================================
+           13. SPHERIER CONSTELLATION RENDERING & UNLOCKING
+        ====================================================================== */
+        function isNodeUnlockable(nodeId, nodes, edges) {
+            if (state.sphereActive.includes(nodeId)) return false;
+            if (!nodes[nodeId]) return false;
+            for (const [a, b] of edges) {
+                if (a === nodeId && state.sphereActive.includes(b)) return true;
+                if (b === nodeId && state.sphereActive.includes(a)) return true;
+            }
+            return false;
+        }
+
+        function renderSpherier() {
             const shardsEl = document.getElementById('sphere-shards-value');
             const canvas = document.getElementById('sphere-canvas');
             const svg = document.getElementById('sphere-lines-svg');
-            const container = document.getElementById('sphere-nodes-container');
+            const nodesBox = document.getElementById('sphere-nodes-container');
             const inspector = document.getElementById('sphere-inspector');
-            if (!canvas || !svg || !container || !inspector) return;
+            if (!canvas || !svg || !nodesBox || !inspector) return;
 
-            if (shardsEl) shardsEl.textContent = state.astralShards;
+            if (shardsEl) shardsEl.textContent = formatCompact(state.astralShards);
 
             const { nodes, edges } = buildSpherier(state.sphereRings);
             if (!nodes[selectedSphereNode]) selectedSphereNode = 'center';
 
-            const w = canvas.clientWidth || 360;
-            const h = canvas.clientHeight || 265;
-            const cx = w / 2 + sphereOffset.x;
-            const cy = h / 2 + sphereOffset.y;
-
-            const unlockableSet = new Set();
-            for (const [a, b] of edges) {
-                if (state.sphereActive.includes(a) && !state.sphereActive.includes(b)) unlockableSet.add(b);
-                if (state.sphereActive.includes(b) && !state.sphereActive.includes(a)) unlockableSet.add(a);
-            }
+            const cx = (canvas.clientWidth || 360) / 2 + sphereOffset.x;
+            const cy = (canvas.clientHeight || 265) / 2 + sphereOffset.y;
 
             svg.innerHTML = edges.map(([a, b]) => {
                 const na = nodes[a];
                 const nb = nodes[b];
                 if (!na || !nb) return '';
-                const both = state.sphereActive.includes(a) && state.sphereActive.includes(b);
-                return `<line x1="${cx + na.x}" y1="${cy + na.y}" x2="${cx + nb.x}" y2="${cy + nb.y}" stroke="${both ? '#22d3ee' : '#334155'}" stroke-width="${both ? '2.5' : '1.4'}" />`;
+                const bothActive = state.sphereActive.includes(a) && state.sphereActive.includes(b);
+                return `<line x1="${cx + na.x}" y1="${cy + na.y}" x2="${cx + nb.x}" y2="${cy + nb.y}" stroke="${bothActive ? '#22d3ee' : '#334155'}" stroke-width="${bothActive ? '2.5' : '1.5'}" stroke-opacity="${bothActive ? '0.9' : '0.55'}" />`;
             }).join('');
 
-            container.innerHTML = Object.values(nodes).map(n => {
+            nodesBox.innerHTML = Object.values(nodes).map(n => {
                 const active = state.sphereActive.includes(n.id);
-                const unlockable = unlockableSet.has(n.id);
+                const unlockable = isNodeUnlockable(n.id, nodes, edges);
                 const picked = selectedSphereNode === n.id;
-                const cls = `spherier-node ${active ? 'active-node' : unlockable ? 'unlockable-node' : ''} ${picked ? 'picked-node' : ''}`;
-                return `<button type="button" data-sphere-node="${n.id}" class="${cls}" style="left:${cx + n.x}px; top:${cy + n.y}px;">${n.icon}</button>`;
+                const cls = [
+                    'spherier-node',
+                    active ? 'active-node' : (unlockable ? 'unlockable-node' : ''),
+                    picked ? 'picked-node' : ''
+                ].filter(Boolean).join(' ');
+                return `<button type="button" data-sphere-node="${n.id}" class="${cls}" style="left:${cx + n.x}px;top:${cy + n.y}px;" title="${n.name}">${n.icon}</button>`;
             }).join('');
 
-            const sel = nodes[selectedSphereNode];
-            const isActive = state.sphereActive.includes(sel.id);
-            const canUnlock = unlockableSet.has(sel.id);
+            const cur = nodes[selectedSphereNode];
+            const isAct = state.sphereActive.includes(cur.id);
+            const canUnl = isNodeUnlockable(cur.id, nodes, edges);
+            const affordable = state.astralShards >= cur.cost;
 
             inspector.innerHTML = `
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs font-black text-white">${sel.icon} ${sel.name}</span>
-                    <span class="text-[10.5px] font-black ${isActive ? 'text-cyan-300' : 'text-amber-300'}">
-                        ${isActive ? 'Activé' : `Coût : ${sel.cost} 💠`}
+                    <div class="text-xs font-black text-white">${cur.icon} ${cur.name}</div>
+                    <span class="text-[10px] font-black ${isAct ? 'text-cyan-300' : 'text-amber-300'} tabular-nums">
+                        ${isAct ? '✅ Activé' : `Coût : ${cur.cost} 💠`}
                     </span>
                 </div>
-                <div class="text-[11px] text-slate-300">${sel.desc}</div>
-                ${!isActive ? `
-                    <button type="button" id="btn-activate-sphere-node" class="w-full py-1.5 rounded-xl ${canUnlock && state.astralShards >= sel.cost ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-400'} font-black text-xs cursor-pointer">
-                        ${canUnlock ? `Activer (${sel.cost} 💠)` : 'Connectez d\'abord un nœud voisin'}
+                <div class="text-[11px] text-slate-300">${cur.desc}</div>
+                ${!isAct ? `
+                    <button type="button" id="btn-unlock-sphere-node" ${canUnl && affordable ? '' : 'disabled'} class="w-full py-1.5 rounded-xl font-black text-xs ${canUnl && affordable ? 'bg-cyan-400 text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-500 cursor-not-allowed'}">
+                        ${!canUnl ? 'Connectez un nœud adjacent d\'abord' : (!affordable ? `Éclats insuffisants (${state.astralShards}/${cur.cost} 💠)` : `Activer (${cur.cost} 💠)`)}
                     </button>
                 ` : ''}
             `;
         }
 
+        function unlockSelectedSphereNode() {
+            const { nodes, edges } = buildSpherier(state.sphereRings);
+            const node = nodes[selectedSphereNode];
+            if (!node || state.sphereActive.includes(node.id)) return;
+            if (!isNodeUnlockable(node.id, nodes, edges)) return;
+            if (state.astralShards < node.cost) return;
+
+            state.astralShards -= node.cost;
+            state.sphereActive.push(node.id);
+            if (node.kind === 'expand') {
+                state.sphereRings = Math.min(18, state.sphereRings + 1);
+                showToast(`🌀 Nouvel anneau déployé (Anneau ${state.sphereRings}) !`);
+            } else {
+                showToast(`💠 ${node.name} activé !`);
+            }
+
+            const st = computeStats();
+            state.heroHp = Math.min(st.maxHp, state.heroHp);
+            renderSpherier();
+            renderMainHUD();
+            saveStateSafe();
+        }
+
+        function triggerRebirth() {
+            const gainedShards = Math.max(
+                1,
+                Math.floor((state.heroLevel - 1) / 3) + Math.floor((state.maxStage - 1) / 2)
+            );
+            state.rebirths += 1;
+            state.counters.rebirths += 1;
+            state.astralShards += gainedShards;
+
+            state.heroLevel = 1;
+            state.xp = 0;
+            state.xpNext = 100;
+            state.gold = 150;
+            state.stage = 1;
+            state.wave = 1;
+            spawnStageEnemy(1);
+
+            const st = computeStats();
+            state.heroHp = st.maxHp;
+
+            closeAllModals();
+            showToast(`🌀 Renaissance ! +${gainedShards} Éclat(s) d'Âme (💠) obtenus.`);
+            renderMainHUD();
+            saveStateSafe();
+        }
+
         /* =====================================================================
-           12. CLASS SELECTION & SCREEN ROUTING
+           14. SCREEN TRANSITIONS & GLOBAL EVENT DELEGATION
         ====================================================================== */
         function showScreen(screenId) {
-            const classScreen = document.getElementById('class-screen');
-            const gameScreen = document.getElementById('game-screen');
-            const isGame = screenId === 'game-screen';
-
-            if (classScreen) classScreen.classList.toggle('active', !isGame);
-            if (gameScreen) gameScreen.classList.toggle('active', isGame);
+            document.querySelectorAll('.screen').forEach(sc => sc.classList.remove('active'));
+            const target = document.getElementById(screenId);
+            if (target) target.classList.add('active');
         }
 
-        function syncClassCardsSelection(chosenId) {
-            selectedClass = normalizeClassId(chosenId);
-            document.querySelectorAll('#class-cards-list [data-class-id]').forEach(btn => {
-                const active = btn.getAttribute('data-class-id') === selectedClass;
-                btn.classList.toggle('is-selected', active);
-                btn.classList.toggle('selected', active);
-                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        function syncClassSelectionCards(classId) {
+            const validId = normalizeClassId(classId);
+            selectedClass = validId;
+
+            document.querySelectorAll('.class-card[data-class-id]').forEach(card => {
+                const isMatch = card.dataset.classId === validId;
+                card.classList.toggle('is-selected', isMatch);
+                card.classList.toggle('selected', isMatch);
+                card.setAttribute('aria-pressed', isMatch ? 'true' : 'false');
             });
-            const lbl = document.getElementById('enter-class-label');
-            if (lbl) lbl.textContent = CLASSES[selectedClass].name;
+
+            const labelEl = document.getElementById('enter-class-label');
+            if (labelEl && CLASSES[validId]) {
+                labelEl.textContent = CLASSES[validId].name;
+            }
         }
 
-        function launchGameWithClass(chosenId) {
-            const validId = normalizeClassId(chosenId);
-            state.startingClassChosen = true;
+        function launchGameWithClass(classId) {
+            const validId = normalizeClassId(classId);
+            stopAutoOpen();
+            stopCombat();
+
             state.classId = validId;
+            state.startingClassChosen = true;
+            selectedClass = validId;
 
             const stats = computeStats();
             state.heroHp = stats.maxHp;
-            if (!state.enemy) spawnStageEnemy(state.stage);
+            if (!state.enemy) {
+                spawnStageEnemy(state.stage);
+            }
 
-            closeAllModals();
             showScreen('game-screen');
             renderMainHUD();
             startCombat();
             saveStateSafe();
         }
 
-        /* =====================================================================
-           13. EVENT BINDINGS & INIT
-        ====================================================================== */
-        function bindAllListeners() {
-            const classListEl = document.getElementById('class-cards-list');
-            if (classListEl) {
-                classListEl.addEventListener('click', e => {
-                    const card = e.target.closest('[data-class-id]');
-                    if (!card) return;
-                    syncClassCardsSelection(card.getAttribute('data-class-id'));
-                });
-            }
+        function bindEvents() {
+            document.addEventListener('click', ev => {
+                const target = ev.target instanceof Element ? ev.target : null;
+                if (!target) return;
 
-            const enterBtn = document.getElementById('enter-game-btn');
-            if (enterBtn) {
-                enterBtn.addEventListener('click', () => {
+                const classCard = target.closest('.class-card[data-class-id]');
+                if (classCard) {
+                    ev.preventDefault();
+                    const cid = normalizeClassId(classCard.dataset.classId);
+                    syncClassSelectionCards(cid);
+                    return;
+                }
+
+                if (target.closest('#enter-game-btn')) {
+                    ev.preventDefault();
                     launchGameWithClass(selectedClass);
-                });
-            }
+                    return;
+                }
 
-            const btnHudHero = document.getElementById('btn-hud-hero');
-            if (btnHudHero) {
-                btnHudHero.addEventListener('click', () => {
-                    renderHeroModal();
-                    openModalById('hero-modal');
-                });
-            }
-
-            const btnOpenCloud = document.getElementById('btn-open-cloud');
-            if (btnOpenCloud) {
-                btnOpenCloud.addEventListener('click', () => {
+                if (target.closest('#btn-open-cloud')) {
+                    ev.preventDefault();
                     syncCloudModalInputs();
                     openModalById('cloud-modal');
-                });
-            }
+                    return;
+                }
 
-            const cidInput = document.getElementById('cloud-client-id-input');
-            if (cidInput) {
-                cidInput.addEventListener('change', e => {
-                    cloudPrefs.clientId = String(e.target.value || '').trim();
-                    saveCloudPrefs();
-                });
-            }
-
-            const epInput = document.getElementById('cloud-endpoint-input');
-            if (epInput) {
-                epInput.addEventListener('change', e => {
-                    cloudPrefs.endpointUrl = String(e.target.value || '').trim();
-                    saveCloudPrefs();
-                });
-            }
-
-            const chkCloudAuto = document.getElementById('chk-cloud-autosync');
-            if (chkCloudAuto) {
-                chkCloudAuto.addEventListener('change', e => {
-                    cloudPrefs.autoSync = Boolean(e.target.checked);
-                    saveCloudPrefs();
-                    if (cloudPrefs.autoSync) {
-                        saveToGoogleCloud(true);
-                    }
-                });
-            }
-
-            const btnCloudConnect = document.getElementById('btn-cloud-connect');
-            if (btnCloudConnect) {
-                btnCloudConnect.addEventListener('click', () => {
+                if (target.closest('#btn-cloud-connect')) {
+                    ev.preventDefault();
                     connectGoogleCloud();
-                });
-            }
+                    return;
+                }
 
-            const btnCloudDisconnect = document.getElementById('btn-cloud-disconnect');
-            if (btnCloudDisconnect) {
-                btnCloudDisconnect.addEventListener('click', () => {
+                if (target.closest('#btn-cloud-disconnect')) {
+                    ev.preventDefault();
                     disconnectGoogleCloud();
-                });
-            }
+                    return;
+                }
 
-            const btnCloudSyncNow = document.getElementById('btn-cloud-sync-now');
-            if (btnCloudSyncNow) {
-                btnCloudSyncNow.addEventListener('click', () => {
+                if (target.closest('#btn-cloud-sync-now')) {
+                    ev.preventDefault();
                     syncGoogleSave(false);
-                });
-            }
+                    return;
+                }
 
-            const btnCloudSaveNow = document.getElementById('btn-cloud-save-now');
-            if (btnCloudSaveNow) {
-                btnCloudSaveNow.addEventListener('click', () => {
+                if (target.closest('#btn-cloud-save-now')) {
+                    ev.preventDefault();
                     saveToGoogleCloud(false);
-                });
-            }
+                    return;
+                }
 
-            const btnCloudLoadNow = document.getElementById('btn-cloud-load-now');
-            if (btnCloudLoadNow) {
-                btnCloudLoadNow.addEventListener('click', () => {
+                if (target.closest('#btn-cloud-load-now')) {
+                    ev.preventDefault();
                     loadFromGoogleCloud(false);
-                });
-            }
+                    return;
+                }
 
-            const btnCloudExportJson = document.getElementById('btn-cloud-export-json');
-            if (btnCloudExportJson) {
-                btnCloudExportJson.addEventListener('click', () => {
+                if (target.closest('#btn-cloud-export-json')) {
+                    ev.preventDefault();
                     exportSaveJsonFile();
-                });
-            }
+                    return;
+                }
 
-            const btnCloudImportJson = document.getElementById('btn-cloud-import-json');
-            const cloudImportInput = document.getElementById('cloud-import-file-input');
-            if (btnCloudImportJson && cloudImportInput) {
-                btnCloudImportJson.addEventListener('click', () => {
-                    cloudImportInput.click();
-                });
-                cloudImportInput.addEventListener('change', e => {
-                    const file = e.target.files?.[0];
-                    if (file) importSaveJsonFile(file);
-                    e.target.value = '';
-                });
-            }
+                if (target.closest('#btn-cloud-import-json')) {
+                    ev.preventDefault();
+                    const inp = document.getElementById('cloud-import-file-input');
+                    if (inp) inp.click();
+                    return;
+                }
 
-            const btnOpenChest = document.getElementById('btn-open-chest');
-            if (btnOpenChest) {
-                btnOpenChest.addEventListener('click', () => {
-                    stopAutoOpen();
+                const closeBtn = target.closest('[data-close-modal]');
+                if (closeBtn) {
+                    ev.preventDefault();
+                    closeModalById(closeBtn.dataset.closeModal);
+                    return;
+                }
+
+                if (target.classList.contains('modal-overlay')) {
+                    ev.preventDefault();
+                    target.classList.remove('active');
+                    return;
+                }
+
+                const openModalBtn = target.closest('[data-open-modal]');
+                if (openModalBtn) {
+                    ev.preventDefault();
+                    const modalId = openModalBtn.dataset.openModal;
+                    if (modalId === 'bag-modal') renderBagModal();
+                    else if (modalId === 'hero-modal') renderHeroModal();
+                    else if (modalId === 'codex-modal') renderCodexModal();
+                    else if (modalId === 'missions-modal') renderMissionsModal();
+                    else if (modalId === 'achievements-modal') renderAchievementsModal();
+                    else if (modalId === 'sphere-modal') renderSpherier();
+                    openModalById(modalId);
+                    return;
+                }
+
+                if (target.closest('#btn-hud-hero')) {
+                    ev.preventDefault();
+                    renderHeroModal();
+                    openModalById('hero-modal');
+                    return;
+                }
+
+                if (target.closest('#btn-open-chest')) {
+                    ev.preventDefault();
                     openSingleChest(false);
-                });
-            }
+                    return;
+                }
 
-            const btnAutoOpen = document.getElementById('btn-auto-open');
-            if (btnAutoOpen) {
-                btnAutoOpen.addEventListener('click', () => {
+                if (target.closest('#btn-auto-open')) {
+                    ev.preventDefault();
                     if (autoOpenEnabled) stopAutoOpen();
                     else startAutoOpen();
-                });
-            }
+                    return;
+                }
 
-            const btnAutoSettings = document.getElementById('btn-auto-settings');
-            if (btnAutoSettings) {
-                btnAutoSettings.addEventListener('click', () => {
+                if (target.closest('#btn-auto-settings')) {
+                    ev.preventDefault();
                     const chkBetter = document.getElementById('chk-pause-better');
                     const selTier = document.getElementById('sel-pause-min-tier');
                     const chkSet = document.getElementById('chk-pause-set');
-                    const chkUniq = document.getElementById('chk-pause-unique');
+                    const chkUnique = document.getElementById('chk-pause-unique');
                     if (chkBetter) chkBetter.checked = Boolean(state.autoPause.betterPower);
-                    if (selTier) selTier.value = String(state.autoPause.minTier);
+                    if (selTier) selTier.value = String(state.autoPause.minTier ?? 9);
                     if (chkSet) chkSet.checked = Boolean(state.autoPause.setOrHigher);
-                    if (chkUniq) chkUniq.checked = Boolean(state.autoPause.uniqueOnly);
+                    if (chkUnique) chkUnique.checked = Boolean(state.autoPause.uniqueOnly);
                     openModalById('auto-modal');
-                });
-            }
-
-            document.getElementById('chk-pause-better')?.addEventListener('change', e => {
-                state.autoPause.betterPower = Boolean(e.target.checked);
-                saveStateSafe();
-            });
-            document.getElementById('sel-pause-min-tier')?.addEventListener('change', e => {
-                state.autoPause.minTier = Math.max(2, Math.min(9, Math.round(toNum(e.target.value, 9))));
-                saveStateSafe();
-            });
-            document.getElementById('chk-pause-set')?.addEventListener('change', e => {
-                state.autoPause.setOrHigher = Boolean(e.target.checked);
-                saveStateSafe();
-            });
-            document.getElementById('chk-pause-unique')?.addEventListener('change', e => {
-                state.autoPause.uniqueOnly = Boolean(e.target.checked);
-                saveStateSafe();
-            });
-
-            document.getElementById('btn-upgrade-chest')?.addEventListener('click', upgradeChestLevel);
-            document.getElementById('btn-open-rates')?.addEventListener('click', () => {
-                renderRatesModal();
-                openModalById('rates-modal');
-            });
-
-            document.getElementById('btn-loot-equip')?.addEventListener('click', () => {
-                if (!pendingLoot) return;
-                const item = pendingLoot;
-                pendingLoot = null;
-                const { soldGold, chestLeveled, returnedToBag } = equipItemAutoSellRule(item);
-                const stats = computeStats();
-                state.heroHp = Math.min(stats.maxHp, state.heroHp);
-                closeModalById('loot-modal');
-                renderMainHUD();
-                saveStateSafe();
-
-                if (soldGold > 0) {
-                    showToast(`✅ ${item.name} équipé • Ancien vendu +${formatCompact(soldGold)} 🪙${chestLeveled ? ` • Coffre Niv.${state.chestLevel}!` : ''}`);
-                } else if (returnedToBag) {
-                    showToast(`✅ ${item.name} équipé • Ancien Set/Unique rangé au Sac`);
-                } else {
-                    showToast(`✅ ${item.name} équipé !`);
-                }
-            });
-
-            document.getElementById('btn-loot-bag')?.addEventListener('click', () => {
-                if (!pendingLoot) return;
-                if (state.bag.length >= state.bagMax) {
-                    showToast('🎒 Sac plein !');
                     return;
                 }
-                state.bag.push(pendingLoot);
-                pendingLoot = null;
-                closeModalById('loot-modal');
-                renderMainHUD();
-                saveStateSafe();
-                showToast('🎒 Ajouté au Sac.');
-            });
 
-            document.getElementById('btn-loot-sell')?.addEventListener('click', () => {
-                if (!pendingLoot) return;
-                const gain = getSellPrice(pendingLoot);
-                const tier = getEffectiveTier(pendingLoot);
-                pendingLoot = null;
-                earnGold(gain);
-                state.counters.sold += 1;
-                addChestXp(Math.max(2, tier * 2));
-                closeModalById('loot-modal');
-                renderMainHUD();
-                saveStateSafe();
-                showToast(`🪙 Vendu +${formatCompact(gain)} Or`);
-            });
-
-            document.getElementById('equipped-slots-grid')?.addEventListener('click', e => {
-                const btn = e.target.closest('[data-inspect-slot]');
-                if (!btn) return;
-                openInspectModal(btn.getAttribute('data-inspect-slot'));
-            });
-
-            document.getElementById('btn-inspect-lock')?.addEventListener('click', () => {
-                if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
-                state.equipped[inspectedSlot].locked = !state.equipped[inspectedSlot].locked;
-                openInspectModal(inspectedSlot);
-                renderMainHUD();
-                saveStateSafe();
-            });
-
-            document.getElementById('btn-inspect-unequip')?.addEventListener('click', () => {
-                if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
-                if (state.bag.length >= state.bagMax) {
-                    showToast('🎒 Sac plein !');
+                if (target.closest('#btn-upgrade-chest')) {
+                    ev.preventDefault();
+                    upgradeChestLevel();
                     return;
                 }
-                state.bag.push(state.equipped[inspectedSlot]);
-                state.equipped[inspectedSlot] = null;
-                inspectedSlot = null;
-                closeModalById('inspect-modal');
-                renderMainHUD();
-                saveStateSafe();
-            });
 
-            document.getElementById('btn-inspect-sell')?.addEventListener('click', () => {
-                if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
-                const it = state.equipped[inspectedSlot];
-                if (it.locked) {
-                    showToast('🔒 Objet verrouillé.');
+                if (target.closest('#btn-open-rates')) {
+                    ev.preventDefault();
+                    renderRatesModal();
+                    openModalById('rates-modal');
                     return;
                 }
-                const gain = getSellPrice(it);
-                earnGold(gain);
-                state.counters.sold += 1;
-                state.equipped[inspectedSlot] = null;
-                inspectedSlot = null;
-                closeModalById('inspect-modal');
-                renderMainHUD();
-                saveStateSafe();
-                showToast(`🪙 Vendu +${formatCompact(gain)} Or`);
-            });
 
-            document.getElementById('bag-filter-slot')?.addEventListener('change', renderBagModal);
-            document.getElementById('bag-filter-tier')?.addEventListener('change', renderBagModal);
-
-            document.getElementById('btn-bag-expand')?.addEventListener('click', () => {
-                if (state.gold < 120) {
-                    showToast('🪙 120 Or requis.');
+                const inspectSlotBtn = target.closest('[data-inspect-slot]');
+                if (inspectSlotBtn) {
+                    ev.preventDefault();
+                    openInspectModal(inspectSlotBtn.dataset.inspectSlot);
                     return;
                 }
-                state.gold -= 120;
-                state.bagMax += 6;
-                renderBagModal();
-                renderMainHUD();
-                saveStateSafe();
-            });
 
-            document.getElementById('btn-bag-sell-all-lt7')?.addEventListener('click', () => {
-                let soldCount = 0;
-                let totalGold = 0;
-                const kept = [];
-                for (const it of state.bag) {
-                    if (!it.locked && getEffectiveTier(it) < PALIER_SET) {
-                        soldCount += 1;
-                        totalGold += getSellPrice(it);
+                if (target.closest('#btn-loot-equip')) {
+                    ev.preventDefault();
+                    if (!pendingLoot) return;
+                    const res = equipItemAutoSellRule(pendingLoot);
+                    pendingLoot = null;
+                    closeModalById('loot-modal');
+                    if (res.soldGold > 0) {
+                        showToast(`⚔️ Équipé ! Ancien objet vendu +${formatCompact(res.soldGold)} 🪙`);
+                    } else if (res.returnedToBag) {
+                        showToast('⚔️ Équipé ! Ancien objet (P7/P8) placé dans le Sac.');
                     } else {
-                        kept.push(it);
+                        showToast('⚔️ Équipé !');
                     }
-                }
-                if (soldCount === 0) {
-                    showToast('Aucun objet non verrouillé < P7.');
+                    const st = computeStats();
+                    state.heroHp = Math.min(st.maxHp, Math.max(state.heroHp, Math.round(st.maxHp * 0.25)));
+                    renderMainHUD();
+                    saveStateSafe();
                     return;
                 }
-                state.bag = kept;
-                earnGold(totalGold);
-                state.counters.sold += soldCount;
-                addChestXp(soldCount * 2);
-                renderBagModal();
-                renderMainHUD();
-                saveStateSafe();
-                showToast(`🪙 ${soldCount} objet(s) vendus (+${formatCompact(totalGold)} Or)`);
-            });
 
-            document.getElementById('bag-modal-body')?.addEventListener('click', e => {
-                const eqId = e.target.getAttribute('data-equip-bag-id');
-                if (eqId) {
-                    const idx = state.bag.findIndex(x => x.id === eqId);
+                if (target.closest('#btn-loot-bag')) {
+                    ev.preventDefault();
+                    if (!pendingLoot) return;
+                    if (state.bag.length >= state.bagMax) {
+                        showToast('🎒 Sac plein ! Agrandissez-le ou vendez des objets.');
+                        return;
+                    }
+                    state.bag.push(pendingLoot);
+                    pendingLoot = null;
+                    closeModalById('loot-modal');
+                    showToast('🎒 Objet ajouté au Sac.');
+                    renderMainHUD();
+                    saveStateSafe();
+                    return;
+                }
+
+                if (target.closest('#btn-loot-sell')) {
+                    ev.preventDefault();
+                    if (!pendingLoot) return;
+                    const gain = getSellPrice(pendingLoot);
+                    earnGold(gain);
+                    state.counters.sold += 1;
+                    addChestXp(2);
+                    pendingLoot = null;
+                    closeModalById('loot-modal');
+                    showToast(`🪙 Vendu pour +${formatCompact(gain)} Or !`);
+                    renderMainHUD();
+                    saveStateSafe();
+                    return;
+                }
+
+                if (target.closest('#btn-inspect-lock') && inspectedSlot) {
+                    ev.preventDefault();
+                    const it = state.equipped[inspectedSlot];
+                    if (it) {
+                        it.locked = !it.locked;
+                        openInspectModal(inspectedSlot);
+                        renderMainHUD();
+                        saveStateSafe();
+                    }
+                    return;
+                }
+
+                if (target.closest('#btn-inspect-unequip') && inspectedSlot) {
+                    ev.preventDefault();
+                    const it = state.equipped[inspectedSlot];
+                    if (!it) return;
+                    if (state.bag.length >= state.bagMax) {
+                        showToast('🎒 Sac plein !');
+                        return;
+                    }
+                    state.bag.push(it);
+                    state.equipped[inspectedSlot] = null;
+                    inspectedSlot = null;
+                    closeModalById('inspect-modal');
+                    renderMainHUD();
+                    saveStateSafe();
+                    return;
+                }
+
+                if (target.closest('#btn-inspect-sell') && inspectedSlot) {
+                    ev.preventDefault();
+                    const it = state.equipped[inspectedSlot];
+                    if (!it) return;
+                    if (it.locked) {
+                        showToast('🔒 Objet verrouillé ! Déverrouillez-le d\'abord.');
+                        return;
+                    }
+                    const gain = getSellPrice(it);
+                    earnGold(gain);
+                    state.counters.sold += 1;
+                    addChestXp(2);
+                    state.equipped[inspectedSlot] = null;
+                    inspectedSlot = null;
+                    closeModalById('inspect-modal');
+                    showToast(`🪙 Équipement vendu +${formatCompact(gain)} Or !`);
+                    renderMainHUD();
+                    saveStateSafe();
+                    return;
+                }
+
+                const bagEquipBtn = target.closest('[data-bag-equip]');
+                if (bagEquipBtn) {
+                    ev.preventDefault();
+                    const idx = state.bag.findIndex(x => x.id === bagEquipBtn.dataset.bagEquip);
                     if (idx === -1) return;
-                    const chosen = state.bag.splice(idx, 1)[0];
-                    const { soldGold } = equipItemAutoSellRule(chosen);
+                    const [chosen] = state.bag.splice(idx, 1);
+                    equipItemAutoSellRule(chosen);
                     renderBagModal();
                     renderMainHUD();
                     saveStateSafe();
-                    if (soldGold > 0) {
-                        showToast(`✅ ${chosen.name} équipé (ancien vendu +${formatCompact(soldGold)} 🪙)`);
+                    return;
+                }
+
+                const bagLockBtn = target.closest('[data-bag-lock]');
+                if (bagLockBtn) {
+                    ev.preventDefault();
+                    const it = state.bag.find(x => x.id === bagLockBtn.dataset.bagLock);
+                    if (it) {
+                        it.locked = !it.locked;
+                        renderBagModal();
+                        saveStateSafe();
                     }
                     return;
                 }
 
-                const lkId = e.target.getAttribute('data-lock-bag-id');
-                if (lkId) {
-                    const it = state.bag.find(x => x.id === lkId);
-                    if (it) it.locked = !it.locked;
-                    renderBagModal();
-                    saveStateSafe();
-                    return;
-                }
-
-                const slId = e.target.getAttribute('data-sell-bag-id');
-                if (slId) {
-                    const idx = state.bag.findIndex(x => x.id === slId);
+                const bagSellBtn = target.closest('[data-bag-sell]');
+                if (bagSellBtn) {
+                    ev.preventDefault();
+                    const idx = state.bag.findIndex(x => x.id === bagSellBtn.dataset.bagSell);
                     if (idx === -1) return;
                     const it = state.bag[idx];
                     if (it.locked) {
-                        showToast('🔒 Objet verrouillé.');
+                        showToast('🔒 Objet verrouillé !');
                         return;
                     }
                     state.bag.splice(idx, 1);
@@ -4743,232 +4800,277 @@
                     renderBagModal();
                     renderMainHUD();
                     saveStateSafe();
-                    showToast(`🪙 Vendu +${formatCompact(gain)} Or`);
+                    return;
                 }
-            });
 
-            document.getElementById('hero-modal-body')?.addEventListener('click', e => {
-                if (e.target.id === 'btn-open-class-switcher') {
+                if (target.closest('#btn-bag-expand')) {
+                    ev.preventDefault();
+                    if (state.gold < 120) {
+                        showToast('🪙 120 Or requis pour +6 places.');
+                        return;
+                    }
+                    state.gold -= 120;
+                    state.bagMax += 6;
+                    renderBagModal();
+                    renderMainHUD();
+                    saveStateSafe();
+                    return;
+                }
+
+                if (target.closest('#btn-bag-sell-all-lt7')) {
+                    ev.preventDefault();
+                    let soldCount = 0;
+                    let totalGold = 0;
+                    state.bag = state.bag.filter(it => {
+                        if (!it.locked && getEffectiveTier(it) < PALIER_SET) {
+                            soldCount += 1;
+                            totalGold += getSellPrice(it);
+                            return false;
+                        }
+                        return true;
+                    });
+                    if (soldCount > 0) {
+                        earnGold(totalGold);
+                        state.counters.sold += soldCount;
+                        addChestXp(soldCount * 2);
+                        showToast(`🪙 ${soldCount} objet(s) (< P7) vendu(s) pour +${formatCompact(totalGold)} Or !`);
+                    } else {
+                        showToast('Aucun objet (< P7) déverrouillé à vendre.');
+                    }
+                    renderBagModal();
+                    renderMainHUD();
+                    saveStateSafe();
+                    return;
+                }
+
+                if (target.closest('#btn-open-class-switcher')) {
+                    ev.preventDefault();
                     renderClassSwitcherModal();
                     openModalById('class-switcher-modal');
                     return;
                 }
-                if (e.target.id === 'btn-do-rebirth') {
-                    if (state.maxStage < 4) {
-                        showToast('🌀 Atteignez l\'Étage 4 minimum pour renaître.');
-                        return;
-                    }
-                    const shards = Math.max(1, Math.floor((state.maxStage - 1) / 3) + Math.floor(state.heroLevel / 5));
-                    state.astralShards += shards;
-                    state.rebirths += 1;
-                    state.counters.rebirths += 1;
-                    state.heroLevel = 1;
-                    state.xp = 0;
-                    state.xpNext = 100;
-                    state.gold = 200;
-                    state.keys += 20;
-                    state.stage = 1;
-                    state.wave = 1;
+
+                const switchClassBtn = target.closest('[data-switch-class]');
+                if (switchClassBtn) {
+                    ev.preventDefault();
+                    const nextCls = normalizeClassId(switchClassBtn.dataset.switchClass);
+                    state.classId = nextCls;
+                    selectedClass = nextCls;
                     const st = computeStats();
-                    state.heroHp = st.maxHp;
-                    spawnStageEnemy(1);
+                    state.heroHp = Math.min(st.maxHp, Math.max(1, state.heroHp));
+                    closeModalById('class-switcher-modal');
                     renderHeroModal();
                     renderMainHUD();
                     saveStateSafe();
-                    showToast(`🌀 Renaissance effectuée ! +${shards} Éclats d'Âme 💠`);
-                }
-            });
-
-            document.getElementById('class-switcher-modal-body')?.addEventListener('click', e => {
-                const btn = e.target.closest('[data-switch-class]');
-                if (!btn) return;
-                const newId = normalizeClassId(btn.getAttribute('data-switch-class'));
-                state.classId = newId;
-                const st = computeStats();
-                state.heroHp = Math.min(st.maxHp, state.heroHp);
-                closeModalById('class-switcher-modal');
-                renderHeroModal();
-                renderMainHUD();
-                saveStateSafe();
-                showToast(`🔄 Classe changée : ${CLASSES[newId].name}`);
-            });
-
-            document.querySelectorAll('.codex-tab').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    codexTab = btn.getAttribute('data-codex-tab') || 'sets';
-                    renderCodexModal();
-                });
-            });
-
-            document.getElementById('codex-modal-body')?.addEventListener('change', e => {
-                if (e.target.id === 'codex-unique-slot-filter') {
-                    codexUniqueSlotFilter = e.target.value || 'all';
-                    renderCodexModal();
-                } else if (e.target.id === 'codex-unique-class-filter') {
-                    codexUniqueClassFilter = e.target.value || 'all';
-                    renderCodexModal();
-                }
-            });
-
-            document.getElementById('missions-modal-body')?.addEventListener('click', e => {
-                const attr = e.target.getAttribute('data-claim-mission');
-                if (!attr) return;
-                const [scope, id] = attr.split(':');
-                const list = scope === 'daily' ? getDailyMissions() : getWeeklyMissions();
-                const map = scope === 'daily' ? state.dailyClaimed : state.weeklyClaimed;
-                const m = list.find(x => x.id === id);
-                if (!m || map[id] || m.prog < m.target) return;
-                map[id] = true;
-                state.gems += m.gems;
-                state.keys += m.keys;
-                renderMissionsModal();
-                renderMainHUD();
-                saveStateSafe();
-                showToast(`📜 Mission réclamée : +${m.gems} 💎 & +${m.keys} 🔑`);
-            });
-
-            document.getElementById('achievements-modal-body')?.addEventListener('click', e => {
-                const key = e.target.getAttribute('data-claim-ach');
-                if (!key) return;
-                const a = getInfiniteAchievements().find(x => x.key === key);
-                if (!a || !a.ready) return;
-                state.achRanks[key] = (state.achRanks[key] || 0) + 1;
-                state.gems += a.rewardGems;
-                renderAchievementsModal();
-                renderMainHUD();
-                saveStateSafe();
-                showToast(`🏆 Succès réclamé : +${a.rewardGems} 💎`);
-            });
-
-            document.getElementById('btn-claim-all-achievements')?.addEventListener('click', () => {
-                let totalGems = 0;
-                for (const a of getInfiniteAchievements()) {
-                    if (a.ready) {
-                        state.achRanks[a.key] = (state.achRanks[a.key] || 0) + 1;
-                        totalGems += a.rewardGems;
-                    }
-                }
-                if (totalGems === 0) {
-                    showToast('Aucun succès prêt à réclamer.');
+                    showToast(`🔄 Classe changée : ${st.cls.name} !`);
                     return;
                 }
-                state.gems += totalGems;
-                renderAchievementsModal();
-                renderMainHUD();
-                saveStateSafe();
-                showToast(`🏆 +${totalGems} 💎 réclamés !`);
+
+                if (target.closest('#btn-trigger-rebirth')) {
+                    ev.preventDefault();
+                    triggerRebirth();
+                    return;
+                }
+
+                const codexTabBtn = target.closest('.codex-tab[data-codex-tab]');
+                if (codexTabBtn) {
+                    ev.preventDefault();
+                    codexTab = codexTabBtn.dataset.codexTab;
+                    renderCodexModal();
+                    return;
+                }
+
+                const uSlotBtn = target.closest('[data-codex-u-slot]');
+                if (uSlotBtn) {
+                    ev.preventDefault();
+                    codexUniqueSlotFilter = uSlotBtn.dataset.codexUSlot;
+                    renderCodexModal();
+                    return;
+                }
+
+                const uClassBtn = target.closest('[data-codex-u-class]');
+                if (uClassBtn) {
+                    ev.preventDefault();
+                    codexUniqueClassFilter = uClassBtn.dataset.codexUClass;
+                    renderCodexModal();
+                    return;
+                }
+
+                const claimMissionBtn = target.closest('[data-claim-mission]');
+                if (claimMissionBtn) {
+                    ev.preventDefault();
+                    const [scope, mid] = claimMissionBtn.dataset.claimMission.split(':');
+                    claimMission(scope, mid);
+                    return;
+                }
+
+                const claimAchBtn = target.closest('[data-claim-ach]');
+                if (claimAchBtn) {
+                    ev.preventDefault();
+                    if (claimSingleAchievement(claimAchBtn.dataset.claimAch)) {
+                        renderAchievementsModal();
+                        renderMainHUD();
+                        saveStateSafe();
+                    }
+                    return;
+                }
+
+                if (target.closest('#btn-claim-all-achievements')) {
+                    ev.preventDefault();
+                    claimAllAchievements();
+                    return;
+                }
+
+                const sphereNodeBtn = target.closest('[data-sphere-node]');
+                if (sphereNodeBtn) {
+                    ev.preventDefault();
+                    selectedSphereNode = sphereNodeBtn.dataset.sphereNode;
+                    renderSpherier();
+                    return;
+                }
+
+                if (target.closest('#btn-sphere-recenter')) {
+                    ev.preventDefault();
+                    sphereOffset = { x: 0, y: 0 };
+                    renderSpherier();
+                    return;
+                }
+
+                if (target.closest('#btn-unlock-sphere-node')) {
+                    ev.preventDefault();
+                    unlockSelectedSphereNode();
+                }
+            });
+
+            document.addEventListener('change', ev => {
+                const target = ev.target instanceof Element ? ev.target : null;
+                if (!target) return;
+
+                if (target.id === 'cloud-import-file-input' && target.files && target.files[0]) {
+                    importSaveJsonFile(target.files[0]);
+                    target.value = '';
+                    return;
+                }
+
+                if (target.id === 'chk-cloud-autosync') {
+                    cloudPrefs.autoSync = Boolean(target.checked);
+                    saveCloudPrefs();
+                    if (cloudPrefs.autoSync) {
+                        saveToGoogleCloud(true).catch(() => {});
+                    }
+                    return;
+                }
+
+                if (target.id === 'cloud-client-id-input') {
+                    cloudPrefs.clientId = target.value.trim();
+                    saveCloudPrefs();
+                    return;
+                }
+
+                if (target.id === 'cloud-endpoint-input') {
+                    cloudPrefs.endpointUrl = target.value.trim();
+                    saveCloudPrefs();
+                    return;
+                }
+
+                if (target.id === 'chk-pause-better') {
+                    state.autoPause.betterPower = Boolean(target.checked);
+                    saveStateSafe();
+                } else if (target.id === 'sel-pause-min-tier') {
+                    state.autoPause.minTier = Math.max(2, Math.min(9, parseInt(target.value, 10) || 9));
+                    saveStateSafe();
+                } else if (target.id === 'chk-pause-set') {
+                    state.autoPause.setOrHigher = Boolean(target.checked);
+                    saveStateSafe();
+                } else if (target.id === 'chk-pause-unique') {
+                    state.autoPause.uniqueOnly = Boolean(target.checked);
+                    saveStateSafe();
+                } else if (target.id === 'bag-filter-slot' || target.id === 'bag-filter-tier') {
+                    renderBagModal();
+                }
             });
 
             const sphereCanvas = document.getElementById('sphere-canvas');
             if (sphereCanvas) {
-                let drag = null;
+                let dragging = false;
+                let lastX = 0;
+                let lastY = 0;
+
                 sphereCanvas.addEventListener('pointerdown', e => {
                     if (e.target.closest('[data-sphere-node]') || e.target.closest('#btn-sphere-recenter')) return;
-                    drag = { x: e.clientX, y: e.clientY, ox: sphereOffset.x, oy: sphereOffset.y };
-                    sphereCanvas.setPointerCapture(e.pointerId);
-                });
-                sphereCanvas.addEventListener('pointermove', e => {
-                    if (!drag) return;
-                    sphereOffset.x = drag.ox + (e.clientX - drag.x);
-                    sphereOffset.y = drag.oy + (e.clientY - drag.y);
-                    renderSpherierModal();
-                });
-                sphereCanvas.addEventListener('pointerup', () => {
-                    drag = null;
+                    dragging = true;
+                    lastX = e.clientX;
+                    lastY = e.clientY;
                 });
 
-                sphereCanvas.addEventListener('click', e => {
-                    const nodeBtn = e.target.closest('[data-sphere-node]');
-                    if (!nodeBtn) return;
-                    selectedSphereNode = nodeBtn.getAttribute('data-sphere-node') || 'center';
-                    renderSpherierModal();
+                window.addEventListener('pointermove', e => {
+                    if (!dragging) return;
+                    sphereOffset.x += e.clientX - lastX;
+                    sphereOffset.y += e.clientY - lastY;
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+                    renderSpherier();
+                });
+
+                window.addEventListener('pointerup', () => {
+                    dragging = false;
                 });
             }
 
-            document.getElementById('btn-sphere-recenter')?.addEventListener('click', () => {
-                sphereOffset = { x: 0, y: 0 };
-                renderSpherierModal();
-            });
-
-            document.getElementById('sphere-inspector')?.addEventListener('click', e => {
-                if (e.target.id !== 'btn-activate-sphere-node') return;
-                const { nodes, edges } = buildSpherier(state.sphereRings);
-                const sel = nodes[selectedSphereNode];
-                if (!sel || state.sphereActive.includes(sel.id)) return;
-
-                const connected = edges.some(([a, b]) =>
-                    (a === sel.id && state.sphereActive.includes(b)) ||
-                    (b === sel.id && state.sphereActive.includes(a))
-                );
-                if (!connected) {
-                    showToast('Connectez d\'abord un nœud adjacent.');
-                    return;
-                }
-                if (state.astralShards < sel.cost) {
-                    showToast(`💠 ${sel.cost} Éclats d'Âme requis.`);
-                    return;
-                }
-
-                state.astralShards -= sel.cost;
-                state.sphereActive.push(sel.id);
-                if (sel.kind === 'expand') {
-                    state.sphereRings = Math.min(18, state.sphereRings + 1);
-                    showToast(`🌀 Nouvel anneau déployé !`);
-                } else {
-                    showToast(`💠 ${sel.name} activé !`);
-                }
-                renderSpherierModal();
-                renderMainHUD();
-                saveStateSafe();
-            });
-
-            document.querySelectorAll('[data-open-modal]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const mId = btn.getAttribute('data-open-modal');
-                    if (mId === 'bag-modal') renderBagModal();
-                    else if (mId === 'hero-modal') renderHeroModal();
-                    else if (mId === 'codex-modal') renderCodexModal();
-                    else if (mId === 'missions-modal') renderMissionsModal();
-                    else if (mId === 'achievements-modal') renderAchievementsModal();
-                    else if (mId === 'sphere-modal') renderSpherierModal();
-                    openModalById(mId);
-                });
-            });
-
-            document.querySelectorAll('[data-close-modal]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    closeModalById(btn.getAttribute('data-close-modal'));
-                });
-            });
-
-            document.querySelectorAll('.modal-overlay').forEach(ov => {
-                ov.addEventListener('click', e => {
-                    if (e.target === ov) ov.classList.remove('active');
-                });
+            window.addEventListener('beforeunload', () => {
+                if (!isInitialized) return;
+                try {
+                    const env = buildSaveEnvelope();
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(env.data));
+                    localStorage.setItem(CLOUD_VAULT_KEY, JSON.stringify(env));
+                } catch (_) {}
             });
         }
 
-        function initApp() {
-            if (isInitialized) return;
-            isInitialized = true;
-
+        /* =====================================================================
+           15. INITIALIZATION (ALWAYS STARTS ON #class-screen WITH MODALS CLOSED)
+        ====================================================================== */
+        function init() {
+            closeAllModals();
             loadCloudPrefs();
             loadStateSafe();
-            bindAllListeners();
-            syncClassCardsSelection(state.classId);
-            updateCloudHudUi();
 
-            if (state.startingClassChosen) {
-                launchGameWithClass(state.classId);
-            } else {
-                showScreen('class-screen');
+            readCloudVaultRecord().then(cloudEnv => {
+                if (!cloudEnv || !cloudEnv.data) return;
+                const localSavedAt = Date.parse(cloudPrefs.lastSyncAt || 0) || 0;
+                const cloudSavedAt = Date.parse(cloudEnv.updatedAt || 0) || 0;
+                if (cloudSavedAt > localSavedAt) {
+                    state = sanitizeSave(cloudEnv.data);
+                    selectedClass = state.classId;
+                    syncClassSelectionCards(selectedClass);
+                    if (state.startingClassChosen) {
+                        launchGameWithClass(state.classId);
+                    } else {
+                        renderMainHUD();
+                    }
+                }
+            }).catch(() => {});
+
+            if (!state.enemy) {
+                spawnStageEnemy(state.stage);
             }
+            const st = computeStats();
+            state.heroHp = st.maxHp;
+
+            syncClassSelectionCards(state.classId);
+            syncAutoOpenUi();
+            updateCloudHudUi();
+            bindEvents();
+
+            showScreen('class-screen');
+            renderMainHUD();
+            isInitialized = true;
         }
 
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp, { once: true });
+            document.addEventListener('DOMContentLoaded', init, { once: true });
         } else {
-            initApp();
+            init();
         }
     })();
     </script>
