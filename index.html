@@ -839,7 +839,7 @@
             </div>
             <div class="modal-scroll space-y-2.5 text-xs">
                 <p class="text-[11px] text-slate-300">
-                    Définissez les déclencheurs mettant en pause l'ouverture automatique des coffres :
+                    En auto-ouverture, les objets &lt; P7 sont vendus automatiquement et les P7/P8 vont au Sac. Définissez ci-dessous les déclencheurs de pause :
                 </p>
                 <label class="flex items-center justify-between p-2.5 rounded-xl bg-[#0b0e14] border border-slate-800 cursor-pointer">
                     <div>
@@ -3309,9 +3309,6 @@
             if (state.autoPause.setOrHigher && tier === PALIER_SET) {
                 reasons.push('💠 Pièce de Set (Palier 7)');
             }
-            if (state.bag.length >= state.bagMax) {
-                reasons.push('🎒 Sac plein');
-            }
             return reasons;
         }
 
@@ -3352,12 +3349,19 @@
                 return;
             }
 
-            if (state.bag.length < state.bagMax) {
+            const itemTier = getEffectiveTier(item);
+            if (itemTier >= PALIER_SET) {
+                if (state.bag.length >= state.bagMax) {
+                    state.bagMax += 1;
+                }
                 state.bag.push(item);
+                setCombatLog(`💠 Auto-Loot : ${item.name} (Palier ${itemTier}) ajouté à l'inventaire.`);
             } else {
                 const gain = getSellPrice(item);
                 earnGold(gain);
                 state.counters.sold += 1;
+                addChestXp(2);
+                setCombatLog(`🪙 Auto-Vente : ${item.name} (P${itemTier}) vendu +${formatCompact(gain)} 🪙.`);
             }
 
             renderMainHUD();
@@ -3902,55 +3906,67 @@
                         </div>
                     `;
                 }).join('')
-                : `<div class="text-[10px] text-slate-400">Aucune relique Unique équipée (Palier 8).</div>`;
+                : `<div class="text-[10px] text-slate-400">Aucun effet Unique actif (équipez une relique Palier 8).</div>`;
+
+            const statsGrid = [
+                { l: '⚔️ Attaque', v: formatCompact(st.atk) },
+                { l: '❤️ PV Max', v: formatCompact(st.maxHp) },
+                { l: '🛡️ Défense', v: formatCompact(st.def) },
+                { l: '💥 Taux Crit', v: formatCombinedPct(st.crit) },
+                { l: '🔥 Dégâts Crit', v: formatCombinedPct(st.critDmg) },
+                { l: '⚡ Vitesse Atk', v: formatCombinedPct(st.atkSpd) },
+                { l: '💨 Esquive', v: formatCombinedPct(st.dodge) },
+                { l: '✨ Magie', v: formatCompact(st.mag) },
+                { l: '🔰 Rés. Magique', v: formatCombinedPct(st.magRes) },
+                { l: '🩸 Vol de Vie', v: formatCombinedPct(st.lifesteal) },
+                { l: '💚 Régénération', v: `${formatCompact(st.regen)}/s` }
+            ];
 
             body.innerHTML = `
-                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 flex items-center justify-between gap-2">
-                    <div>
-                        <div class="text-xs font-black text-white">${st.cls.icon} ${st.cls.name} • Niveau ${state.heroLevel}</div>
-                        <div class="text-[10px] text-slate-400 tabular-nums">Étage Max : ${state.maxStage} • Renaissances : ${state.rebirths} • Éclats : ${state.astralShards} 💠</div>
+                <div class="rounded-2xl bg-[#0b0e14] border border-[#f5b841]/30 p-3 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-3xl">${st.cls.icon}</span>
+                        <div>
+                            <div class="font-fantasy text-sm font-black text-white">${st.cls.name} • Niv.${state.heroLevel}</div>
+                            <div class="text-[10px] text-slate-300">Puissance : <strong class="text-amber-300">⚡ ${formatCompact(st.power)}</strong> • Or ×${st.goldMult.toFixed(2)} • EXP ×${st.xpMult.toFixed(2)}</div>
+                        </div>
                     </div>
-                    <button type="button" id="btn-open-class-switcher" class="px-2.5 py-1.5 rounded-xl bg-[#f5b841] text-slate-950 text-[10.5px] font-black shrink-0 cursor-pointer">
-                        Changer Classe
-                    </button>
+                    <button type="button" id="btn-open-class-switcher" class="px-2.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-[10.5px] font-black text-amber-200 cursor-pointer">🔄 Classe</button>
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
-                    <div class="text-[10px] font-black uppercase tracking-wider text-amber-300">11 Statistiques du Héros</div>
-                    <div class="grid grid-cols-2 gap-1.5 text-[10.5px] font-extrabold tabular-nums">
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>⚔️ ATQ</span><span class="text-amber-300">${formatCompact(st.atk)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>❤️ PV</span><span class="text-emerald-300">${formatCompact(st.maxHp)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>🛡️ DEF</span><span class="text-sky-300">${formatCompact(st.def)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>💚 Régén</span><span class="text-emerald-300">${formatCompact(st.regen)}/s</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>✨ Mag</span><span class="text-indigo-300">${formatCompact(st.mag)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>💥 Crit</span><span class="text-orange-300">${formatCombinedPct(st.crit)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>🔥 D.Crit</span><span class="text-rose-300">${formatCombinedPct(st.critDmg)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>⚡ V.Atk</span><span class="text-purple-300">${formatCombinedPct(st.atkSpd)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>💨 Esq</span><span class="text-cyan-300">${formatCombinedPct(st.dodge)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>🔰 Rés</span><span class="text-teal-300">${formatCombinedPct(st.magRes)}</span></div>
-                        <div class="bg-[#121722] rounded-lg px-2 py-1.5 flex justify-between"><span>🩸 VdV</span><span class="text-lime-300">${formatCombinedPct(st.lifesteal)}</span></div>
-                    </div>
-                    <div class="text-[9.5px] text-slate-400 tabular-nums pt-0.5">
-                        Bonus Or : +${formatDiv10Pct(st.cls.goldBonus + sph.goldPct + cdx.goldPct)} • Bonus EXP : +${formatDiv10Pct(st.cls.xpBonus + sph.xpPct + cdx.xpPct)} • EXP Coffre : +${formatDiv10Pct(sph.chestXpPct)}
+                <div class="grid grid-cols-2 gap-1.5 text-xs font-extrabold tabular-nums">
+                    ${statsGrid.map(x => `
+                        <div class="rounded-xl bg-[#0b0e14] border border-slate-800 px-2.5 py-1.5 flex items-center justify-between">
+                            <span class="text-slate-300 text-[11px]">${x.l}</span>
+                            <span class="text-white">${x.v}</span>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="rounded-2xl bg-[#0b0e14] border border-cyan-500/30 p-2.5 space-y-1">
+                    <div class="text-[10.5px] font-black text-cyan-300">💠 Bonus Sphérier (${state.sphereActive.length} nœuds) &amp; Codex (${cdx.pct}%)</div>
+                    <div class="text-[10px] text-slate-300 tabular-nums">
+                        Sphérier : +${formatCompact(sph.atkFlat)} ATQ, +${formatCompact(sph.hpFlat)} PV, +${formatCompact(sph.defFlat)} DEF, +${formatCompact(sph.regenFlat)} Régén, +${formatCombinedPct(sph.chestXpPct / 10)} EXP Coffre.
                     </div>
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
-                    <div class="text-[10px] font-black uppercase tracking-wider text-teal-300">Sets Actifs (Palier 7)</div>
+                <div class="rounded-2xl bg-[#0b0e14] border border-teal-500/30 p-2.5 space-y-1.5">
+                    <div class="text-[11px] font-black text-teal-300">💠 Sets Équipés</div>
                     ${setsHtml}
-                    <div class="text-[10px] font-black uppercase tracking-wider text-pink-300 pt-1">Uniques Équipés (Palier 8)</div>
+                </div>
+
+                <div class="rounded-2xl bg-[#0b0e14] border border-pink-500/30 p-2.5 space-y-1.5">
+                    <div class="text-[11px] font-black text-pink-300">🌟 Uniques Équipés</div>
                     ${uniquesHtml}
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-purple-950/35 border border-purple-500/40 flex items-center justify-between gap-2">
+                <div class="rounded-2xl bg-gradient-to-r from-indigo-950/80 to-purple-950/80 border border-indigo-400/40 p-3 flex items-center justify-between gap-2">
                     <div>
-                        <div class="text-xs font-black text-purple-200">🔮 Renaissance Astrale</div>
-                        <div class="text-[10px] text-purple-300/90 tabular-nums">
-                            ${rebirthGain > 0 ? `Réinitialise l'Étage &amp; le Coffre pour +${rebirthGain} Éclat(s) d'Âme 💠.` : 'Atteignez l\'Étage 10 pour débloquer la Renaissance.'}
-                        </div>
+                        <div class="text-xs font-black text-indigo-200">🔮 Renaissance (Éclats : ${state.astralShards} 💠)</div>
+                        <div class="text-[10px] text-indigo-200/80">Réinitialise l'Étage &amp; le Niveau contre des Éclats d'Âme. (Requis : Étage 10)</div>
                     </div>
-                    <button type="button" id="btn-trigger-rebirth" class="px-3 py-2 rounded-xl ${rebirthGain > 0 ? 'bg-purple-500 text-white' : 'bg-slate-800 text-slate-500'} text-[10.5px] font-black shrink-0 cursor-pointer">
-                        Renaître
+                    <button type="button" id="btn-do-rebirth" class="px-3 py-2 rounded-xl ${rebirthGain > 0 ? 'bg-indigo-400 text-slate-950' : 'bg-slate-800 text-slate-500'} font-black text-[11px] shrink-0 tabular-nums cursor-pointer">
+                        +${rebirthGain} 💠
                     </button>
                 </div>
             `;
@@ -3963,28 +3979,30 @@
                 const c = CLASSES[id];
                 const active = state.classId === id;
                 return `
-                    <button type="button" data-switch-class="${id}" class="w-full text-left rounded-xl p-2.5 border ${active ? 'border-[#f5b841] bg-amber-500/15' : 'border-slate-800 bg-[#0b0e14]'} flex items-center justify-between gap-2 cursor-pointer">
+                    <button type="button" data-switch-class="${id}" class="w-full text-left rounded-2xl p-3 border ${active ? 'border-[#f5b841] bg-amber-500/15' : 'border-slate-800 bg-[#0b0e14]'} flex items-center justify-between gap-2 cursor-pointer">
                         <div>
-                            <div class="text-xs font-black text-white">${c.icon} ${c.name} ${active ? '<span class="text-[9.5px] text-amber-300">(Active)</span>' : ''}</div>
+                            <div class="text-xs font-black text-white">${c.icon} ${c.name} ${active ? '<span class="text-amber-300">(Active)</span>' : ''}</div>
                             <div class="text-[10px] text-slate-300">${c.desc}</div>
+                            <div class="text-[9px] text-amber-200/90 mt-0.5 tabular-nums">
+                                ⚔️${c.atk} • ❤️${c.maxHp} • 🛡️${c.def} • 💚${c.regen}/s • ✨${c.mag} • 💥${formatDiv10Pct(c.crit)} • 🔥${formatDiv10Pct(c.critDmg)} • ⚡${formatDiv10Pct(c.atkSpd)} • 💨${formatDiv10Pct(c.dodge)} • 🔰${formatDiv10Pct(c.magRes)} • 🩸${formatDiv10Pct(c.lifesteal)}
+                            </div>
                         </div>
-                        <div class="text-[10px] font-extrabold text-amber-300 tabular-nums shrink-0">⚔️ ${c.atk} • ❤️ ${c.maxHp}</div>
                     </button>
                 `;
             }).join('');
         }
 
         function renderCodexModal() {
-            const cdx = getCodexBonusSummary();
             const pctEl = document.getElementById('codex-completion-pct');
             const body = document.getElementById('codex-modal-body');
             if (!body) return;
+            const cdx = getCodexBonusSummary();
             if (pctEl) pctEl.textContent = `${cdx.pct}%`;
 
             document.querySelectorAll('.codex-tab').forEach(btn => {
                 const isCur = btn.getAttribute('data-codex-tab') === codexTab;
                 btn.className = isCur
-                    ? 'codex-tab py-1.5 rounded-lg bg-teal-500/25 border border-teal-400 text-[9.5px] font-black text-teal-200 cursor-pointer'
+                    ? 'codex-tab py-1.5 rounded-lg bg-teal-500/25 border border-teal-400 text-[9.5px] font-black text-teal-100 cursor-pointer'
                     : 'codex-tab py-1.5 rounded-lg bg-[#182030] border border-transparent text-[9.5px] font-black text-slate-300 cursor-pointer';
             });
 
@@ -3992,11 +4010,11 @@
                 body.innerHTML = CLASS_ORDER.map(id => {
                     const c = CLASSES[id];
                     return `
-                        <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1">
+                        <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 space-y-1">
                             <div class="text-xs font-black text-white">${c.icon} ${c.name}</div>
-                            <div class="text-[10px] text-slate-300">${c.desc}</div>
-                            <div class="text-[9.5px] font-bold text-amber-200 tabular-nums">
-                                ⚔️ ${c.atk} • ❤️ ${c.maxHp} • 🛡️ ${c.def} • 💚 ${c.regen}/s • ✨ ${c.mag} • 💥 ${formatDiv10Pct(c.crit)} • 🔥 ${formatDiv10Pct(c.critDmg)} • ⚡ ${formatDiv10Pct(c.atkSpd)} • 💨 ${formatDiv10Pct(c.dodge)} • 🔰 ${formatDiv10Pct(c.magRes)} • 🩸 ${formatDiv10Pct(c.lifesteal)}
+                            <div class="text-[10.5px] text-slate-300">${c.desc}</div>
+                            <div class="text-[9.5px] text-amber-300 tabular-nums">
+                                ⚔️${c.atk} • ❤️${c.maxHp} • 🛡️${c.def} • 💚${c.regen}/s • ✨${c.mag} • 💥${formatDiv10Pct(c.crit)} • 🔥${formatDiv10Pct(c.critDmg)} • ⚡${formatDiv10Pct(c.atkSpd)} • 💨${formatDiv10Pct(c.dodge)} • 🔰${formatDiv10Pct(c.magRes)} • 🩸${formatDiv10Pct(c.lifesteal)}
                             </div>
                         </div>
                     `;
@@ -4008,12 +4026,14 @@
                 body.innerHTML = TIERS.map(t => {
                     const unlocked = isTierUnlocked(t.tier, state.chestLevel);
                     return `
-                        <div class="rounded-xl p-2.5 border rarity-${t.tier} flex items-center justify-between gap-2">
-                            <div>
-                                <div class="text-xs font-black ${t.color}">Palier ${t.tier} • ${t.name}</div>
-                                <div class="text-[10px] text-slate-300">Déblocage : Coffre Niv.${t.unlockLevel} • ${getGearStatCountForTier(t.tier)} stats • ${unlocked ? 'Débloqué' : 'Verrouillé'}</div>
+                        <div class="rounded-xl border ${unlocked ? `rarity-${t.tier}` : 'border-slate-800 bg-[#0b0e14]/70 opacity-75'} p-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black ${t.color}">Palier ${t.tier} • ${t.name}</span>
+                                <span class="text-[10px] font-extrabold text-slate-300">${unlocked ? '✅ Débloqué' : `🔒 Coffre Niv.${t.unlockLevel}`}</span>
                             </div>
-                            <span class="text-[10px] font-black px-2 py-0.5 rounded ${t.badge}">×${t.mult}</span>
+                            <div class="text-[10px] text-slate-300 mt-0.5 tabular-nums">
+                                Déblocage : Coffre Niv.${t.unlockLevel} • ${getGearStatCountForTier(t.tier)} stats • Poids base ÷1000 : ${(t.weight * 100).toFixed(4)}%
+                            </div>
                         </div>
                     `;
                 }).join('');
@@ -4022,18 +4042,16 @@
 
             if (codexTab === 'sets') {
                 body.innerHTML = `
-                    <div class="text-[10.5px] text-teal-200 font-bold mb-1">
-                        32 Sets (4 par classe × 8 classes). Découverts : ${state.foundSets.length}/${SETS.length}. Équipables par toutes les classes.
-                    </div>
-                    ${SETS.map(st => {
-                        const found = state.foundSets.includes(st.id);
+                    <div class="text-[10.5px] text-teal-200 font-bold mb-1">Sets découverts : ${state.foundSets.length}/${SETS.length} (32 Sets • 4 par classe)</div>
+                    ${SETS.map(s => {
+                        const found = state.foundSets.includes(s.id);
                         return `
-                            <div class="rounded-xl p-2.5 border ${found ? 'border-teal-500/50 bg-teal-950/30' : 'border-slate-800 bg-[#0b0e14]/70 opacity-75'} space-y-1">
+                            <div class="rounded-xl border ${found ? 'border-teal-500/50 bg-teal-950/35' : 'border-slate-800 bg-[#0b0e14]/70 opacity-65'} p-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-black text-white">${st.icon} ${st.name} <span class="text-[10px] text-teal-300">[${st.className}]</span></span>
-                                    <span class="text-[9.5px] font-black ${found ? 'text-emerald-300' : 'text-slate-500'}">${found ? 'Découvert' : 'Non trouvé'}</span>
+                                    <span class="text-xs font-black text-white">${s.icon} ${s.name} <span class="text-[10px] text-teal-300">[${s.className}]</span></span>
+                                    <span class="text-[10px] font-black ${found ? 'text-emerald-300' : 'text-slate-500'}">${found ? 'Découvert' : 'Inconnu'}</span>
                                 </div>
-                                <div class="text-[10px] text-teal-200">(2 pièces) ${st.b2.label} • (4 pièces) ${st.b4.label}</div>
+                                <div class="text-[10px] text-slate-300 mt-0.5">(2) ${s.b2.label} • (4) ${s.b4.label}</div>
                             </div>
                         `;
                     }).join('')}
@@ -4049,20 +4067,19 @@
                 });
 
                 body.innerHTML = `
-                    <div class="rounded-xl p-2 bg-[#0b0e14] border border-pink-500/30 space-y-1.5">
-                        <div class="flex items-center justify-between text-[10.5px] font-black text-pink-200">
-                            <span>128 Uniques (4 emplacements × 8 classes × 4 reliques)</span>
-                            <span class="tabular-nums">${state.foundUniques.length}/${UNIQUES.length}</span>
+                    <div class="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+                        <div class="text-[10.5px] text-pink-200 font-bold">
+                            Uniques découverts : ${state.foundUniques.length}/${UNIQUES.length} (${filteredUniques.length} affichés)
                         </div>
-                        <div class="grid grid-cols-2 gap-1.5">
-                            <select id="codex-unique-slot" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white">
-                                <option value="all" ${codexUniqueSlotFilter === 'all' ? 'selected' : ''}>Tous emplacements</option>
-                                <option value="arme" ${codexUniqueSlotFilter === 'arme' ? 'selected' : ''}>⚔️ Arme (32)</option>
-                                <option value="armure" ${codexUniqueSlotFilter === 'armure' ? 'selected' : ''}>🛡️ Armure (32)</option>
-                                <option value="casque" ${codexUniqueSlotFilter === 'casque' ? 'selected' : ''}>🪖 Casque (32)</option>
-                                <option value="bottes" ${codexUniqueSlotFilter === 'bottes' ? 'selected' : ''}>🥾 Bottes (32)</option>
+                        <div class="flex items-center gap-1">
+                            <select id="codex-unique-slot-select" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-0.5 text-[10px] font-bold text-white">
+                                <option value="all" ${codexUniqueSlotFilter === 'all' ? 'selected' : ''}>Tous slots</option>
+                                <option value="arme" ${codexUniqueSlotFilter === 'arme' ? 'selected' : ''}>⚔️ Arme</option>
+                                <option value="armure" ${codexUniqueSlotFilter === 'armure' ? 'selected' : ''}>🛡️ Armure</option>
+                                <option value="casque" ${codexUniqueSlotFilter === 'casque' ? 'selected' : ''}>🪖 Casque</option>
+                                <option value="bottes" ${codexUniqueSlotFilter === 'bottes' ? 'selected' : ''}>🥾 Bottes</option>
                             </select>
-                            <select id="codex-unique-class" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white">
+                            <select id="codex-unique-class-select" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-0.5 text-[10px] font-bold text-white">
                                 <option value="all" ${codexUniqueClassFilter === 'all' ? 'selected' : ''}>Toutes classes</option>
                                 ${CLASS_ORDER.map(cid => `<option value="${cid}" ${codexUniqueClassFilter === cid ? 'selected' : ''}>${CLASSES[cid].icon} ${CLASSES[cid].name}</option>`).join('')}
                             </select>
@@ -4072,12 +4089,12 @@
                         const found = state.foundUniques.includes(u.id);
                         const sl = GEAR_SLOTS.find(s => s.id === u.slot);
                         return `
-                            <div class="rounded-xl p-2 border ${found ? 'border-pink-500/50 bg-pink-950/30' : 'border-slate-800 bg-[#0b0e14]/70 opacity-75'} space-y-0.5">
+                            <div class="rounded-xl border ${found ? 'border-pink-500/50 bg-pink-950/35' : 'border-slate-800 bg-[#0b0e14]/70 opacity-65'} p-2">
                                 <div class="flex items-center justify-between gap-1">
                                     <span class="text-xs font-black text-white truncate">${u.icon} ${u.name} <span class="text-[9.5px] text-pink-300">[${u.className} • ${sl ? sl.label : u.slot}]</span></span>
-                                    <span class="text-[9px] font-black shrink-0 ${found ? 'text-emerald-300' : 'text-slate-500'}">${found ? 'Découvert' : 'Non trouvé'}</span>
+                                    <span class="text-[10px] font-black shrink-0 ${found ? 'text-emerald-300' : 'text-slate-500'}">${found ? 'Découvert' : 'Inconnu'}</span>
                                 </div>
-                                <div class="text-[10px] text-pink-200"><strong>${u.passive} :</strong> ${u.desc}</div>
+                                <div class="text-[10px] text-pink-200 font-bold mt-0.5">${u.passive} : <span class="text-slate-300 font-normal">${u.desc}</span></div>
                             </div>
                         `;
                     }).join('')}
@@ -4085,15 +4102,15 @@
                 return;
             }
 
-            body.innerHTML = ENEMIES.map(en => {
-                const seen = state.seenEnemies.includes(en.id);
+            body.innerHTML = ENEMIES.map(e => {
+                const seen = state.seenEnemies.includes(e.id);
                 return `
-                    <div class="rounded-xl p-2.5 border ${seen ? 'border-rose-500/40 bg-[#0b0e14]' : 'border-slate-800 bg-[#0b0e14]/60 opacity-65'} flex items-center justify-between">
+                    <div class="rounded-xl border ${seen ? 'border-rose-500/40 bg-rose-950/25' : 'border-slate-800 bg-[#0b0e14]/70 opacity-65'} p-2.5 flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="text-xl">${en.icon}</span>
+                            <span class="text-xl">${e.icon}</span>
                             <div>
-                                <div class="text-xs font-black text-white">${seen ? en.name : 'Ennemi Inconnu'}</div>
-                                <div class="text-[10px] text-slate-400">${seen ? 'Rencontré dans le Donjon' : 'Explorez les étages supérieurs'}</div>
+                                <div class="text-xs font-black text-white">${e.name}</div>
+                                <div class="text-[10px] text-slate-400">${seen ? 'Rencontré au donjon' : 'Non encore rencontré'}</div>
                             </div>
                         </div>
                         <span class="text-[10px] font-black ${seen ? 'text-emerald-300' : 'text-slate-500'}">${seen ? 'Vu' : '???'}</span>
@@ -4102,116 +4119,117 @@
             }).join('');
         }
 
-        function getMissionDefinitions() {
-            return [
-                { id: 'd_chests', scope: 'daily', title: 'Ouvrir 100 Coffres', prog: state.dailyProg.chests, target: 100, rewardGold: 800, rewardGems: 50, rewardKeys: 80 },
-                { id: 'd_kills', scope: 'daily', title: 'Vaincre 150 Ennemis', prog: state.dailyProg.kills, target: 150, rewardGold: 1000, rewardGems: 60, rewardKeys: 100 },
-                { id: 'd_upgrades', scope: 'daily', title: 'Améliorer le Coffre 30 fois', prog: state.dailyProg.upgrades, target: 30, rewardGold: 1200, rewardGems: 80, rewardKeys: 60 },
-                { id: 'w_chests', scope: 'weekly', title: 'Hebdo : Ouvrir 500 Coffres', prog: state.weeklyProg.chests, target: 500, rewardGold: 4500, rewardGems: 250, rewardKeys: 300 },
-                { id: 'w_kills', scope: 'weekly', title: 'Hebdo : Vaincre 1 000 Ennemis', prog: state.weeklyProg.kills, target: 1000, rewardGold: 6000, rewardGems: 350, rewardKeys: 400 },
-                { id: 'w_stages', scope: 'weekly', title: 'Hebdo : Atteindre l\'Étage 50', prog: Math.max(state.weeklyProg.stages, state.maxStage), target: 50, rewardGold: 8000, rewardGems: 500, rewardKeys: 250 }
-            ];
+        function getMissionDefs() {
+            return {
+                daily: [
+                    { id: 'd_chests', title: 'Ouvrir 100 Coffres', cur: state.dailyProg.chests, target: 100, rewardGold: 1500, rewardGems: 50 },
+                    { id: 'd_kills',  title: 'Vaincre 250 Ennemis', cur: state.dailyProg.kills, target: 250, rewardGold: 2000, rewardGems: 80 },
+                    { id: 'd_upgs',   title: 'Améliorer le Coffre 50 fois', cur: state.dailyProg.upgrades, target: 50, rewardGold: 1200, rewardGems: 60 }
+                ],
+                weekly: [
+                    { id: 'w_chests', title: 'Ouvrir 500 Coffres (Hebdo)', cur: state.weeklyProg.chests, target: 500, rewardGold: 7500, rewardGems: 250 },
+                    { id: 'w_kills',  title: 'Vaincre 1 500 Ennemis (Hebdo)', cur: state.weeklyProg.kills, target: 1500, rewardGold: 10000, rewardGems: 350 },
+                    { id: 'w_stages', title: 'Atteindre 50 Étages (Hebdo)', cur: state.weeklyProg.stages, target: 50, rewardGold: 8000, rewardGems: 300 }
+                ]
+            };
         }
 
         function hasClaimableMissions() {
-            return getMissionDefinitions().some(m => {
-                const claimed = m.scope === 'daily' ? Boolean(state.dailyClaimed[m.id]) : Boolean(state.weeklyClaimed[m.id]);
-                return !claimed && m.prog >= m.target;
-            });
-        }
-
-        function claimMissionById(id) {
-            const m = getMissionDefinitions().find(x => x.id === id);
-            if (!m) return;
-            const claimed = m.scope === 'daily' ? Boolean(state.dailyClaimed[m.id]) : Boolean(state.weeklyClaimed[m.id]);
-            if (claimed || m.prog < m.target) return;
-
-            if (m.scope === 'daily') state.dailyClaimed[m.id] = true;
-            else state.weeklyClaimed[m.id] = true;
-
-            earnGold(m.rewardGold);
-            state.gems += m.rewardGems;
-            state.keys += m.rewardKeys;
-            showToast(`📜 Récompense reçue : +${formatCompact(m.rewardGold)}🪙 +${m.rewardGems}💎 +${m.rewardKeys}🔑`);
-            renderMissionsModal();
-            renderMainHUD();
-            saveStateSafe();
+            const defs = getMissionDefs();
+            for (const m of defs.daily) {
+                if (m.cur >= m.target && !state.dailyClaimed[m.id]) return true;
+            }
+            for (const m of defs.weekly) {
+                if (m.cur >= m.target && !state.weeklyClaimed[m.id]) return true;
+            }
+            return false;
         }
 
         function renderMissionsModal() {
             const body = document.getElementById('missions-modal-body');
             if (!body) return;
-            const list = getMissionDefinitions();
-            body.innerHTML = list.map(m => {
-                const claimed = m.scope === 'daily' ? Boolean(state.dailyClaimed[m.id]) : Boolean(state.weeklyClaimed[m.id]);
-                const ready = !claimed && m.prog >= m.target;
-                const pct = Math.max(0, Math.min(100, (m.prog / Math.max(1, m.target)) * 100));
-                return `
-                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
-                        <div class="flex items-center justify-between gap-2">
-                            <div>
-                                <div class="text-xs font-black text-white">${m.title}</div>
-                                <div class="text-[10px] text-amber-300 font-bold tabular-nums">+${formatCompact(m.rewardGold)} 🪙 • +${m.rewardGems} 💎 • +${m.rewardKeys} 🔑</div>
+            const defs = getMissionDefs();
+
+            const drawBlock = (label, list, claimedMap, scope) => `
+                <div class="space-y-1.5">
+                    <div class="text-[11px] font-black uppercase tracking-wider text-amber-300">${label}</div>
+                    ${list.map(m => {
+                        const done = m.cur >= m.target;
+                        const claimed = Boolean(claimedMap[m.id]);
+                        const pct = Math.min(100, Math.round((m.cur / Math.max(1, m.target)) * 100));
+                        return `
+                            <div class="rounded-xl bg-[#0b0e14] border border-slate-800 p-2.5 space-y-1.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div>
+                                        <div class="text-xs font-black text-white">${m.title}</div>
+                                        <div class="text-[10px] text-amber-300 font-bold tabular-nums">+${formatCompact(m.rewardGold)} 🪙 • +${m.rewardGems} 💎</div>
+                                    </div>
+                                    <button type="button" data-claim-mission="${scope}:${m.id}" ${done && !claimed ? '' : 'disabled'} class="px-2.5 py-1.5 rounded-lg text-[10.5px] font-black shrink-0 ${claimed ? 'bg-slate-800 text-slate-500' : (done ? 'bg-[#f5b841] text-slate-950 cursor-pointer' : 'bg-slate-800/70 text-slate-400')}">
+                                        ${claimed ? 'Réclamé' : (done ? 'Réclamer' : `${formatCompact(m.cur)}/${formatCompact(m.target)}`)}
+                                    </button>
+                                </div>
+                                <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
+                                    <div class="h-full bg-amber-400" style="width:${pct}%"></div>
+                                </div>
                             </div>
-                            <button type="button" data-claim-mission="${m.id}" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black shrink-0 ${
-                                claimed ? 'bg-slate-800 text-slate-500' : (ready ? 'bg-[#f5b841] text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-400')
-                            }">${claimed ? 'Réclamé' : (ready ? 'Réclamer' : `${formatCompact(m.prog)}/${formatCompact(m.target)}`)}</button>
-                        </div>
-                        <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
-                            <div class="h-full bg-amber-400" style="width:${pct}%"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            body.innerHTML =
+                drawBlock('Missions Quotidiennes (×10)', defs.daily, state.dailyClaimed, 'daily') +
+                drawBlock('Missions Hebdomadaires (×10)', defs.weekly, state.weeklyClaimed, 'weekly');
         }
 
-        function getAchievementDefinitions() {
-            const collectionCount = state.foundSets.length + state.foundUniques.length + state.seenEnemies.length;
+        function getAchievementEntries() {
             const defs = [
-                { key: 'kills',      title: 'Chasseur de Monstres', prog: state.counters.kills,      baseTarget: 25,   mult: 2.2, baseGems: 20 },
-                { key: 'chests',     title: 'Ouvreur de Coffres',    prog: state.counters.chests,     baseTarget: 20,   mult: 2.2, baseGems: 20 },
-                { key: 'gold',       title: 'Magnat de l\'Or',       prog: state.counters.goldEarned, baseTarget: 1000, mult: 2.8, baseGems: 25 },
-                { key: 'stage',      title: 'Explorateur du Donjon', prog: state.maxStage,            baseTarget: 5,    mult: 1.6, baseGems: 30 },
-                { key: 'rebirths',   title: 'Maître des Cycles',     prog: state.rebirths,            baseTarget: 1,    mult: 2.0, baseGems: 40 },
-                { key: 'collection', title: 'Archiviste du Codex',   prog: collectionCount,           baseTarget: 5,    mult: 1.8, baseGems: 35 }
+                { key: 'kills',      title: 'Chasseur de Monstres', cur: state.counters.kills, baseTarget: 25, baseGems: 10 },
+                { key: 'chests',     title: 'Maître des Coffres', cur: state.counters.chests, baseTarget: 15, baseGems: 10 },
+                { key: 'gold',       title: 'Magnat de l\'Or', cur: Math.floor(state.counters.goldEarned), baseTarget: 500, baseGems: 12 },
+                { key: 'stage',      title: 'Explorateur des Étages', cur: state.maxStage, baseTarget: 3, baseGems: 15 },
+                { key: 'rebirths',   title: 'Cycle Astral', cur: state.counters.rebirths, baseTarget: 1, baseGems: 25 },
+                { key: 'collection', title: 'Collectionneur de Reliques', cur: state.foundSets.length + state.foundUniques.length, baseTarget: 2, baseGems: 15 }
             ];
 
             return defs.map(d => {
                 const rank = toNum(state.achRanks[d.key], 0);
-                const target = Math.max(1, Math.round(d.baseTarget * Math.pow(d.mult, rank)));
-                const rewardGems = Math.round(d.baseGems * (1 + rank * 0.45));
-                const ready = d.prog >= target;
-                return { ...d, rank, target, rewardGems, ready };
+                const target = Math.round(d.baseTarget * Math.pow(1.65, rank));
+                const gems = Math.round(d.baseGems * (1 + rank * 0.35));
+                const ready = d.cur >= target;
+                return { ...d, rank, target, gems, ready };
             });
         }
 
         function hasClaimableAchievements() {
-            return getAchievementDefinitions().some(a => a.ready);
+            return getAchievementEntries().some(a => a.ready);
         }
 
-        function claimAchievementByKey(key) {
-            const a = getAchievementDefinitions().find(x => x.key === key);
-            if (!a || !a.ready) return 0;
-            state.achRanks[key] = a.rank + 1;
-            state.gems += a.rewardGems;
-            return a.rewardGems;
+        function claimSingleAchievement(key) {
+            const entry = getAchievementEntries().find(a => a.key === key);
+            if (!entry || !entry.ready) return false;
+            state.achRanks[key] = entry.rank + 1;
+            state.gems += entry.gems;
+            return true;
         }
 
         function claimAllAchievements() {
-            let totalGems = 0;
             let claimedCount = 0;
+            let totalGems = 0;
             let guard = 0;
-            while (guard < 50) {
+            while (guard < 200) {
                 guard += 1;
-                const readyList = getAchievementDefinitions().filter(a => a.ready);
+                const readyList = getAchievementEntries().filter(a => a.ready);
                 if (!readyList.length) break;
                 for (const a of readyList) {
-                    totalGems += claimAchievementByKey(a.key);
+                    state.achRanks[a.key] = a.rank + 1;
+                    state.gems += a.gems;
+                    totalGems += a.gems;
                     claimedCount += 1;
                 }
             }
             if (claimedCount > 0) {
-                showToast(`🏆 ${claimedCount} succès réclamé(s) (+${totalGems} 💎) !`);
+                showToast(`🏆 ${claimedCount} palier(s) réclamé(s) (+${totalGems} 💎) !`);
                 renderAchievementsModal();
                 renderMainHUD();
                 saveStateSafe();
@@ -4223,22 +4241,23 @@
         function renderAchievementsModal() {
             const body = document.getElementById('achievements-modal-body');
             if (!body) return;
-            const list = getAchievementDefinitions();
+            const list = getAchievementEntries();
+
             body.innerHTML = list.map(a => {
-                const pct = Math.max(0, Math.min(100, (a.prog / Math.max(1, a.target)) * 100));
+                const pct = Math.min(100, Math.round((a.cur / Math.max(1, a.target)) * 100));
                 return `
-                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
+                    <div class="rounded-xl bg-[#0b0e14] border ${a.ready ? 'border-amber-400/70' : 'border-slate-800'} p-2.5 space-y-1.5">
                         <div class="flex items-center justify-between gap-2">
                             <div>
-                                <div class="text-xs font-black text-white">${a.title} <span class="text-[10px] text-amber-300">(Palier ${a.rank + 1})</span></div>
-                                <div class="text-[10px] text-fuchsia-300 font-bold tabular-nums">${formatCompact(a.prog)} / ${formatCompact(a.target)} • Récompense : +${a.rewardGems} 💎</div>
+                                <div class="text-xs font-black text-white">${a.title} <span class="text-amber-300">Palier ${a.rank + 1}</span></div>
+                                <div class="text-[10px] text-slate-400 tabular-nums">Progression : ${formatCompact(a.cur)} / ${formatCompact(a.target)} • Récompense : +${a.gems} 💎</div>
                             </div>
-                            <button type="button" data-claim-ach="${a.key}" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black shrink-0 ${
-                                a.ready ? 'bg-[#f5b841] text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-400'
-                            }">${a.ready ? 'Réclamer' : 'En cours'}</button>
+                            <button type="button" data-claim-ach="${a.key}" ${a.ready ? '' : 'disabled'} class="px-2.5 py-1.5 rounded-lg text-[10.5px] font-black shrink-0 ${a.ready ? 'bg-[#f5b841] text-slate-950 cursor-pointer' : 'bg-slate-800 text-slate-500'}">
+                                ${a.ready ? 'Réclamer' : `${pct}%`}
+                            </button>
                         </div>
                         <div class="w-full h-1.5 rounded-full bg-slate-900 overflow-hidden">
-                            <div class="h-full bg-fuchsia-400" style="width:${pct}%"></div>
+                            <div class="h-full bg-gradient-to-r from-amber-400 to-yellow-200" style="width:${pct}%"></div>
                         </div>
                     </div>
                 `;
@@ -4252,184 +4271,240 @@
             if (aBadge) aBadge.classList.toggle('hidden', !hasClaimableAchievements());
         }
 
-        function isSphereNodeUnlockable(nodeId, nodes, edges) {
+        /* =====================================================================
+           12. SPHERIER CONSTELLATION RENDERING & UNLOCK LOGIC
+        ====================================================================== */
+        function canUnlockSphereNode(nodeId, graph) {
             if (state.sphereActive.includes(nodeId)) return false;
-            if (!nodes[nodeId]) return false;
-            for (const [a, b] of edges) {
+            const node = graph.nodes[nodeId];
+            if (!node) return false;
+            return graph.edges.some(([a, b]) => {
                 if (a === nodeId && state.sphereActive.includes(b)) return true;
                 if (b === nodeId && state.sphereActive.includes(a)) return true;
-            }
-            return false;
+                return false;
+            });
         }
 
-        function renderSpherierModal() {
-            const shardsEl = document.getElementById('sphere-shards-value');
-            const canvas = document.getElementById('sphere-canvas');
-            const svg = document.getElementById('sphere-lines-svg');
-            const nodesContainer = document.getElementById('sphere-nodes-container');
-            if (!canvas || !svg || !nodesContainer) return;
-
-            if (shardsEl) shardsEl.textContent = formatCompact(state.astralShards);
-
-            const { nodes, edges } = buildSpherier(state.sphereRings);
-            if (!nodes[selectedSphereNode]) selectedSphereNode = 'center';
-
-            const cx = (canvas.clientWidth || 360) / 2 + sphereOffset.x;
-            const cy = (canvas.clientHeight || 265) / 2 + sphereOffset.y;
-
-            svg.innerHTML = edges.map(([a, b]) => {
-                const na = nodes[a];
-                const nb = nodes[b];
-                if (!na || !nb) return '';
-                const bothActive = state.sphereActive.includes(a) && state.sphereActive.includes(b);
-                return `<line x1="${cx + na.x}" y1="${cy + na.y}" x2="${cx + nb.x}" y2="${cy + nb.y}" stroke="${bothActive ? '#22d3ee' : '#334155'}" stroke-width="${bothActive ? '2.5' : '1.5'}" stroke-opacity="${bothActive ? '0.9' : '0.55'}" />`;
-            }).join('');
-
-            nodesContainer.innerHTML = Object.values(nodes).map(n => {
-                const isActive = state.sphereActive.includes(n.id);
-                const canUnlock = isSphereNodeUnlockable(n.id, nodes, edges);
-                const isPicked = selectedSphereNode === n.id;
-                const cls = [
-                    'spherier-node',
-                    isActive ? 'active-node' : (canUnlock ? 'unlockable-node' : 'opacity-70'),
-                    isPicked ? 'picked-node' : ''
-                ].join(' ');
-                return `<button type="button" data-sphere-node="${n.id}" class="${cls}" style="left:${cx + n.x}px;top:${cy + n.y}px;" title="${n.name}">${n.icon}</button>`;
-            }).join('');
-
-            renderSphereInspector(nodes, edges);
-        }
-
-        function renderSphereInspector(nodes, edges) {
+        function renderSphereInspector(graph) {
             const insp = document.getElementById('sphere-inspector');
+            const shardsEl = document.getElementById('sphere-shards-value');
+            if (shardsEl) shardsEl.textContent = String(state.astralShards);
             if (!insp) return;
-            const node = nodes[selectedSphereNode] || nodes.center;
+
+            const node = graph.nodes[selectedSphereNode] || graph.nodes.center;
             const isActive = state.sphereActive.includes(node.id);
-            const canUnlock = isSphereNodeUnlockable(node.id, nodes, edges);
-            const affordable = state.astralShards >= node.cost;
+            const canUnlock = canUnlockSphereNode(node.id, graph);
 
             insp.innerHTML = `
                 <div class="flex items-center justify-between gap-2">
                     <div class="text-xs font-black text-white">${node.icon} ${node.name}</div>
-                    <span class="text-[10px] font-black px-2 py-0.5 rounded ${
-                        isActive ? 'bg-cyan-500/20 text-cyan-200' : (canUnlock ? 'bg-amber-500/20 text-amber-200' : 'bg-slate-800 text-slate-400')
-                    }">${isActive ? 'Activé' : (canUnlock ? `Coût : ${node.cost} 💠` : 'Connecter un nœud adjacent')}</span>
+                    <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-cyan-500/20 text-cyan-300' : 'bg-amber-500/20 text-amber-300'} tabular-nums">
+                        ${isActive ? 'Activé' : `Coût : ${node.cost} 💠`}
+                    </span>
                 </div>
-                <div class="text-[11px] text-slate-300">${node.desc}</div>
-                ${!isActive && canUnlock ? `
-                    <button type="button" id="btn-unlock-sphere-node" data-unlock-node="${node.id}" class="w-full py-1.5 rounded-xl ${
-                        affordable ? 'bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 cursor-pointer' : 'bg-slate-800 text-slate-500'
-                    } text-xs font-black">
-                        ${affordable ? `Activer ce Nœud (${node.cost} 💠)` : `Éclats insuffisants (${node.cost} 💠 requis)`}
+                <div class="text-[10.5px] text-slate-300">${node.desc}</div>
+                ${!isActive ? `
+                    <button type="button" id="btn-unlock-sphere-node" data-sphere-target="${node.id}" ${canUnlock && state.astralShards >= node.cost ? '' : 'disabled'} class="w-full py-1.5 rounded-xl font-black text-xs ${canUnlock && state.astralShards >= node.cost ? 'bg-cyan-400 text-slate-950 cursor-pointer' : 'bg-slate-800 text-slate-500'}">
+                        ${!canUnlock ? 'Connectez un nœud adjacent d\'abord' : (state.astralShards < node.cost ? 'Éclats d\'Âme insuffisants' : `Activer (${node.cost} 💠)`)}
                     </button>
                 ` : ''}
             `;
         }
 
-        function unlockSphereNode(nodeId) {
-            const { nodes, edges } = buildSpherier(state.sphereRings);
-            const node = nodes[nodeId];
-            if (!node || state.sphereActive.includes(nodeId)) return;
-            if (!isSphereNodeUnlockable(nodeId, nodes, edges)) {
-                showToast('🔗 Connectez d\'abord un nœud actif adjacent.');
-                return;
-            }
-            if (state.astralShards < node.cost) {
-                showToast(`💠 ${node.cost} Éclat(s) d'Âme requis.`);
-                return;
-            }
+        function renderSphereModal() {
+            const canvas = document.getElementById('sphere-canvas');
+            const svg = document.getElementById('sphere-lines-svg');
+            const container = document.getElementById('sphere-nodes-container');
+            if (!canvas || !svg || !container) return;
 
-            state.astralShards -= node.cost;
-            state.sphereActive.push(nodeId);
-            if (node.kind === 'expand' && state.sphereRings < 18) {
-                state.sphereRings += 1;
-                showToast(`🌀 Sphérier étendu à l'Anneau ${state.sphereRings} !`);
-            } else {
-                showToast(`✨ ${node.name} activé !`);
-            }
+            const graph = buildSpherier(state.sphereRings);
+            const w = canvas.clientWidth || 360;
+            const h = canvas.clientHeight || 265;
+            const cx = w / 2 + sphereOffset.x;
+            const cy = h / 2 + sphereOffset.y;
 
-            selectedSphereNode = nodeId;
-            renderSpherierModal();
-            renderMainHUD();
-            saveStateSafe();
+            svg.innerHTML = graph.edges.map(([a, b]) => {
+                const na = graph.nodes[a];
+                const nb = graph.nodes[b];
+                if (!na || !nb) return '';
+                const activeEdge = state.sphereActive.includes(a) && state.sphereActive.includes(b);
+                return `<line x1="${cx + na.x}" y1="${cy + na.y}" x2="${cx + nb.x}" y2="${cy + nb.y}" stroke="${activeEdge ? '#22d3ee' : '#334155'}" stroke-width="${activeEdge ? '2.5' : '1.5'}" stroke-opacity="${activeEdge ? '0.9' : '0.55'}" />`;
+            }).join('');
+
+            container.innerHTML = Object.values(graph.nodes).map(n => {
+                const isActive = state.sphereActive.includes(n.id);
+                const isUnlockable = canUnlockSphereNode(n.id, graph);
+                const isPicked = selectedSphereNode === n.id;
+                const cls = [
+                    'spherier-node',
+                    isActive ? 'active-node' : (isUnlockable ? 'unlockable-node' : ''),
+                    isPicked ? 'picked-node' : ''
+                ].filter(Boolean).join(' ');
+                return `<button type="button" data-sphere-node="${n.id}" class="${cls}" style="left:${cx + n.x}px;top:${cy + n.y}px;" title="${n.name}">${n.icon}</button>`;
+            }).join('');
+
+            renderSphereInspector(graph);
         }
 
         /* =====================================================================
-           12. SCREEN SWITCHING & EVENT LISTENERS (STRICT CLASS SELECTION FLOW)
+           13. SCREEN TRANSITIONS & EVENT WIRING
         ====================================================================== */
         function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(sc => sc.classList.remove('active'));
+            document.querySelectorAll('.screen').forEach(sc => {
+                sc.classList.remove('active');
+            });
             const target = document.getElementById(screenId);
-            if (target) target.classList.add('active');
+            if (target) {
+                target.classList.add('active');
+            }
         }
 
-        function syncClassSelectionCards() {
-            const cls = CLASSES[normalizeClassId(selectedClass)];
-            document.querySelectorAll('#class-cards-list .class-card').forEach(btn => {
-                const cid = btn.getAttribute('data-class-id');
-                const active = cid === cls.id;
-                btn.classList.toggle('is-selected', active);
-                btn.classList.toggle('selected', active);
-                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        function selectStartingClassCard(classId) {
+            selectedClass = normalizeClassId(classId);
+            document.querySelectorAll('#class-cards-list .class-card').forEach(card => {
+                const isMatch = card.getAttribute('data-class-id') === selectedClass;
+                card.classList.toggle('is-selected', isMatch);
+                card.classList.toggle('selected', isMatch);
+                card.setAttribute('aria-pressed', isMatch ? 'true' : 'false');
             });
-            const lbl = document.getElementById('enter-class-label');
-            if (lbl) lbl.textContent = cls.name;
+            const label = document.getElementById('enter-class-label');
+            if (label && CLASSES[selectedClass]) {
+                label.textContent = CLASSES[selectedClass].name;
+            }
         }
 
         function launchGameWithClass(classId) {
-            const cid = normalizeClassId(classId);
-            state.classId = cid;
+            closeAllModals();
+            stopAutoOpen();
+
+            const chosenId = normalizeClassId(classId);
+            const isFirstSelection = !state.startingClassChosen;
+
+            state.classId = chosenId;
             state.startingClassChosen = true;
-            selectedClass = cid;
+            selectedClass = chosenId;
 
             const stats = computeStats();
-            state.heroHp = stats.maxHp;
-            spawnStageEnemy(state.stage);
+            if (isFirstSelection || !Number.isFinite(state.heroHp) || state.heroHp <= 0 || state.heroHp > stats.maxHp) {
+                state.heroHp = stats.maxHp;
+            }
+            if (!state.enemy || !Number.isFinite(state.enemy.hp) || state.enemy.hp <= 0) {
+                spawnStageEnemy(state.stage);
+            }
 
-            closeAllModals();
             showScreen('game-screen');
             renderMainHUD();
             startCombat();
             saveStateSafe();
         }
 
-        function bindEvents() {
-            const classCardsContainer = document.getElementById('class-cards-list');
-            if (classCardsContainer) {
-                classCardsContainer.addEventListener('click', e => {
-                    const card = e.target.closest('.class-card[data-class-id]');
-                    if (!card) return;
-                    const cid = card.getAttribute('data-class-id');
-                    if (CLASSES[cid]) {
-                        selectedClass = cid;
-                        state.classId = cid;
-                        syncClassSelectionCards();
-                    }
+        function wireEvents() {
+            document.querySelectorAll('#class-cards-list .class-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const id = card.getAttribute('data-class-id');
+                    if (id) selectStartingClassCard(id);
+                });
+            });
+
+            const enterBtn = document.getElementById('enter-game-btn');
+            if (enterBtn) {
+                enterBtn.addEventListener('click', () => {
+                    launchGameWithClass(selectedClass);
                 });
             }
 
-            document.getElementById('enter-game-btn')?.addEventListener('click', () => {
-                launchGameWithClass(selectedClass || state.classId || 'warrior');
+            document.querySelectorAll('[data-open-modal]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const modalId = btn.getAttribute('data-open-modal');
+                    if (!modalId) return;
+                    if (modalId === 'bag-modal') renderBagModal();
+                    if (modalId === 'hero-modal') renderHeroModal();
+                    if (modalId === 'codex-modal') renderCodexModal();
+                    if (modalId === 'missions-modal') renderMissionsModal();
+                    if (modalId === 'achievements-modal') renderAchievementsModal();
+                    if (modalId === 'sphere-modal') {
+                        openModalById(modalId);
+                        renderSphereModal();
+                        return;
+                    }
+                    openModalById(modalId);
+                });
             });
 
-            document.getElementById('btn-open-chest')?.addEventListener('click', () => {
-                openSingleChest(false);
+            const hudHeroBtn = document.getElementById('btn-hud-hero');
+            if (hudHeroBtn) {
+                hudHeroBtn.addEventListener('click', () => {
+                    renderHeroModal();
+                    openModalById('hero-modal');
+                });
+            }
+
+            const cloudBtn = document.getElementById('btn-open-cloud');
+            if (cloudBtn) {
+                cloudBtn.addEventListener('click', () => {
+                    syncCloudModalInputs();
+                    openModalById('cloud-modal');
+                });
+            }
+
+            document.getElementById('btn-cloud-connect')?.addEventListener('click', connectGoogleCloud);
+            document.getElementById('btn-cloud-disconnect')?.addEventListener('click', disconnectGoogleCloud);
+            document.getElementById('btn-cloud-sync-now')?.addEventListener('click', () => syncGoogleSave(false));
+            document.getElementById('btn-cloud-save-now')?.addEventListener('click', () => saveToGoogleCloud(false));
+            document.getElementById('btn-cloud-load-now')?.addEventListener('click', () => loadFromGoogleCloud(false));
+            document.getElementById('btn-cloud-export-json')?.addEventListener('click', exportSaveJsonFile);
+            document.getElementById('btn-cloud-import-json')?.addEventListener('click', () => {
+                document.getElementById('cloud-import-file-input')?.click();
+            });
+            document.getElementById('cloud-import-file-input')?.addEventListener('change', e => {
+                const file = e.target?.files?.[0];
+                if (file) importSaveJsonFile(file);
+                e.target.value = '';
+            });
+            document.getElementById('chk-cloud-autosync')?.addEventListener('change', e => {
+                cloudPrefs.autoSync = Boolean(e.target.checked);
+                saveCloudPrefs();
             });
 
+            document.querySelectorAll('[data-close-modal]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-close-modal');
+                    if (id === 'loot-modal') pendingLoot = null;
+                    if (id === 'inspect-modal') inspectedSlot = null;
+                    if (id) closeModalById(id);
+                });
+            });
+
+            document.querySelectorAll('.modal-overlay').forEach(ov => {
+                ov.addEventListener('click', e => {
+                    if (e.target === ov) {
+                        if (ov.id === 'loot-modal') pendingLoot = null;
+                        if (ov.id === 'inspect-modal') inspectedSlot = null;
+                        ov.classList.remove('active');
+                    }
+                });
+            });
+
+            document.getElementById('btn-open-chest')?.addEventListener('click', () => openSingleChest(false));
             document.getElementById('btn-auto-open')?.addEventListener('click', () => {
                 if (autoOpenEnabled) stopAutoOpen();
                 else startAutoOpen();
             });
+            document.getElementById('btn-upgrade-chest')?.addEventListener('click', upgradeChestLevel);
+            document.getElementById('btn-open-rates')?.addEventListener('click', () => {
+                renderRatesModal();
+                openModalById('rates-modal');
+            });
 
             document.getElementById('btn-auto-settings')?.addEventListener('click', () => {
-                const chkBetter = document.getElementById('chk-pause-better');
-                const selMinTier = document.getElementById('sel-pause-min-tier');
-                const chkSet = document.getElementById('chk-pause-set');
-                const chkUniq = document.getElementById('chk-pause-unique');
-                if (chkBetter) chkBetter.checked = Boolean(state.autoPause.betterPower);
-                if (selMinTier) selMinTier.value = String(state.autoPause.minTier);
-                if (chkSet) chkSet.checked = Boolean(state.autoPause.setOrHigher);
-                if (chkUniq) chkUniq.checked = Boolean(state.autoPause.uniqueOnly);
+                const b = document.getElementById('chk-pause-better');
+                const t = document.getElementById('sel-pause-min-tier');
+                const s = document.getElementById('chk-pause-set');
+                const u = document.getElementById('chk-pause-unique');
+                if (b) b.checked = Boolean(state.autoPause.betterPower);
+                if (t) t.value = String(state.autoPause.minTier ?? 9);
+                if (s) s.checked = Boolean(state.autoPause.setOrHigher);
+                if (u) u.checked = Boolean(state.autoPause.uniqueOnly);
                 openModalById('auto-modal');
             });
 
@@ -4450,116 +4525,21 @@
                 saveStateSafe();
             });
 
-            document.getElementById('btn-upgrade-chest')?.addEventListener('click', upgradeChestLevel);
-
-            document.getElementById('btn-open-rates')?.addEventListener('click', () => {
-                renderRatesModal();
-                openModalById('rates-modal');
-            });
-
-            // Google API & Cloud Save Modal events
-            document.getElementById('btn-open-cloud')?.addEventListener('click', () => {
-                syncCloudModalInputs();
-                openModalById('cloud-modal');
-            });
-
-            document.getElementById('cloud-client-id-input')?.addEventListener('change', e => {
-                cloudPrefs.clientId = String(e.target.value || '').trim();
-                saveCloudPrefs();
-            });
-
-            document.getElementById('cloud-endpoint-input')?.addEventListener('change', e => {
-                cloudPrefs.endpointUrl = String(e.target.value || '').trim();
-                saveCloudPrefs();
-            });
-
-            document.getElementById('chk-cloud-autosync')?.addEventListener('change', e => {
-                cloudPrefs.autoSync = Boolean(e.target.checked);
-                saveCloudPrefs();
-            });
-
-            document.getElementById('btn-cloud-connect')?.addEventListener('click', () => {
-                connectGoogleCloud();
-            });
-
-            document.getElementById('btn-cloud-disconnect')?.addEventListener('click', () => {
-                disconnectGoogleCloud();
-            });
-
-            document.getElementById('btn-cloud-sync-now')?.addEventListener('click', () => {
-                syncGoogleSave(false);
-            });
-
-            document.getElementById('btn-cloud-save-now')?.addEventListener('click', () => {
-                saveToGoogleCloud(false);
-            });
-
-            document.getElementById('btn-cloud-load-now')?.addEventListener('click', () => {
-                loadFromGoogleCloud(false);
-            });
-
-            document.getElementById('btn-cloud-export-json')?.addEventListener('click', () => {
-                exportSaveJsonFile();
-            });
-
-            document.getElementById('btn-cloud-import-json')?.addEventListener('click', () => {
-                document.getElementById('cloud-import-file-input')?.click();
-            });
-
-            document.getElementById('cloud-import-file-input')?.addEventListener('change', e => {
-                const file = e.target.files && e.target.files[0];
-                if (file) importSaveJsonFile(file);
-                e.target.value = '';
-            });
-
-            document.querySelectorAll('[data-open-modal]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const modalId = btn.getAttribute('data-open-modal');
-                    if (modalId === 'bag-modal') renderBagModal();
-                    else if (modalId === 'hero-modal') renderHeroModal();
-                    else if (modalId === 'codex-modal') renderCodexModal();
-                    else if (modalId === 'missions-modal') renderMissionsModal();
-                    else if (modalId === 'achievements-modal') renderAchievementsModal();
-                    else if (modalId === 'sphere-modal') {
-                        sphereOffset = { x: 0, y: 0 };
-                        renderSpherierModal();
-                    }
-                    openModalById(modalId);
-                });
-            });
-
-            document.getElementById('btn-hud-hero')?.addEventListener('click', () => {
-                renderHeroModal();
-                openModalById('hero-modal');
-            });
-
-            document.querySelectorAll('[data-close-modal]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    closeModalById(btn.getAttribute('data-close-modal'));
-                });
-            });
-
-            document.querySelectorAll('.modal-overlay').forEach(overlay => {
-                overlay.addEventListener('click', e => {
-                    if (e.target === overlay) overlay.classList.remove('active');
-                });
-            });
-
             document.getElementById('btn-loot-equip')?.addEventListener('click', () => {
                 if (!pendingLoot) return;
                 const item = pendingLoot;
                 pendingLoot = null;
-                const { soldGold, chestLeveled, returnedToBag } = equipItemAutoSellRule(item);
+                const res = equipItemAutoSellRule(item);
                 closeModalById('loot-modal');
-                if (soldGold > 0) {
-                    showToast(`⚔️ ${item.name} équipé • Ancien vendu +${formatCompact(soldGold)}🪙${chestLeveled ? ' • Coffre UP!' : ''}`);
-                } else if (returnedToBag) {
-                    showToast(`⚔️ ${item.name} équipé • Ancien gardé au Sac.`);
+                renderMainHUD();
+                saveStateSafe();
+                if (res.soldGold > 0) {
+                    showToast(`⚔️ ${item.name} équipé ! Ancien objet vendu +${formatCompact(res.soldGold)} 🪙.`);
+                } else if (res.returnedToBag) {
+                    showToast(`⚔️ ${item.name} équipé ! Ancien objet gardé au Sac.`);
                 } else {
                     showToast(`⚔️ ${item.name} équipé !`);
                 }
-                renderMainHUD();
-                saveStateSafe();
             });
 
             document.getElementById('btn-loot-bag')?.addEventListener('click', () => {
@@ -4572,9 +4552,9 @@
                 pendingLoot = null;
                 state.bag.push(item);
                 closeModalById('loot-modal');
-                showToast(`🎒 ${item.name} rangé dans le Sac.`);
                 renderMainHUD();
                 saveStateSafe();
+                showToast(`🎒 ${item.name} ajouté au Sac.`);
             });
 
             document.getElementById('btn-loot-sell')?.addEventListener('click', () => {
@@ -4584,17 +4564,18 @@
                 const gain = getSellPrice(item);
                 earnGold(gain);
                 state.counters.sold += 1;
-                const leveled = addChestXp(2);
+                addChestXp(2);
                 closeModalById('loot-modal');
-                showToast(`🪙 Vendu pour +${formatCompact(gain)} Or${leveled ? ' • Coffre UP!' : ''}`);
                 renderMainHUD();
                 saveStateSafe();
+                showToast(`🪙 ${item.name} vendu (+${formatCompact(gain)} Or).`);
             });
 
             document.getElementById('equipped-slots-grid')?.addEventListener('click', e => {
-                const slotBtn = e.target.closest('[data-inspect-slot]');
-                if (!slotBtn) return;
-                openInspectModal(slotBtn.getAttribute('data-inspect-slot'));
+                const btn = e.target.closest('[data-inspect-slot]');
+                if (!btn) return;
+                const slotId = btn.getAttribute('data-inspect-slot');
+                if (slotId) openInspectModal(slotId);
             });
 
             document.getElementById('btn-inspect-lock')?.addEventListener('click', () => {
@@ -4614,27 +4595,29 @@
                 const item = state.equipped[inspectedSlot];
                 state.equipped[inspectedSlot] = null;
                 state.bag.push(item);
+                inspectedSlot = null;
                 closeModalById('inspect-modal');
                 renderMainHUD();
                 saveStateSafe();
+                showToast(`🎒 ${item.name} rangé dans le Sac.`);
             });
 
             document.getElementById('btn-inspect-sell')?.addEventListener('click', () => {
                 if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
                 const item = state.equipped[inspectedSlot];
                 if (item.locked) {
-                    showToast('🔒 Objet verrouillé ! Déverrouillez-le pour le vendre.');
+                    showToast('🔒 Déverrouillez l\'objet avant de le vendre.');
                     return;
                 }
                 const gain = getSellPrice(item);
                 state.equipped[inspectedSlot] = null;
                 earnGold(gain);
                 state.counters.sold += 1;
-                addChestXp(2);
+                inspectedSlot = null;
                 closeModalById('inspect-modal');
-                showToast(`🪙 ${item.name} vendu pour +${formatCompact(gain)} Or.`);
                 renderMainHUD();
                 saveStateSafe();
+                showToast(`🪙 ${item.name} vendu (+${formatCompact(gain)} Or).`);
             });
 
             document.getElementById('bag-filter-slot')?.addEventListener('change', renderBagModal);
@@ -4643,7 +4626,7 @@
             document.getElementById('btn-bag-expand')?.addEventListener('click', () => {
                 const cost = 120;
                 if (state.gold < cost) {
-                    showToast(`🪙 ${cost} Or requis.`);
+                    showToast(`🪙 ${cost} Or requis pour agrandir le Sac.`);
                     return;
                 }
                 state.gold -= cost;
@@ -4657,27 +4640,22 @@
             document.getElementById('btn-bag-sell-all-lt7')?.addEventListener('click', () => {
                 let soldCount = 0;
                 let totalGold = 0;
-                const keep = [];
-                for (const it of state.bag) {
-                    if (!it.locked && getEffectiveTier(it) < PALIER_SET) {
-                        totalGold += getSellPrice(it);
-                        soldCount += 1;
-                    } else {
-                        keep.push(it);
-                    }
-                }
+                state.bag = state.bag.filter(it => {
+                    if (it.locked || getEffectiveTier(it) >= PALIER_SET) return true;
+                    totalGold += getSellPrice(it);
+                    soldCount += 1;
+                    return false;
+                });
                 if (soldCount === 0) {
                     showToast('Aucun objet < Palier 7 déverrouillé à vendre.');
                     return;
                 }
-                state.bag = keep;
                 earnGold(totalGold);
                 state.counters.sold += soldCount;
-                addChestXp(soldCount * 2);
                 renderBagModal();
                 renderMainHUD();
                 saveStateSafe();
-                showToast(`🪙 ${soldCount} objet(s) vendu(s) pour +${formatCompact(totalGold)} Or.`);
+                showToast(`🪙 ${soldCount} objet(s) (< P7) vendu(s) pour +${formatCompact(totalGold)} Or.`);
             });
 
             document.getElementById('bag-modal-body')?.addEventListener('click', e => {
@@ -4686,22 +4664,25 @@
                     const id = eqBtn.getAttribute('data-equip-bag-id');
                     const idx = state.bag.findIndex(x => x.id === id);
                     if (idx === -1) return;
-                    const item = state.bag[idx];
-                    state.bag.splice(idx, 1);
-                    equipItemAutoSellRule(item);
+                    const [item] = state.bag.splice(idx, 1);
+                    const res = equipItemAutoSellRule(item);
                     renderBagModal();
                     renderMainHUD();
                     saveStateSafe();
-                    showToast(`⚔️ ${item.name} équipé !`);
+                    if (res.soldGold > 0) {
+                        showToast(`⚔️ ${item.name} équipé ! Ancien vendu +${formatCompact(res.soldGold)} 🪙.`);
+                    } else {
+                        showToast(`⚔️ ${item.name} équipé !`);
+                    }
                     return;
                 }
 
                 const lkBtn = e.target.closest('[data-lock-bag-id]');
                 if (lkBtn) {
                     const id = lkBtn.getAttribute('data-lock-bag-id');
-                    const item = state.bag.find(x => x.id === id);
-                    if (!item) return;
-                    item.locked = !item.locked;
+                    const it = state.bag.find(x => x.id === id);
+                    if (!it) return;
+                    it.locked = !it.locked;
                     renderBagModal();
                     saveStateSafe();
                     return;
@@ -4712,20 +4693,19 @@
                     const id = slBtn.getAttribute('data-sell-bag-id');
                     const idx = state.bag.findIndex(x => x.id === id);
                     if (idx === -1) return;
-                    const item = state.bag[idx];
-                    if (item.locked) {
-                        showToast('🔒 Objet verrouillé !');
+                    const it = state.bag[idx];
+                    if (it.locked) {
+                        showToast('🔒 Objet verrouillé.');
                         return;
                     }
                     state.bag.splice(idx, 1);
-                    const gain = getSellPrice(item);
+                    const gain = getSellPrice(it);
                     earnGold(gain);
                     state.counters.sold += 1;
-                    addChestXp(2);
                     renderBagModal();
                     renderMainHUD();
                     saveStateSafe();
-                    showToast(`🪙 Vendu +${formatCompact(gain)} Or.`);
+                    showToast(`🪙 ${it.name} vendu (+${formatCompact(gain)} Or).`);
                 }
             });
 
@@ -4733,7 +4713,9 @@
                 if (e.target.closest('#btn-open-class-switcher')) {
                     renderClassSwitcherModal();
                     openModalById('class-switcher-modal');
-                } else if (e.target.closest('#btn-trigger-rebirth')) {
+                    return;
+                }
+                if (e.target.closest('#btn-do-rebirth')) {
                     executeRebirth();
                 }
             });
@@ -4741,10 +4723,9 @@
             document.getElementById('class-switcher-modal-body')?.addEventListener('click', e => {
                 const btn = e.target.closest('[data-switch-class]');
                 if (!btn) return;
-                const cid = btn.getAttribute('data-switch-class');
-                if (!CLASSES[cid]) return;
-                state.classId = cid;
-                selectedClass = cid;
+                const nextClass = normalizeClassId(btn.getAttribute('data-switch-class'));
+                state.classId = nextClass;
+                selectedClass = nextClass;
                 const st = computeStats();
                 state.heroHp = Math.min(st.maxHp, Math.max(1, state.heroHp));
                 closeModalById('class-switcher-modal');
@@ -4752,7 +4733,7 @@
                 renderMainHUD();
                 startCombat();
                 saveStateSafe();
-                showToast(`🔄 Classe changée : ${st.cls.icon} ${st.cls.name}`);
+                showToast(`🔄 Classe changée : ${CLASSES[nextClass].name}.`);
             });
 
             document.querySelectorAll('.codex-tab').forEach(btn => {
@@ -4763,10 +4744,10 @@
             });
 
             document.getElementById('codex-modal-body')?.addEventListener('change', e => {
-                if (e.target.id === 'codex-unique-slot') {
+                if (e.target && e.target.id === 'codex-unique-slot-select') {
                     codexUniqueSlotFilter = e.target.value || 'all';
                     renderCodexModal();
-                } else if (e.target.id === 'codex-unique-class') {
+                } else if (e.target && e.target.id === 'codex-unique-class-select') {
                     codexUniqueClassFilter = e.target.value || 'all';
                     renderCodexModal();
                 }
@@ -4774,111 +4755,148 @@
 
             document.getElementById('missions-modal-body')?.addEventListener('click', e => {
                 const btn = e.target.closest('[data-claim-mission]');
-                if (!btn) return;
-                claimMissionById(btn.getAttribute('data-claim-mission'));
-            });
+                if (!btn || btn.disabled) return;
+                const raw = btn.getAttribute('data-claim-mission') || '';
+                const [scope, id] = raw.split(':');
+                const defs = getMissionDefs();
+                const list = scope === 'weekly' ? defs.weekly : defs.daily;
+                const m = list.find(x => x.id === id);
+                if (!m || m.cur < m.target) return;
 
-            document.getElementById('achievements-modal-body')?.addEventListener('click', e => {
-                const btn = e.target.closest('[data-claim-ach]');
-                if (!btn) return;
-                const key = btn.getAttribute('data-claim-ach');
-                const gems = claimAchievementByKey(key);
-                if (gems > 0) {
-                    showToast(`🏆 Succès réclamé (+${gems} 💎) !`);
-                    renderAchievementsModal();
-                    renderMainHUD();
-                    saveStateSafe();
+                if (scope === 'weekly') {
+                    if (state.weeklyClaimed[id]) return;
+                    state.weeklyClaimed[id] = true;
+                } else {
+                    if (state.dailyClaimed[id]) return;
+                    state.dailyClaimed[id] = true;
                 }
+
+                earnGold(m.rewardGold);
+                state.gems += m.rewardGems;
+                renderMissionsModal();
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`📜 Récompense réclamée : +${formatCompact(m.rewardGold)} 🪙 & +${m.rewardGems} 💎 !`);
             });
 
             document.getElementById('btn-claim-all-achievements')?.addEventListener('click', claimAllAchievements);
 
+            document.getElementById('achievements-modal-body')?.addEventListener('click', e => {
+                const btn = e.target.closest('[data-claim-ach]');
+                if (!btn || btn.disabled) return;
+                const key = btn.getAttribute('data-claim-ach');
+                if (key && claimSingleAchievement(key)) {
+                    renderAchievementsModal();
+                    renderMainHUD();
+                    saveStateSafe();
+                    showToast('🏆 Succès réclamé !');
+                }
+            });
+
             const sphereCanvas = document.getElementById('sphere-canvas');
-            let dragging = false;
-            let dragStart = { x: 0, y: 0 };
+            let dragStart = null;
+            let dragMoved = false;
 
             sphereCanvas?.addEventListener('pointerdown', e => {
                 if (e.target.closest('[data-sphere-node]') || e.target.closest('#btn-sphere-recenter')) return;
-                dragging = true;
                 dragStart = { x: e.clientX - sphereOffset.x, y: e.clientY - sphereOffset.y };
+                dragMoved = false;
             });
 
             window.addEventListener('pointermove', e => {
-                if (!dragging) return;
-                sphereOffset = {
-                    x: Math.max(-220, Math.min(220, e.clientX - dragStart.x)),
-                    y: Math.max(-220, Math.min(220, e.clientY - dragStart.y))
-                };
-                renderSpherierModal();
+                if (!dragStart) return;
+                const nx = e.clientX - dragStart.x;
+                const ny = e.clientY - dragStart.y;
+                if (Math.abs(nx - sphereOffset.x) > 3 || Math.abs(ny - sphereOffset.y) > 3) {
+                    dragMoved = true;
+                }
+                sphereOffset.x = Math.max(-220, Math.min(220, nx));
+                sphereOffset.y = Math.max(-220, Math.min(220, ny));
+                renderSphereModal();
             });
 
             window.addEventListener('pointerup', () => {
-                dragging = false;
+                dragStart = null;
             });
 
             document.getElementById('btn-sphere-recenter')?.addEventListener('click', () => {
                 sphereOffset = { x: 0, y: 0 };
-                renderSpherierModal();
+                renderSphereModal();
             });
 
-            document.getElementById('sphere-modal')?.addEventListener('click', e => {
-                const nodeBtn = e.target.closest('[data-sphere-node]');
-                if (nodeBtn) {
-                    selectedSphereNode = nodeBtn.getAttribute('data-sphere-node');
-                    renderSpherierModal();
+            document.getElementById('sphere-nodes-container')?.addEventListener('click', e => {
+                if (dragMoved) {
+                    dragMoved = false;
                     return;
                 }
-                const unlockBtn = e.target.closest('#btn-unlock-sphere-node');
-                if (unlockBtn) {
-                    unlockSphereNode(unlockBtn.getAttribute('data-unlock-node'));
+                const btn = e.target.closest('[data-sphere-node]');
+                if (!btn) return;
+                selectedSphereNode = btn.getAttribute('data-sphere-node') || 'center';
+                renderSphereModal();
+            });
+
+            document.getElementById('sphere-inspector')?.addEventListener('click', e => {
+                const btn = e.target.closest('#btn-unlock-sphere-node');
+                if (!btn || btn.disabled) return;
+                const targetId = btn.getAttribute('data-sphere-target');
+                if (!targetId) return;
+                const graph = buildSpherier(state.sphereRings);
+                const node = graph.nodes[targetId];
+                if (!node || !canUnlockSphereNode(targetId, graph) || state.astralShards < node.cost) return;
+
+                state.astralShards -= node.cost;
+                if (!state.sphereActive.includes(targetId)) {
+                    state.sphereActive.push(targetId);
                 }
+                if (node.kind === 'expand') {
+                    state.sphereRings = Math.min(18, state.sphereRings + 1);
+                }
+                renderSphereModal();
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`💠 ${node.name} activé !`);
             });
 
             window.addEventListener('beforeunload', () => {
-                stopAutoOpen();
-                stopCombat();
-                saveStateSafe();
+                if (!isInitialized) return;
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(buildSerializableGameData()));
+                    saveCloudPrefs();
+                } catch (_) {
+                    // Ignore storage error on unload
+                }
             });
         }
 
         /* =====================================================================
-           13. INITIALIZATION (SAFE & IDEMPOTENT)
+           14. SAFE BOOTSTRAP (ALWAYS STARTS ON #class-screen IF UNCHOSEN)
         ====================================================================== */
-        function initApp() {
+        function boot() {
             if (isInitialized) return;
             isInitialized = true;
 
             loadCloudPrefs();
             loadStateSafe();
-            selectedClass = state.classId || 'warrior';
-            syncClassSelectionCards();
-            bindEvents();
             closeAllModals();
-
-            if (!state.enemy) spawnStageEnemy(state.stage);
-            const initialStats = computeStats();
-            if (!Number.isFinite(state.heroHp) || state.heroHp <= 0 || state.heroHp > initialStats.maxHp) {
-                state.heroHp = initialStats.maxHp;
-            }
+            wireEvents();
+            syncAutoOpenUi();
+            updateCloudHudUi();
 
             if (state.startingClassChosen) {
-                showScreen('game-screen');
-                renderMainHUD();
-                startCombat();
+                launchGameWithClass(state.classId);
             } else {
+                stopCombat();
+                stopAutoOpen();
+                selectStartingClassCard(selectedClass);
                 showScreen('class-screen');
                 renderMainHUD();
-            }
-
-            if (cloudPrefs.autoSync) {
-                syncGoogleSave(true).catch(() => {});
             }
         }
 
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp, { once: true });
+            document.addEventListener('DOMContentLoaded', boot, { once: true });
         } else {
-            initApp();
+            boot();
         }
     })();
     </script>
