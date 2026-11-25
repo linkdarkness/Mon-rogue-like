@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Just Loot : Légendes du Coffre</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
@@ -588,9 +589,9 @@
                             <div class="px-1.5 py-0.5 rounded-lg bg-[#0b0e14] border border-cyan-500/30 text-cyan-200 whitespace-nowrap">
                                 🧰 N.<span id="hud-top-chest-lvl">1</span>
                             </div>
-                            <button type="button" id="btn-open-cloud" class="px-1.5 py-0.5 rounded-lg bg-[#182030] border border-sky-500/40 text-sky-300 flex items-center gap-0.5 whitespace-nowrap shrink-0 active:scale-95 transition cursor-pointer" title="Synchronisation Cloud Google">
+                            <button type="button" id="btn-open-cloud" class="px-1.5 py-0.5 rounded-lg bg-[#182030] border border-sky-500/40 text-sky-300 flex items-center gap-0.5 whitespace-nowrap shrink-0 active:scale-95 transition cursor-pointer" title="Connexion &amp; Sauvegarde Google">
                                 <span>☁️</span>
-                                <span id="hud-cloud-status" class="text-[8px] font-black text-sky-300">Cloud</span>
+                                <span id="hud-cloud-status" class="text-[8px] font-black text-sky-300">Google</span>
                             </button>
                         </div>
                     </div>
@@ -749,39 +750,39 @@
     <div id="cloud-modal" class="modal-overlay">
         <div class="modal-card">
             <div class="px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between">
-                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">☁️ Synchronisation Cloud Google</h2>
+                <h2 class="font-fantasy text-sm font-black text-[#fde68a]">☁️ Connexion &amp; Sauvegarde Google</h2>
                 <button type="button" data-close-modal="cloud-modal" class="px-2.5 py-1 rounded-lg bg-[#182030] text-xs font-bold text-slate-300 cursor-pointer">✕</button>
             </div>
             <div class="modal-scroll space-y-2.5 text-xs">
                 <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-sky-500/35 space-y-1">
                     <div class="flex items-center justify-between gap-2">
-                        <span id="cloud-account-label" class="font-black text-sky-300 truncate">Compte : Coffre Cloud Google</span>
+                        <span id="cloud-account-label" class="font-black text-sky-300 truncate">Compte Google : Non connecté</span>
                         <span id="cloud-badge-status" class="text-[9.5px] font-black px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-200 shrink-0">Prêt</span>
                     </div>
-                    <div id="cloud-last-sync-label" class="text-[10px] text-slate-400 tabular-nums">Dernière synchro : Jamais</div>
+                    <div id="cloud-last-sync-label" class="text-[10px] text-slate-400 tabular-nums">Dernière sauvegarde : Jamais</div>
                     <p class="text-[10px] text-slate-300 leading-snug">
-                        Synchronise votre partie avec Google Drive (<code>appDataFolder</code>), un endpoint Cloud optionnel ou le Coffre Cloud persistant local/IndexedDB.
+                        Connectez votre compte Google pour sauvegarder votre progression dans Google Drive (<code>appDataFolder</code>) avec sauvegarde locale/IndexedDB automatique.
                     </p>
                 </div>
 
                 <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-2">
                     <div>
-                        <label for="cloud-client-id-input" class="block text-[10px] font-black text-slate-300 mb-1">Google OAuth Client ID (Optionnel)</label>
-                        <input id="cloud-client-id-input" type="text" placeholder="ex: 123456.apps.googleusercontent.com" class="w-full rounded-lg bg-[#121722] border border-slate-700 px-2.5 py-1.5 text-[11px] text-white outline-none focus:border-sky-400" />
+                        <label for="cloud-client-id-input" class="block text-[10px] font-black text-slate-300 mb-1">Google OAuth Client ID (Optionnel pour Google Drive)</label>
+                        <input id="cloud-client-id-input" type="text" placeholder="ex: 1234567890-abc.apps.googleusercontent.com" class="w-full rounded-lg bg-[#121722] border border-slate-700 px-2.5 py-1.5 text-[11px] text-white outline-none focus:border-sky-400" />
                     </div>
                     <div>
-                        <label for="cloud-endpoint-input" class="block text-[10px] font-black text-slate-300 mb-1">Endpoint Cloud REST (Optionnel)</label>
+                        <label for="cloud-endpoint-input" class="block text-[10px] font-black text-slate-300 mb-1">Endpoint Cloud Personnalisé (Optionnel)</label>
                         <input id="cloud-endpoint-input" type="url" placeholder="https://..." class="w-full rounded-lg bg-[#121722] border border-slate-700 px-2.5 py-1.5 text-[11px] text-white outline-none focus:border-sky-400" />
                     </div>
                     <label class="flex items-center justify-between pt-1 cursor-pointer">
-                        <span class="text-[11px] font-black text-emerald-300">🔄 Synchronisation automatique</span>
+                        <span class="text-[11px] font-black text-emerald-300">🔄 Sauvegarde automatique</span>
                         <input type="checkbox" id="chk-cloud-autosync" class="w-4 h-4 accent-sky-400" checked />
                     </label>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <button type="button" id="btn-cloud-connect" class="py-2 px-2.5 rounded-xl bg-sky-500/20 border border-sky-400/50 text-sky-200 font-black text-[11px] active:scale-95 cursor-pointer">
-                        🔐 Connecter Google
+                    <button type="button" id="btn-cloud-connect" class="py-2 px-2.5 rounded-xl bg-sky-500/25 border border-sky-400/60 text-sky-100 font-black text-[11px] active:scale-95 cursor-pointer">
+                        🔐 Se connecter avec Google
                     </button>
                     <button type="button" id="btn-cloud-disconnect" class="py-2 px-2.5 rounded-xl bg-[#182030] border border-slate-700 text-slate-300 font-black text-[11px] active:scale-95 cursor-pointer">
                         🔓 Déconnecter
@@ -790,10 +791,10 @@
 
                 <div class="grid grid-cols-2 gap-2">
                     <button type="button" id="btn-cloud-save-now" class="py-2 px-2.5 rounded-xl bg-gradient-to-r from-[#f5b841] via-amber-500 to-orange-500 text-slate-950 font-black text-xs active:scale-95 cursor-pointer">
-                        ⬆️ Sauvegarder Cloud
+                        ⬆️ Sauvegarder Progression
                     </button>
                     <button type="button" id="btn-cloud-load-now" class="py-2 px-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-200 font-black text-xs active:scale-95 cursor-pointer">
-                        ⬇️ Restaurer Cloud
+                        ⬇️ Restaurer Sauvegarde
                     </button>
                 </div>
             </div>
@@ -896,7 +897,7 @@
             </div>
             <div class="modal-scroll space-y-2">
                 <p class="text-[11px] text-slate-300">
-                    8 paliers (<strong class="text-teal-300">Palier 7 = Mythique / Set</strong>, <strong class="text-pink-300">Palier 8 = Divin / Unique</strong>). À chaque palier débloqué, les <strong class="text-amber-300">paliers élevés augmentent</strong> et les <strong class="text-rose-300">paliers bas diminuent</strong>, normalisés sur <strong class="text-emerald-300">100%</strong>.
+                    Paliers de coffre débloqués à <strong class="text-amber-300">50, 100, 150, 200, 250, 300, 350</strong> (<strong class="text-teal-300">P7 = Set</strong>, <strong class="text-pink-300">P8 = Unique</strong>). Les <strong class="text-emerald-300">paliers élevés augmentent</strong> et les <strong class="text-rose-300">paliers bas diminuent</strong>, normalisés sur <strong class="text-emerald-300">100%</strong>.
                 </p>
                 <div id="rates-modal-body" class="space-y-1.5"></div>
             </div>
@@ -1037,7 +1038,7 @@
         /* =====================================================================
            1. UTILITIES & NUMBER FORMATTING (÷10 PERCENTAGE STATS, ÷1000 WEIGHTS)
         ====================================================================== */
-        const STORAGE_KEY = 'just_loot_legendes_du_coffre_v17';
+        const STORAGE_KEY = 'just_loot_legendes_du_coffre_v18';
         const CLOUD_VAULT_KEY = 'just_loot_google_cloud_vault_v1';
         const CLOUD_PREFS_KEY = 'just_loot_google_cloud_prefs_v1';
         const CLOUD_DB_NAME = 'JustLootCloudVaultDB';
@@ -1101,30 +1102,33 @@
         }
 
         /* =====================================================================
-           2. GAME CONSTANTS: 8 RARITY TIERS (÷1000 WEIGHTS, UNLOCK EVERY 50 LEVELS)
+           2. GAME CONSTANTS: 8 RARITY TIERS (UNLOCK AT 1, 50, 100, 150, 200, 250, 300, 350)
         ====================================================================== */
         const PALIER_SET = 7;
         const PALIER_UNIQUE = 8;
 
         const TIERS = [
-            { tier: 1, name: 'Normal',          color: 'text-slate-300',   badge: 'bg-slate-700/70 text-slate-200',     weight: 540 / 1000,  mult: 1.0 },
-            { tier: 2, name: 'Commun',          color: 'text-emerald-300', badge: 'bg-emerald-500/20 text-emerald-300', weight: 245 / 1000,  mult: 1.48 },
-            { tier: 3, name: 'Inhabituel',      color: 'text-sky-300',     badge: 'bg-sky-500/20 text-sky-300',         weight: 120 / 1000,  mult: 2.2 },
-            { tier: 4, name: 'Rare',            color: 'text-purple-300',  badge: 'bg-purple-500/20 text-purple-300',   weight: 55 / 1000,   mult: 3.3 },
-            { tier: 5, name: 'Épique',          color: 'text-amber-300',   badge: 'bg-amber-500/20 text-amber-300',     weight: 25 / 1000,   mult: 5.0 },
-            { tier: 6, name: 'Légendaire',      color: 'text-rose-300',    badge: 'bg-rose-500/20 text-rose-300',       weight: 10 / 1000,   mult: 7.5 },
-            { tier: 7, name: 'Mythique / Set',  color: 'text-teal-300',    badge: 'bg-teal-500/25 text-teal-200',       weight: 3.5 / 1000,  mult: 10.2 },
-            { tier: 8, name: 'Divin (Unique)',  color: 'text-pink-300',    badge: 'bg-pink-500/25 text-pink-200',       weight: 1.5 / 1000,  mult: 14.0 }
+            { tier: 1, name: 'Normal',          color: 'text-slate-300',   badge: 'bg-slate-700/70 text-slate-200',     weight: 540 / 1000,  mult: 1.0,  unlockLevel: 1 },
+            { tier: 2, name: 'Commun',          color: 'text-emerald-300', badge: 'bg-emerald-500/20 text-emerald-300', weight: 245 / 1000,  mult: 1.48, unlockLevel: 50 },
+            { tier: 3, name: 'Inhabituel',      color: 'text-sky-300',     badge: 'bg-sky-500/20 text-sky-300',         weight: 120 / 1000,  mult: 2.2,  unlockLevel: 100 },
+            { tier: 4, name: 'Rare',            color: 'text-purple-300',  badge: 'bg-purple-500/20 text-purple-300',   weight: 55 / 1000,   mult: 3.3,  unlockLevel: 150 },
+            { tier: 5, name: 'Épique',          color: 'text-amber-300',   badge: 'bg-amber-500/20 text-amber-300',     weight: 25 / 1000,   mult: 5.0,  unlockLevel: 200 },
+            { tier: 6, name: 'Légendaire',      color: 'text-rose-300',    badge: 'bg-rose-500/20 text-rose-300',       weight: 10 / 1000,   mult: 7.5,  unlockLevel: 250 },
+            { tier: 7, name: 'Mythique / Set',  color: 'text-teal-300',    badge: 'bg-teal-500/25 text-teal-200',       weight: 3.5 / 1000,  mult: 10.2, unlockLevel: 300 },
+            { tier: 8, name: 'Divin (Unique)',  color: 'text-pink-300',    badge: 'bg-pink-500/25 text-pink-200',       weight: 1.5 / 1000,  mult: 14.0, unlockLevel: 350 }
         ];
 
         function getTierInfo(tier) {
             return TIERS.find(t => t.tier === tier) || TIERS[0];
         }
 
+        function getTierUnlockLevel(tier) {
+            return getTierInfo(tier).unlockLevel;
+        }
+
         function isTierUnlocked(tier, chestLevel) {
             const lvl = Math.max(1, Math.round(toNum(chestLevel, 1)));
-            const requiredLevel = (Math.max(1, tier) - 1) * 50 + 1;
-            return lvl >= requiredLevel;
+            return lvl >= getTierUnlockLevel(tier);
         }
 
         function getUnlockedTierMax(chestLevel) {
@@ -2029,7 +2033,7 @@
         }
 
         /* =====================================================================
-           5. GOOGLE CLOUD SYNCHRONIZATION (DRIVE / ENDPOINT + VAULT FALLBACK)
+           5. GOOGLE ACCOUNT SIGN-IN & CLOUD SAVE (DRIVE APPDATA + VAULT)
         ====================================================================== */
         function loadCloudPrefs() {
             try {
@@ -2150,24 +2154,22 @@
             const acctLabel = document.getElementById('cloud-account-label');
             const lastSyncLabel = document.getElementById('cloud-last-sync-label');
 
-            const isGoogleLinked = Boolean(cloudPrefs.accountEmail || cloudPrefs.accessToken);
+            const isGoogleSignedIn = Boolean(cloudPrefs.accessToken || (cloudPrefs.accountEmail && cloudPrefs.accountEmail.includes('@')));
             if (hudStatus) {
-                hudStatus.textContent = isGoogleLinked ? 'Google' : 'Cloud';
-                hudStatus.className = isGoogleLinked
+                hudStatus.textContent = isGoogleSignedIn ? 'Google OK' : 'Google';
+                hudStatus.className = isGoogleSignedIn
                     ? 'text-[8px] font-black text-emerald-300'
                     : 'text-[8px] font-black text-sky-300';
             }
 
             if (badgeStatus) {
-                badgeStatus.textContent = cloudPrefs.lastStatus || (isGoogleLinked ? 'Connecté Google' : 'Coffre Cloud');
+                badgeStatus.textContent = cloudPrefs.lastStatus || (isGoogleSignedIn ? 'Connecté Google' : 'Prêt');
             }
 
             if (acctLabel) {
                 acctLabel.textContent = cloudPrefs.accountEmail
                     ? `Compte Google : ${cloudPrefs.accountEmail}`
-                    : (cloudPrefs.endpointUrl
-                        ? `Endpoint Cloud : ${cloudPrefs.endpointUrl}`
-                        : 'Compte : Coffre Cloud Google (Local + IDB)');
+                    : 'Compte Google : Non connecté';
             }
 
             if (lastSyncLabel) {
@@ -2176,9 +2178,9 @@
                     const formatted = Number.isNaN(d.getTime())
                         ? cloudPrefs.lastSyncAt
                         : d.toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: '2-digit' });
-                    lastSyncLabel.textContent = `Dernière synchro : ${formatted}`;
+                    lastSyncLabel.textContent = `Dernière sauvegarde : ${formatted}`;
                 } else {
-                    lastSyncLabel.textContent = 'Dernière synchro : Jamais';
+                    lastSyncLabel.textContent = 'Dernière sauvegarde : Jamais';
                 }
             }
         }
@@ -2193,7 +2195,33 @@
             updateCloudHudUi();
         }
 
+        function ensureGisScriptLoaded() {
+            return new Promise(resolve => {
+                if (window.google?.accounts?.oauth2?.initTokenClient) {
+                    return resolve(true);
+                }
+                const existing = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+                if (existing) {
+                    existing.addEventListener('load', () => resolve(Boolean(window.google?.accounts?.oauth2?.initTokenClient)), { once: true });
+                    existing.addEventListener('error', () => resolve(false), { once: true });
+                    setTimeout(() => resolve(Boolean(window.google?.accounts?.oauth2?.initTokenClient)), 1800);
+                    return;
+                }
+                const s = document.createElement('script');
+                s.src = 'https://accounts.google.com/gsi/client';
+                s.async = true;
+                s.defer = true;
+                s.onload = () => resolve(Boolean(window.google?.accounts?.oauth2?.initTokenClient));
+                s.onerror = () => resolve(false);
+                document.head.appendChild(s);
+            });
+        }
+
         async function requestGoogleTokenInteractive(clientId) {
+            const ready = await ensureGisScriptLoaded();
+            if (!ready) {
+                throw new Error('GIS_UNAVAILABLE');
+            }
             return new Promise((resolve, reject) => {
                 try {
                     const gis = window.google?.accounts?.oauth2;
@@ -2202,7 +2230,7 @@
                     }
                     const tokenClient = gis.initTokenClient({
                         client_id: clientId,
-                        scope: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email',
+                        scope: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email profile',
                         callback: resp => {
                             if (!resp || resp.error || !resp.access_token) {
                                 reject(new Error(resp?.error || 'OAUTH_FAILED'));
@@ -2211,7 +2239,7 @@
                             }
                         }
                     });
-                    tokenClient.requestAccessToken({ prompt: '' });
+                    tokenClient.requestAccessToken({ prompt: 'select_account' });
                 } catch (err) {
                     reject(err);
                 }
@@ -2225,7 +2253,7 @@
                 });
                 if (!r.ok) return '';
                 const j = await r.json();
-                return typeof j.email === 'string' ? j.email : '';
+                return typeof j.email === 'string' && j.email ? j.email : (typeof j.name === 'string' ? j.name : '');
             } catch (_) {
                 return '';
             }
@@ -2297,40 +2325,46 @@
             if (cidInput) cloudPrefs.clientId = cidInput.value.trim();
             if (epInput) cloudPrefs.endpointUrl = epInput.value.trim();
 
-            if (cloudPrefs.clientId) {
-                try {
-                    const token = await requestGoogleTokenInteractive(cloudPrefs.clientId);
-                    cloudPrefs.accessToken = token;
-                    const email = await fetchGoogleUserEmail(token);
-                    cloudPrefs.accountEmail = email || 'Compte Google Connecté';
-                    cloudPrefs.lastStatus = 'Connecté Google';
-                    saveCloudPrefs();
-                    updateCloudHudUi();
-                    showToast(`☁️ Connecté à Google (${cloudPrefs.accountEmail}).`);
-                    return;
-                } catch (_) {
-                    // Fallback to local/endpoint cloud vault
-                }
+            if (!cloudPrefs.clientId) {
+                cloudPrefs.lastStatus = 'Client ID requis pour OAuth';
+                saveCloudPrefs();
+                updateCloudHudUi();
+                showToast('🔑 Entrez votre Google OAuth Client ID pour ouvrir la connexion Google Drive.');
+                return;
             }
 
-            if (!cloudPrefs.accountEmail) {
-                cloudPrefs.accountEmail = cloudPrefs.endpointUrl
-                    ? 'Cloud Endpoint Actif'
-                    : 'Coffre Cloud Google (Local)';
+            try {
+                const token = await requestGoogleTokenInteractive(cloudPrefs.clientId);
+                cloudPrefs.accessToken = token;
+                const email = await fetchGoogleUserEmail(token);
+                cloudPrefs.accountEmail = email || 'Compte Google Connecté';
+                cloudPrefs.lastStatus = 'Connecté Google';
+                saveCloudPrefs();
+                updateCloudHudUi();
+
+                await saveToGoogleCloud(true);
+                showToast(`✅ Connecté à Google (${cloudPrefs.accountEmail}) • Progression sauvegardée !`);
+            } catch (_) {
+                cloudPrefs.lastStatus = 'Connexion annulée/refusée';
+                saveCloudPrefs();
+                updateCloudHudUi();
+                showToast('⚠️ Connexion Google annulée ou Client ID non autorisé sur cette origine.');
             }
-            cloudPrefs.lastStatus = 'Coffre Cloud Prêt';
-            saveCloudPrefs();
-            updateCloudHudUi();
-            showToast('☁️ Coffre Cloud Google prêt (sauvegarde locale + Cloud activée).');
         }
 
         function disconnectGoogleCloud() {
+            const token = cloudPrefs.accessToken;
+            if (token && window.google?.accounts?.oauth2?.revoke) {
+                try {
+                    window.google.accounts.oauth2.revoke(token, () => {});
+                } catch (_) {}
+            }
             cloudPrefs.accessToken = '';
             cloudPrefs.accountEmail = '';
             cloudPrefs.lastStatus = 'Déconnecté';
             saveCloudPrefs();
             updateCloudHudUi();
-            showToast('☁️ Déconnecté du compte Google.');
+            showToast('🔓 Déconnecté du compte Google.');
         }
 
         async function saveToGoogleCloud(silent = false) {
@@ -2338,19 +2372,21 @@
                 const payloadData = buildSerializableGameData();
                 const envelope = {
                     game: 'Just Loot : Légendes du Coffre',
-                    version: 17,
+                    version: 18,
                     updatedAt: new Date().toISOString(),
-                    account: cloudPrefs.accountEmail || 'local_cloud_vault',
+                    account: cloudPrefs.accountEmail || 'local_vault',
                     data: payloadData
                 };
 
                 await writeCloudVaultRecord(envelope);
 
+                let syncedDrive = false;
                 if (cloudPrefs.accessToken) {
                     try {
                         await uploadToGoogleDriveAppData(cloudPrefs.accessToken, envelope);
+                        syncedDrive = true;
                     } catch (_) {
-                        // Drive upload fallback keeps local/IDB vault intact
+                        syncedDrive = false;
                     }
                 }
 
@@ -2362,25 +2398,29 @@
                             body: JSON.stringify(envelope)
                         });
                     } catch (_) {
-                        // Network endpoint fallback keeps local/IDB vault intact
+                        // Keep local/IDB vault intact
                     }
                 }
 
                 cloudPrefs.lastSyncAt = envelope.updatedAt;
-                cloudPrefs.lastStatus = cloudPrefs.accessToken ? 'Synchro Google OK' : 'Sauvegardé Cloud';
+                cloudPrefs.lastStatus = syncedDrive ? 'Sauvegardé Google Drive' : 'Sauvegardé Local/Cloud';
                 saveCloudPrefs();
                 updateCloudHudUi();
 
                 if (!silent) {
-                    showToast('☁️ Partie sauvegardée dans le Cloud Google !');
+                    showToast(
+                        syncedDrive
+                            ? `☁️ Progression sauvegardée sur Google Drive (${cloudPrefs.accountEmail || 'Google'}) !`
+                            : '💾 Progression sauvegardée localement (connectez Google Drive pour synchro distante).'
+                    );
                 }
                 return true;
             } catch (_) {
-                cloudPrefs.lastStatus = 'Erreur Cloud';
+                cloudPrefs.lastStatus = 'Erreur Sauvegarde';
                 saveCloudPrefs();
                 updateCloudHudUi();
                 if (!silent) {
-                    showToast('⚠️ Sauvegarde locale effectuée (Cloud indisponible).');
+                    showToast('⚠️ Erreur lors de la sauvegarde.');
                 }
                 return false;
             }
@@ -2454,7 +2494,7 @@
 
                 if (!candidateEnvelope || !candidateEnvelope.data) {
                     if (!silent) {
-                        showToast('☁️ Aucune sauvegarde Cloud trouvée.');
+                        showToast('☁️ Aucune sauvegarde trouvée.');
                     }
                     return false;
                 }
@@ -2463,18 +2503,18 @@
                 applyRestoredState(cleanState);
 
                 cloudPrefs.lastSyncAt = candidateEnvelope.updatedAt || new Date().toISOString();
-                cloudPrefs.lastStatus = 'Restauré Cloud';
+                cloudPrefs.lastStatus = 'Restauré';
                 saveCloudPrefs();
                 updateCloudHudUi();
                 closeModalById('cloud-modal');
 
                 if (!silent) {
-                    showToast('☁️ Sauvegarde Cloud restaurée avec succès !');
+                    showToast('☁️ Progression restaurée avec succès !');
                 }
                 return true;
             } catch (_) {
                 if (!silent) {
-                    showToast('⚠️ Impossible de restaurer la sauvegarde Cloud.');
+                    showToast('⚠️ Impossible de restaurer la sauvegarde.');
                 }
                 return false;
             }
@@ -2508,7 +2548,7 @@
         }
 
         /* =====================================================================
-           6. DYNAMIC TIER PROBABILITIES (HIGHER TIERS UP, LOWER TIERS DOWN)
+           6. DYNAMIC TIER PROBABILITIES (UNLOCKS AT 50, 100, 150, 200, 250, 300, 350)
               & SMART AUTO-OPEN PAUSE TRIGGERS (HIGHER POWER OR SELECTED QUALITY)
         ====================================================================== */
         function getTierDropTable(chestLevel) {
@@ -2516,10 +2556,6 @@
             const active = TIERS.filter(t => t.tier <= maxUnlocked);
             const unlockedCount = active.length;
 
-            // Every newly unlocked tier above Palier 1 shifts probability mass
-            // from lower unlocked tiers toward higher unlocked tiers:
-            // - Highest unlocked tiers gain up to +45% weight per extra unlocked tier
-            // - Lowest unlocked tiers lose up to -18% weight per extra unlocked tier (clamped >= 0.08x)
             const shiftSteps = Math.max(0, unlockedCount - 1);
             const midPoint = (1 + maxUnlocked) / 2;
 
@@ -2536,7 +2572,7 @@
 
                 let deltaFactor = 1.0;
                 if (shiftSteps > 0 && maxUnlocked > 1) {
-                    const normalizedPos = (t.tier - midPoint) / ((maxUnlocked - 1) / 2 || 1); // -1 (lowest) to +1 (highest)
+                    const normalizedPos = (t.tier - midPoint) / ((maxUnlocked - 1) / 2 || 1);
                     if (normalizedPos >= 0) {
                         deltaFactor = 1 + normalizedPos * shiftSteps * 0.45;
                     } else {
@@ -3640,7 +3676,7 @@
                                 ${trendBadge}
                             </div>
                             <div class="text-[10px] text-slate-300 mt-0.5 tabular-nums">
-                                ${r.unlocked ? '✅ Disponible' : '🔒 Verrouillé'} • Base ÷1000 : ${(r.weight * 100).toFixed(4)}% • ${getGearStatCountForTier(r.tier)} stats
+                                ${r.unlocked ? '✅ Débloqué' : `🔒 Coffre Niv.${r.unlockLevel}`} • Base ÷1000 : ${(r.weight * 100).toFixed(4)}% • ${getGearStatCountForTier(r.tier)} stats
                             </div>
                         </div>
                         <div class="text-xs font-black ${r.unlocked ? 'text-white' : 'text-slate-500'} tabular-nums">
@@ -3828,26 +3864,21 @@
                     </button>
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
-                    <div class="text-[10px] font-black uppercase tracking-wider text-teal-300">Bonus de Sets (Palier 7) &amp; Uniques (Palier 8)</div>
-                    ${setsHtml}
-                    ${uniquesHtml}
-                </div>
-
                 <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1 text-[10px] text-slate-300 tabular-nums">
-                    <div class="font-black text-cyan-300 uppercase">Bonus Globaux</div>
-                    <div>• Sphérier : +${formatDiv10Pct(sph.atkPct)} ATQ, +${formatDiv10Pct(sph.hpPct)} PV, +${formatDiv10Pct(sph.goldPct)} Or, +${formatDiv10Pct(sph.chestXpPct)} EXP Coffre</div>
-                    <div>• Codex (${cdx.pct}%) : +${formatDiv10Pct(cdx.atkPct)} ATQ, +${formatDiv10Pct(cdx.hpPct)} PV, +${formatDiv10Pct(cdx.goldPct)} Or, +${formatDiv10Pct(cdx.xpPct)} EXP</div>
+                    <div class="font-black text-amber-300 uppercase tracking-wider">Bonus Passifs Cumulés</div>
+                    <div>• Gain Or : ×${st.goldMult.toFixed(2)} • Gain EXP : ×${st.xpMult.toFixed(2)} • EXP Coffre : ×${st.chestXpMult.toFixed(2)}</div>
+                    <div>• Sphérier (${state.sphereActive.length} nœuds) : +${(sph.atkPct * 100).toFixed(2)}% ATQ • +${(sph.hpPct * 100).toFixed(2)}% PV</div>
+                    <div>• Codex (${cdx.pct}%) : +${(cdx.atkPct * 100).toFixed(2)}% ATQ • +${(cdx.hpPct * 100).toFixed(2)}% PV</div>
                 </div>
 
-                <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-rose-500/30 flex items-center justify-between gap-2">
-                    <div class="text-[10px] text-slate-300">
-                        <div class="font-black text-rose-300">Nouvelle Partie</div>
-                        <div>Réinitialise toute la sauvegarde et rouvre le choix de classe.</div>
-                    </div>
-                    <button type="button" id="btn-new-run-reset" class="px-2.5 py-1.5 rounded-xl bg-rose-500/20 border border-rose-400/50 text-rose-200 text-[10px] font-black shrink-0 cursor-pointer">
-                        Nouvelle Partie
-                    </button>
+                <div class="space-y-1.5">
+                    <div class="text-[10px] font-black uppercase tracking-wider text-teal-300">Sets Actifs (Palier 7)</div>
+                    ${setsHtml}
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="text-[10px] font-black uppercase tracking-wider text-pink-300">Uniques Équipés (Palier 8)</div>
+                    ${uniquesHtml}
                 </div>
             `;
         }
@@ -3855,71 +3886,65 @@
         function renderClassSwitcherModal() {
             const body = document.getElementById('class-switcher-modal-body');
             if (!body) return;
-
-            body.innerHTML = Object.values(CLASSES).map(c => {
-                const active = c.id === state.classId;
+            body.innerHTML = CLASS_ORDER.map(id => {
+                const c = CLASSES[id];
+                const active = state.classId === id;
                 return `
-                    <button type="button" data-pick-class="${c.id}" class="w-full text-left p-3 rounded-xl bg-[#0b0e14] border ${active ? 'border-[#f5b841]' : 'border-slate-800'} flex items-center justify-between gap-2 cursor-pointer">
+                    <button type="button" data-switch-class="${id}" class="w-full text-left rounded-xl p-2.5 border ${active ? 'border-[#f5b841] bg-amber-500/15' : 'border-slate-800 bg-[#0b0e14]'} flex items-center justify-between gap-2 cursor-pointer">
                         <div>
-                            <div class="font-fantasy font-black text-xs text-white">${c.icon} ${c.name} ${active ? '<span class="text-amber-300">(Actuelle)</span>' : ''}</div>
-                            <div class="text-[10.5px] text-slate-300 mt-0.5">${c.desc}</div>
-                            <div class="text-[9.5px] font-bold text-amber-200/90 mt-1 tabular-nums">
-                                ⚔️ ${c.atk} • ❤️ ${c.maxHp} • 🛡️ ${c.def} • 💥 ${formatDiv10Pct(c.crit)} • 🔥 ${formatDiv10Pct(c.critDmg)} • ⚡ ${formatDiv10Pct(c.atkSpd)} • 💨 ${formatDiv10Pct(c.dodge)} • ✨ ${c.mag} • 🔰 ${formatDiv10Pct(c.magRes)} • 🩸 ${formatDiv10Pct(c.lifesteal)} • 💚 ${c.regen}/s
+                            <div class="text-xs font-black text-white">${c.icon} ${c.name} ${active ? '<span class="text-[9px] text-amber-300">(Active)</span>' : ''}</div>
+                            <div class="text-[10px] text-slate-300">${c.desc}</div>
+                            <div class="text-[9px] text-amber-200/90 mt-0.5 tabular-nums">
+                                ⚔️ ${c.atk} • ❤️ ${c.maxHp} • 🛡️ ${c.def} • 💚 ${c.regen}/s • ✨ ${c.mag} • 💥 ${formatDiv10Pct(c.crit)} • 🔥 ${formatDiv10Pct(c.critDmg)} • ⚡ ${formatDiv10Pct(c.atkSpd)} • 💨 ${formatDiv10Pct(c.dodge)} • 🔰 ${formatDiv10Pct(c.magRes)} • 🩸 ${formatDiv10Pct(c.lifesteal)}
                             </div>
                         </div>
-                        <span class="px-2.5 py-1 rounded-lg bg-[#182030] text-[10.5px] font-black text-amber-300 shrink-0">${active ? 'Équipée' : 'Choisir'}</span>
                     </button>
                 `;
             }).join('');
         }
 
-        function setCodexTab(tabName) {
-            codexTab = tabName;
-            document.querySelectorAll('.codex-tab').forEach(btn => {
-                const isSel = btn.getAttribute('data-codex-tab') === tabName;
-                btn.className = isSel
-                    ? 'codex-tab py-1.5 rounded-lg bg-teal-500/20 border border-teal-400/50 text-[9.5px] font-black text-teal-200 cursor-pointer'
-                    : 'codex-tab py-1.5 rounded-lg bg-[#182030] text-[9.5px] font-black text-slate-300 cursor-pointer';
-            });
-            renderCodexModal();
-        }
-
         function renderCodexModal() {
-            const pctEl = document.getElementById('codex-completion-pct');
             const body = document.getElementById('codex-modal-body');
+            const pctEl = document.getElementById('codex-completion-pct');
             if (!body) return;
+
             const cdx = getCodexBonusSummary();
             if (pctEl) pctEl.textContent = `${cdx.pct}%`;
 
+            document.querySelectorAll('.codex-tab').forEach(btn => {
+                const isCur = btn.dataset.codexTab === codexTab;
+                btn.className = isCur
+                    ? 'codex-tab py-1.5 rounded-lg bg-teal-500/25 border border-teal-400 text-[9.5px] font-black text-teal-200 cursor-pointer'
+                    : 'codex-tab py-1.5 rounded-lg bg-[#182030] border border-transparent text-[9.5px] font-black text-slate-300 cursor-pointer';
+            });
+
             if (codexTab === 'classes') {
-                body.innerHTML = Object.values(CLASSES).map(c => `
-                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1">
-                        <div class="flex items-center justify-between">
-                            <span class="font-fantasy font-black text-xs text-white">${c.icon} ${c.name}</span>
-                            <span class="text-[10px] font-black text-amber-300">${c.id === state.classId ? 'Classe Active' : 'Vocation'}</span>
+                body.innerHTML = CLASS_ORDER.map(id => {
+                    const c = CLASSES[id];
+                    return `
+                        <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1">
+                            <div class="text-xs font-black text-white">${c.icon} ${c.name}</div>
+                            <div class="text-[10px] text-slate-300">${c.desc}</div>
+                            <div class="text-[9.5px] text-amber-200/90 tabular-nums">
+                                ⚔️ ${c.atk} • ❤️ ${c.maxHp} • 🛡️ ${c.def} • 💚 ${c.regen}/s • ✨ ${c.mag} • 💥 ${formatDiv10Pct(c.crit)} • 🔥 ${formatDiv10Pct(c.critDmg)} • ⚡ ${formatDiv10Pct(c.atkSpd)} • 💨 ${formatDiv10Pct(c.dodge)} • 🔰 ${formatDiv10Pct(c.magRes)} • 🩸 ${formatDiv10Pct(c.lifesteal)}
+                            </div>
                         </div>
-                        <p class="text-[10.5px] text-slate-300">${c.desc}</p>
-                        <div class="text-[9.5px] text-slate-400 tabular-nums">
-                            ATQ ${c.atk} • PV ${c.maxHp} • DEF ${c.def} • Régén ${c.regen}/s • Mag ${c.mag} • Crit ${formatDiv10Pct(c.crit)} • D.Crit ${formatDiv10Pct(c.critDmg)} • V.Atk ${formatDiv10Pct(c.atkSpd)} • Esq ${formatDiv10Pct(c.dodge)} • Rés ${formatDiv10Pct(c.magRes)} • VdV ${formatDiv10Pct(c.lifesteal)}
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
                 return;
             }
 
             if (codexTab === 'tiers') {
                 const rows = getTierDropTable(state.chestLevel);
                 body.innerHTML = rows.map(r => `
-                    <div class="rounded-xl p-2.5 border ${r.unlocked ? `rarity-${r.tier}` : 'border-slate-800 bg-[#0b0e14]/70 opacity-70'} space-y-1">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-black ${r.color}">Palier ${r.tier} • ${r.name}</span>
-                            <span class="text-[10px] font-black ${r.unlocked ? 'text-emerald-300' : 'text-slate-400'} tabular-nums">
-                                ${r.unlocked ? `Taux : ${formatRatePercent(r.pct)}` : 'Verrouillé'}
-                            </span>
+                    <div class="rounded-xl p-2.5 border ${r.unlocked ? `rarity-${r.tier}` : 'border-slate-800 bg-[#0b0e14]/70 opacity-65'} flex items-center justify-between gap-2">
+                        <div>
+                            <div class="text-xs font-black ${r.color}">Palier ${r.tier} • ${r.name}</div>
+                            <div class="text-[10px] text-slate-300 tabular-nums">
+                                ${r.unlocked ? '✅ Débloqué' : `🔒 Coffre Niv.${r.unlockLevel}`} • ${getGearStatCountForTier(r.tier)} stats • Mult ×${r.mult}
+                            </div>
                         </div>
-                        <div class="text-[10px] text-slate-300 tabular-nums">
-                            ${getGearStatCountForTier(r.tier)} statistiques par objet • Multiplicateur ×${r.mult}
-                        </div>
+                        <div class="text-xs font-black text-white tabular-nums">${r.unlocked ? formatRatePercent(r.pct) : '0%'}</div>
                     </div>
                 `).join('');
                 return;
@@ -3929,13 +3954,12 @@
                 body.innerHTML = SETS.map(st => {
                     const found = state.foundSets.includes(st.id);
                     return `
-                        <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${found ? 'border-teal-500/45' : 'border-slate-800 opacity-75'} space-y-1">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-black text-white">${st.icon} ${st.name} <span class="text-[10px] font-extrabold text-amber-300">[${st.className}]</span></span>
-                                <span class="text-[10px] font-black ${found ? 'text-teal-300' : 'text-slate-500'}">${found ? 'Découvert' : 'À trouver'}</span>
+                        <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${found ? 'border-teal-500/45' : 'border-slate-800 opacity-65'} space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black text-teal-200">${st.icon} ${st.name} <span class="text-[10px] text-slate-400">[${st.className}]</span></span>
+                                <span class="text-[9.5px] font-black ${found ? 'text-emerald-300' : 'text-slate-500'}">${found ? '✓ Découvert' : 'Non découvert'}</span>
                             </div>
-                            <div class="text-[10px] text-teal-200">(2 pièces) : ${st.b2.label}</div>
-                            <div class="text-[10px] text-amber-200">(4 pièces) : ${st.b4.label}</div>
+                            <div class="text-[10px] text-slate-300">(2) ${st.b2.label} • (4) ${st.b4.label}</div>
                         </div>
                     `;
                 }).join('');
@@ -3949,147 +3973,95 @@
                     return true;
                 });
 
-                body.innerHTML = `
-                    <div class="rounded-xl p-2 bg-[#0b0e14] border border-pink-500/30 flex flex-wrap items-center justify-between gap-1.5">
-                        <div class="text-[10px] font-black text-pink-200 tabular-nums">
-                            Total : ${UNIQUES.length} Uniques (32/emplacement • 4/classe/emplacement) • Découverts : ${state.foundUniques.length}/${UNIQUES.length}
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <select id="codex-unique-slot" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white">
-                                <option value="all" ${codexUniqueSlotFilter === 'all' ? 'selected' : ''}>Tous emplacements (32×4)</option>
-                                <option value="arme" ${codexUniqueSlotFilter === 'arme' ? 'selected' : ''}>⚔️ Arme (32)</option>
-                                <option value="armure" ${codexUniqueSlotFilter === 'armure' ? 'selected' : ''}>🛡️ Armure (32)</option>
-                                <option value="casque" ${codexUniqueSlotFilter === 'casque' ? 'selected' : ''}>🪖 Casque (32)</option>
-                                <option value="bottes" ${codexUniqueSlotFilter === 'bottes' ? 'selected' : ''}>🥾 Bottes (32)</option>
-                            </select>
-                            <select id="codex-unique-class" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white">
-                                <option value="all" ${codexUniqueClassFilter === 'all' ? 'selected' : ''}>Toutes classes</option>
-                                ${CLASS_ORDER.map(cid => `<option value="${cid}" ${codexUniqueClassFilter === cid ? 'selected' : ''}>${CLASSES[cid].icon} ${CLASSES[cid].name}</option>`).join('')}
-                            </select>
-                        </div>
+                const filterBarHtml = `
+                    <div class="rounded-xl p-2 bg-[#0b0e14] border border-slate-800 flex items-center justify-between gap-1.5">
+                        <select id="codex-unique-slot-filter" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white flex-1">
+                            <option value="all" ${codexUniqueSlotFilter === 'all' ? 'selected' : ''}>Tous emplacements (32/classe)</option>
+                            <option value="arme" ${codexUniqueSlotFilter === 'arme' ? 'selected' : ''}>⚔️ Arme (32)</option>
+                            <option value="armure" ${codexUniqueSlotFilter === 'armure' ? 'selected' : ''}>🛡️ Armure (32)</option>
+                            <option value="casque" ${codexUniqueSlotFilter === 'casque' ? 'selected' : ''}>🪖 Casque (32)</option>
+                            <option value="bottes" ${codexUniqueSlotFilter === 'bottes' ? 'selected' : ''}>🥾 Bottes (32)</option>
+                        </select>
+                        <select id="codex-unique-class-filter" class="bg-[#121722] border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white flex-1">
+                            <option value="all" ${codexUniqueClassFilter === 'all' ? 'selected' : ''}>Toutes classes (128)</option>
+                            ${CLASS_ORDER.map(id => `<option value="${id}" ${codexUniqueClassFilter === id ? 'selected' : ''}>${CLASSES[id].icon} ${CLASSES[id].name} (16)</option>`).join('')}
+                        </select>
                     </div>
-                    ${filteredUniques.map(u => {
-                        const found = state.foundUniques.includes(u.id);
-                        const sl = GEAR_SLOTS.find(s => s.id === u.slot);
-                        return `
-                            <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${found ? 'border-pink-500/45' : 'border-slate-800 opacity-75'} space-y-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="text-xs font-black text-white">${u.icon} ${u.name} <span class="text-[10px] font-extrabold text-amber-300">[${u.className} • ${sl ? sl.label : u.slot}]</span></span>
-                                    <span class="text-[10px] font-black ${found ? 'text-pink-300' : 'text-slate-500'}">${found ? 'Découvert' : 'À trouver'}</span>
-                                </div>
-                                <div class="text-[10px] text-pink-200"><strong>${u.passive} :</strong> ${u.desc}</div>
-                            </div>
-                        `;
-                    }).join('')}
+                    <div class="text-[10px] text-slate-400 font-bold px-0.5 tabular-nums">
+                        Total Uniques : ${state.foundUniques.length}/${UNIQUES.length} • Affichés : ${filteredUniques.length}
+                    </div>
                 `;
+
+                const listHtml = filteredUniques.map(u => {
+                    const found = state.foundUniques.includes(u.id);
+                    const sl = GEAR_SLOTS.find(s => s.id === u.slot);
+                    return `
+                        <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${found ? 'border-pink-500/45' : 'border-slate-800 opacity-65'} space-y-1">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-black text-pink-200 truncate">${u.icon} ${u.name} <span class="text-[9.5px] text-slate-400">[${u.className} • ${sl ? sl.label : u.slot}]</span></span>
+                                <span class="text-[9.5px] font-black shrink-0 ${found ? 'text-emerald-300' : 'text-slate-500'}">${found ? '✓ Découvert' : 'Non découvert'}</span>
+                            </div>
+                            <div class="text-[10px] font-bold text-amber-200">${u.passive}</div>
+                            <div class="text-[10px] text-slate-300">${u.desc}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                body.innerHTML = filterBarHtml + listHtml;
                 return;
             }
 
             body.innerHTML = ENEMIES.map(en => {
                 const seen = state.seenEnemies.includes(en.id);
                 return `
-                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${seen ? 'border-emerald-500/35' : 'border-slate-800 opacity-70'} flex items-center justify-between">
+                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${seen ? 'border-rose-500/35' : 'border-slate-800 opacity-60'} flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="text-xl">${en.icon}</span>
+                            <span class="text-lg">${en.icon}</span>
                             <div>
                                 <div class="text-xs font-black text-white">${en.name}</div>
-                                <div class="text-[10px] text-slate-400">Échelle de difficulté : ×2^(Étage - 1)</div>
+                                <div class="text-[10px] text-slate-400">Boss de fin d'étage • Puissance ×2 par étage</div>
                             </div>
                         </div>
-                        <span class="text-[10px] font-black ${seen ? 'text-emerald-300' : 'text-slate-500'}">${seen ? 'Rencontré' : 'Inconnu'}</span>
+                        <span class="text-[9.5px] font-black ${seen ? 'text-emerald-300' : 'text-slate-500'}">${seen ? '✓ Rencontré' : 'Inconnu'}</span>
                     </div>
                 `;
             }).join('');
         }
 
-        function getMissionDefs() {
-            return {
-                daily: [
-                    { id: 'd_chests',   title: 'Ouvrir 50 Coffres',           prog: state.dailyProg.chests,   target: 50,   rewardGold: 800,  rewardGems: 50,  rewardKeys: 50 },
-                    { id: 'd_kills',    title: 'Vaincre 100 Ennemis',         prog: state.dailyProg.kills,    target: 100,  rewardGold: 1000, rewardGems: 70,  rewardKeys: 60 },
-                    { id: 'd_upgrades', title: 'Améliorer le Coffre 30 fois', prog: state.dailyProg.upgrades, target: 30,   rewardGold: 1200, rewardGems: 80,  rewardKeys: 80 }
-                ],
-                weekly: [
-                    { id: 'w_chests', title: 'Ouvrir 300 Coffres (Hebdo)',  prog: state.weeklyProg.chests, target: 300,  rewardGold: 4500, rewardGems: 250, rewardKeys: 250 },
-                    { id: 'w_kills',  title: 'Vaincre 750 Ennemis (Hebdo)', prog: state.weeklyProg.kills,  target: 750,  rewardGold: 6000, rewardGems: 350, rewardKeys: 300 },
-                    { id: 'w_stages', title: 'Atteindre l\'Étage 50',       prog: state.maxStage,          target: 50,   rewardGold: 8000, rewardGems: 500, rewardKeys: 400 }
-                ]
-            };
+        function getDailyMissionsList() {
+            return [
+                { id: 'd_chests', title: 'Ouvrir des Coffres', target: 300, prog: state.dailyProg.chests, rewardGold: 800, rewardGems: 80 },
+                { id: 'd_kills', title: 'Vaincre des Ennemis', target: 450, prog: state.dailyProg.kills, rewardGold: 1000, rewardGems: 100 },
+                { id: 'd_upgrades', title: 'Améliorer le Coffre', target: 50, prog: state.dailyProg.upgrades, rewardGold: 1200, rewardGems: 120 }
+            ];
         }
 
-        function hasReadyMissions() {
-            const defs = getMissionDefs();
-            for (const m of defs.daily) {
-                if (!state.dailyClaimed[m.id] && m.prog >= m.target) return true;
-            }
-            for (const m of defs.weekly) {
-                if (!state.weeklyClaimed[m.id] && m.prog >= m.target) return true;
-            }
-            return false;
+        function getWeeklyMissionsList() {
+            return [
+                { id: 'w_chests', title: 'Coffres Hebdomadaires', target: 2000, prog: state.weeklyProg.chests, rewardGold: 5000, rewardGems: 350 },
+                { id: 'w_kills', title: 'Chasseur Hebdomadaire', target: 3000, prog: state.weeklyProg.kills, rewardGold: 6000, rewardGems: 400 },
+                { id: 'w_stages', title: 'Étages Gravis', target: 100, prog: state.weeklyProg.stages, rewardGold: 8000, rewardGems: 500 }
+            ];
         }
 
-        function renderMissionsModal() {
-            const body = document.getElementById('missions-modal-body');
-            if (!body) return;
-            const defs = getMissionDefs();
-
-            const renderGroup = (label, list, claimedMap, kind) => `
-                <div class="space-y-1.5">
-                    <div class="text-[10.5px] font-black uppercase tracking-wider text-amber-300">${label}</div>
-                    ${list.map(m => {
-                        const done = m.prog >= m.target;
-                        const claimed = Boolean(claimedMap[m.id]);
-                        const pct = Math.min(100, Math.round((m.prog / Math.max(1, m.target)) * 100));
-                        return `
-                            <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
-                                <div class="flex items-center justify-between gap-2">
-                                    <div>
-                                        <div class="text-xs font-black text-white">${m.title}</div>
-                                        <div class="text-[10px] text-amber-200 font-bold tabular-nums">
-                                            +${formatCompact(m.rewardGold)} 🪙 • +${formatCompact(m.rewardGems)} 💎 • +${formatCompact(m.rewardKeys)} 🔑
-                                        </div>
-                                    </div>
-                                    ${claimed
-                                        ? `<span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 text-[10px] font-black shrink-0">Réclamé</span>`
-                                        : `<button type="button" data-claim-mission="${kind}:${m.id}" ${done ? '' : 'disabled'}
-                                            class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 ${done ? 'bg-emerald-500 text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-500'}">
-                                            ${done ? 'Réclamer' : `${formatCompact(m.prog)}/${formatCompact(m.target)}`}
-                                        </button>`
-                                    }
-                                </div>
-                                <div class="w-full h-1.5 rounded-full bg-[#121722] overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-amber-400 to-emerald-400" style="width:${pct}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-
-            body.innerHTML =
-                renderGroup('Missions Quotidiennes (×10)', defs.daily, state.dailyClaimed, 'daily') +
-                renderGroup('Missions Hebdomadaires (×10)', defs.weekly, state.weeklyClaimed, 'weekly');
-        }
-
-        function getAchievementRows() {
-            const totalCollection = state.foundSets.length + state.foundUniques.length + state.seenEnemies.length;
-            const specs = [
-                { key: 'kills',      title: 'Chasseur de Monstres', prog: state.counters.kills,      baseTarget: 25,   mult: 2.0,  baseGems: 15 },
-                { key: 'chests',     title: 'Maître des Coffres',   prog: state.counters.chests,     baseTarget: 15,   mult: 2.0,  baseGems: 15 },
-                { key: 'gold',       title: 'Fortune du Donjon',    prog: state.counters.goldEarned, baseTarget: 500,  mult: 2.5,  baseGems: 20 },
-                { key: 'stage',      title: 'Explorateur d\'Étages',prog: state.maxStage,            baseTarget: 5,    mult: 1.6,  baseGems: 25 },
-                { key: 'rebirths',   title: 'Cycle Astral',         prog: state.rebirths,            baseTarget: 1,    mult: 2.0,  baseGems: 40 },
-                { key: 'collection', title: 'Érudit du Codex',      prog: totalCollection,         baseTarget: 3,    mult: 1.8,  baseGems: 20 }
+        function getInfiniteAchievementsList() {
+            const defs = [
+                { key: 'kills', label: '⚔️ Tueur de Monstres', baseTarget: 100, stepMult: 2.0, val: state.counters.kills, gemsBase: 50 },
+                { key: 'chests', label: '🧰 Maître des Coffres', baseTarget: 100, stepMult: 2.0, val: state.counters.chests, gemsBase: 50 },
+                { key: 'gold', label: '🪙 Magnats de l\'Or', baseTarget: 5000, stepMult: 2.2, val: state.counters.goldEarned, gemsBase: 60 },
+                { key: 'stage', label: '🏰 Conquérant d\'Étages', baseTarget: 10, stepMult: 1.5, val: state.maxStage, gemsBase: 70 },
+                { key: 'rebirths', label: '🔮 Cycles de Renaissance', baseTarget: 10, stepMult: 1.8, val: state.rebirths, gemsBase: 80 },
+                { key: 'collection', label: '📖 Érudit du Codex', baseTarget: 10, stepMult: 1.6, val: state.foundSets.length + state.foundUniques.length, gemsBase: 60 }
             ];
 
-            return specs.map(sp => {
-                const rank = toNum(state.achRanks[sp.key], 0);
-                const target = Math.max(1, Math.round(sp.baseTarget * Math.pow(sp.mult, rank)));
-                const rewardGems = Math.max(5, Math.round(sp.baseGems * (1 + rank * 0.45)));
-                const ready = sp.prog >= target;
+            return defs.map(d => {
+                const rank = Math.max(0, toNum(state.achRanks[d.key], 0));
+                const target = Math.max(1, Math.round(d.baseTarget * Math.pow(d.stepMult, rank)));
+                const rewardGems = Math.round(d.gemsBase * (rank + 1));
+                const ready = d.val >= target;
                 return {
-                    ...sp,
-                    rank,
+                    ...d,
+                    rank: rank + 1,
                     target,
                     rewardGems,
                     ready
@@ -4097,181 +4069,192 @@
             });
         }
 
-        function hasReadyAchievements() {
-            return getAchievementRows().some(r => r.ready);
+        function syncReadyBadges() {
+            const missionReady =
+                getDailyMissionsList().some(m => !state.dailyClaimed[m.id] && m.prog >= m.target) ||
+                getWeeklyMissionsList().some(m => !state.weeklyClaimed[m.id] && m.prog >= m.target);
+
+            const achReady = getInfiniteAchievementsList().some(a => a.ready);
+
+            const mBadge = document.getElementById('badge-missions-ready');
+            const aBadge = document.getElementById('badge-achievements-ready');
+            if (mBadge) mBadge.classList.toggle('hidden', !missionReady);
+            if (aBadge) aBadge.classList.toggle('hidden', !achReady);
         }
 
-        function claimSingleAchievement(key) {
-            const rows = getAchievementRows();
-            const row = rows.find(r => r.key === key);
-            if (!row || !row.ready) return false;
-            state.achRanks[key] = toNum(state.achRanks[key], 0) + 1;
-            state.gems += row.rewardGems;
-            return true;
-        }
+        function renderMissionsModal() {
+            const body = document.getElementById('missions-modal-body');
+            if (!body) return;
 
-        function claimAllAchievements() {
-            let claimedCount = 0;
-            let totalGems = 0;
-            while (true) {
-                const rows = getAchievementRows();
-                const readyRow = rows.find(r => r.ready);
-                if (!readyRow) break;
-                totalGems += readyRow.rewardGems;
-                claimSingleAchievement(readyRow.key);
-                claimedCount += 1;
-            }
-            if (claimedCount > 0) {
-                renderAchievementsModal();
-                renderMainHUD();
-                saveStateSafe();
-                showToast(`🏆 ${claimedCount} succès réclamé(s) (+${formatCompact(totalGems)} 💎) !`);
-            } else {
-                showToast('Aucun succès prêt à être réclamé.');
-            }
+            const daily = getDailyMissionsList();
+            const weekly = getWeeklyMissionsList();
+
+            const renderRow = (m, isWeekly) => {
+                const claimed = isWeekly ? Boolean(state.weeklyClaimed[m.id]) : Boolean(state.dailyClaimed[m.id]);
+                const done = m.prog >= m.target;
+                const pct = Math.min(100, (m.prog / Math.max(1, m.target)) * 100);
+
+                return `
+                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <div class="text-xs font-black text-white">${m.title}</div>
+                                <div class="text-[10px] text-amber-300 font-bold tabular-nums">+${formatCompact(m.rewardGold)} 🪙 • +${formatCompact(m.rewardGems)} 💎</div>
+                            </div>
+                            <button type="button" data-claim-mission="${isWeekly ? 'w' : 'd'}:${m.id}" ${(!done || claimed) ? 'disabled' : ''}
+                                class="px-2.5 py-1 rounded-lg text-[10.5px] font-black ${claimed ? 'bg-slate-800 text-slate-500' : (done ? 'bg-emerald-500 text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-400')}">
+                                ${claimed ? 'Réclamée' : (done ? 'Réclamer' : `${formatCompact(m.prog)}/${formatCompact(m.target)}`)}
+                            </button>
+                        </div>
+                        <div class="w-full h-1.5 rounded-full bg-[#121722] overflow-hidden">
+                            <div class="h-full bg-amber-400" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            body.innerHTML = `
+                <div class="text-[10.5px] font-black uppercase tracking-wider text-amber-300">Quotidiennes (×10)</div>
+                ${daily.map(m => renderRow(m, false)).join('')}
+                <div class="text-[10.5px] font-black uppercase tracking-wider text-cyan-300 pt-1">Hebdomadaires (×10)</div>
+                ${weekly.map(m => renderRow(m, true)).join('')}
+            `;
         }
 
         function renderAchievementsModal() {
             const body = document.getElementById('achievements-modal-body');
             if (!body) return;
-            const rows = getAchievementRows();
+            const list = getInfiniteAchievementsList();
 
-            body.innerHTML = rows.map(r => {
-                const pct = Math.min(100, Math.round((r.prog / Math.max(1, r.target)) * 100));
+            body.innerHTML = list.map(a => {
+                const pct = Math.min(100, (a.val / Math.max(1, a.target)) * 100);
                 return `
-                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border border-slate-800 space-y-1.5">
+                    <div class="rounded-xl p-2.5 bg-[#0b0e14] border ${a.ready ? 'border-amber-400' : 'border-slate-800'} space-y-1.5">
                         <div class="flex items-center justify-between gap-2">
                             <div>
-                                <div class="text-xs font-black text-white">${r.title} <span class="text-amber-300 text-[10px]">(Palier ${r.rank + 1})</span></div>
-                                <div class="text-[10px] text-fuchsia-300 font-bold tabular-nums">Récompense : +${formatCompact(r.rewardGems)} 💎</div>
+                                <div class="text-xs font-black text-white">${a.label} <span class="text-[10px] text-amber-300">Palier ${a.rank}</span></div>
+                                <div class="text-[10px] text-fuchsia-300 font-bold tabular-nums">+${formatCompact(a.rewardGems)} 💎 • ${formatCompact(a.val)}/${formatCompact(a.target)}</div>
                             </div>
-                            <button type="button" data-claim-ach="${r.key}" ${r.ready ? '' : 'disabled'}
-                                class="px-2.5 py-1 rounded-lg text-[10px] font-black shrink-0 ${r.ready ? 'bg-amber-400 text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-500'}">
-                                ${r.ready ? 'Réclamer' : `${formatCompact(r.prog)}/${formatCompact(r.target)}`}
+                            <button type="button" data-claim-ach="${a.key}" ${!a.ready ? 'disabled' : ''}
+                                class="px-2.5 py-1 rounded-lg text-[10.5px] font-black ${a.ready ? 'bg-[#f5b841] text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-500'}">
+                                ${a.ready ? 'Réclamer' : 'En cours'}
                             </button>
                         </div>
                         <div class="w-full h-1.5 rounded-full bg-[#121722] overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-fuchsia-500 to-amber-400" style="width:${pct}%"></div>
+                            <div class="h-full bg-gradient-to-r from-amber-400 to-fuchsia-400" style="width: ${pct}%"></div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function syncReadyBadges() {
-            const mBadge = document.getElementById('badge-missions-ready');
-            const aBadge = document.getElementById('badge-achievements-ready');
-            if (mBadge) mBadge.classList.toggle('hidden', !hasReadyMissions());
-            if (aBadge) aBadge.classList.toggle('hidden', !hasReadyAchievements());
-        }
+        function claimAllAchievements() {
+            let claimedCount = 0;
+            let totalGems = 0;
+            let guard = 0;
 
-        /* =====================================================================
-           12. SPHERIER CONSTELLATION RENDERING & UNLOCKING
-        ====================================================================== */
-        function getUnlockableSphereNodes(graph) {
-            const activeSet = new Set(state.sphereActive);
-            const unlockable = new Set();
-            for (const [a, b] of graph.edges) {
-                const aAct = activeSet.has(a);
-                const bAct = activeSet.has(b);
-                if (aAct && !bAct && graph.nodes[b]) unlockable.add(b);
-                if (bAct && !aAct && graph.nodes[a]) unlockable.add(a);
-            }
-            return unlockable;
-        }
-
-        function renderSphereInspector(graph, unlockableSet) {
-            const inspector = document.getElementById('sphere-inspector');
-            if (!inspector) return;
-            const node = graph.nodes[selectedSphereNode] || graph.nodes.center;
-            const isActive = state.sphereActive.includes(node.id);
-            const canUnlock = !isActive && unlockableSet.has(node.id);
-            const affordable = state.astralShards >= node.cost;
-
-            inspector.innerHTML = `
-                <div class="flex items-center justify-between gap-2">
-                    <div class="text-xs font-black text-white">${node.icon} ${node.name}</div>
-                    <span class="text-[10px] font-black text-cyan-300 tabular-nums">Coût : ${node.cost} 💠</span>
-                </div>
-                <div class="text-[10.5px] text-slate-300">${node.desc}</div>
-                ${isActive
-                    ? `<div class="text-[10px] font-black text-emerald-300">✅ Nœud activé</div>`
-                    : `<button type="button" id="btn-unlock-sphere-node" ${canUnlock && affordable ? '' : 'disabled'}
-                        class="w-full py-1.5 rounded-xl text-xs font-black ${canUnlock && affordable ? 'bg-cyan-400 text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-500'}">
-                        ${!canUnlock ? 'Connectez un nœud actif adjacent' : (!affordable ? 'Éclats d\'Âme insuffisants' : `Activer (${node.cost} 💠)`)}
-                    </button>`
+            while (guard < 200) {
+                guard += 1;
+                const readyList = getInfiniteAchievementsList().filter(a => a.ready);
+                if (!readyList.length) break;
+                for (const a of readyList) {
+                    state.achRanks[a.key] = (state.achRanks[a.key] || 0) + 1;
+                    state.gems += a.rewardGems;
+                    totalGems += a.rewardGems;
+                    claimedCount += 1;
                 }
-            `;
+            }
+
+            if (claimedCount > 0) {
+                renderAchievementsModal();
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`🏆 ${claimedCount} palier(s) réclamé(s) (+${formatCompact(totalGems)} 💎) !`);
+            } else {
+                showToast('Aucun succès prêt à être réclamé.');
+            }
         }
 
         function renderSphereModal() {
             const shardsEl = document.getElementById('sphere-shards-value');
-            const canvas = document.getElementById('sphere-canvas');
-            const svg = document.getElementById('sphere-lines-svg');
-            const nodesLayer = document.getElementById('sphere-nodes-container');
-            if (!canvas || !svg || !nodesLayer) return;
+            const nodesEl = document.getElementById('sphere-nodes-container');
+            const svgEl = document.getElementById('sphere-lines-svg');
+            const canvasEl = document.getElementById('sphere-canvas');
+            if (!nodesEl || !svgEl || !canvasEl) return;
 
-            if (shardsEl) shardsEl.textContent = String(state.astralShards);
+            if (shardsEl) shardsEl.textContent = formatCompact(state.astralShards);
 
-            const graph = buildSpherier(state.sphereRings);
-            if (!graph.nodes[selectedSphereNode]) selectedSphereNode = 'center';
-
+            const { nodes, edges } = buildSpherier(state.sphereRings);
             const activeSet = new Set(state.sphereActive);
-            const unlockableSet = getUnlockableSphereNodes(graph);
+            const cx = (canvasEl.clientWidth || 360) / 2 + sphereOffset.x;
+            const cy = (canvasEl.clientHeight || 265) / 2 + sphereOffset.y;
 
-            const cx = (canvas.clientWidth || 340) / 2 + sphereOffset.x;
-            const cy = (canvas.clientHeight || 265) / 2 + sphereOffset.y;
+            const isUnlockable = id => {
+                if (activeSet.has(id)) return false;
+                return edges.some(([a, b]) => (a === id && activeSet.has(b)) || (b === id && activeSet.has(a)));
+            };
 
-            svg.innerHTML = graph.edges.map(([a, b]) => {
-                const na = graph.nodes[a];
-                const nb = graph.nodes[b];
+            svgEl.innerHTML = edges.map(([a, b]) => {
+                const na = nodes[a];
+                const nb = nodes[b];
                 if (!na || !nb) return '';
-                const bothActive = activeSet.has(a) && activeSet.has(b);
-                return `<line x1="${cx + na.x}" y1="${cy + na.y}" x2="${cx + nb.x}" y2="${cy + nb.y}" stroke="${bothActive ? '#22d3ee' : '#334155'}" stroke-width="${bothActive ? '2.5' : '1.5'}" stroke-opacity="${bothActive ? '0.9' : '0.55'}" />`;
+                const lit = activeSet.has(a) && activeSet.has(b);
+                return `<line x1="${cx + na.x}" y1="${cy + na.y}" x2="${cx + nb.x}" y2="${cy + nb.y}" stroke="${lit ? '#22d3ee' : '#334155'}" stroke-width="${lit ? '2.5' : '1.5'}" stroke-opacity="${lit ? '0.9' : '0.55'}" />`;
             }).join('');
 
-            nodesLayer.innerHTML = Object.values(graph.nodes).map(n => {
+            nodesEl.innerHTML = Object.values(nodes).map(n => {
                 const isAct = activeSet.has(n.id);
-                const isUnl = !isAct && unlockableSet.has(n.id);
-                const isPick = selectedSphereNode === n.id;
+                const canUnl = isUnlockable(n.id);
+                const isPicked = selectedSphereNode === n.id;
                 const cls = [
                     'spherier-node',
                     isAct ? 'active-node' : '',
-                    isUnl ? 'unlockable-node' : '',
-                    isPick ? 'picked-node' : ''
+                    canUnl ? 'unlockable-node' : '',
+                    isPicked ? 'picked-node' : ''
                 ].filter(Boolean).join(' ');
 
                 return `<button type="button" data-sphere-node="${n.id}" class="${cls}" style="left:${cx + n.x}px;top:${cy + n.y}px;" title="${n.name}">${n.icon}</button>`;
             }).join('');
 
-            renderSphereInspector(graph, unlockableSet);
+            const insp = document.getElementById('sphere-inspector');
+            const cur = nodes[selectedSphereNode] || nodes.center;
+            if (insp && cur) {
+                const isAct = activeSet.has(cur.id);
+                const canUnl = isUnlockable(cur.id);
+                const affordable = state.astralShards >= cur.cost;
+
+                insp.innerHTML = `
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="text-xs font-black text-white">${cur.icon} ${cur.name}</div>
+                        <span class="text-[10px] font-black text-cyan-300 tabular-nums">Coût : ${cur.cost} 💠</span>
+                    </div>
+                    <div class="text-[10.5px] text-slate-300">${cur.desc}</div>
+                    <button type="button" id="btn-unlock-sphere-node" ${(isAct || !canUnl || !affordable) ? 'disabled' : ''}
+                        class="w-full py-1.5 rounded-xl text-xs font-black ${isAct ? 'bg-emerald-500/20 text-emerald-300' : (canUnl && affordable ? 'bg-cyan-400 text-slate-950 cursor-pointer' : 'bg-[#182030] text-slate-500')}">
+                        ${isAct ? '✓ Nœud Activé' : (!canUnl ? 'Connectez un nœud adjacent' : (affordable ? `Activer (${cur.cost} 💠)` : `Éclats insuffisants (${cur.cost} 💠)`))}
+                    </button>
+                `;
+            }
         }
 
         function unlockSelectedSphereNode() {
-            const graph = buildSpherier(state.sphereRings);
-            const node = graph.nodes[selectedSphereNode];
-            if (!node) return;
-            if (state.sphereActive.includes(node.id)) return;
-
-            const unlockableSet = getUnlockableSphereNodes(graph);
-            if (!unlockableSet.has(node.id)) {
-                showToast('🔗 Connectez d\'abord un nœud adjacent actif.');
-                return;
-            }
-            if (state.astralShards < node.cost) {
-                showToast('💠 Éclats d\'Âme insuffisants.');
-                return;
-            }
+            const { nodes } = buildSpherier(state.sphereRings);
+            const node = nodes[selectedSphereNode];
+            if (!node || state.sphereActive.includes(node.id)) return;
+            if (state.astralShards < node.cost) return;
 
             state.astralShards -= node.cost;
             state.sphereActive.push(node.id);
 
             if (node.kind === 'expand') {
                 state.sphereRings = Math.min(18, state.sphereRings + 1);
-                showToast(`🌀 Anneau ${state.sphereRings} déployé sur le Sphérier !`);
+                showToast(`🌀 Sphérier étendu à l'Anneau ${state.sphereRings} !`);
             } else {
                 showToast(`💠 ${node.name} activé !`);
             }
+
+            const st = computeStats();
+            state.heroHp = Math.min(st.maxHp, state.heroHp + Math.round(st.maxHp * 0.15));
 
             renderSphereModal();
             renderMainHUD();
@@ -4279,41 +4262,34 @@
         }
 
         /* =====================================================================
-           13. SCREEN NAVIGATION & EVENT BINDINGS
+           12. SCREEN SWITCHING & EVENT LISTENERS (DELEGATED & SAFE)
         ====================================================================== */
         function showScreen(screenId) {
-            const classScreen = document.getElementById('class-screen');
-            const gameScreen = document.getElementById('game-screen');
-            if (screenId === 'game-screen') {
-                if (classScreen) classScreen.classList.remove('active');
-                if (gameScreen) gameScreen.classList.add('active');
-            } else {
-                if (gameScreen) gameScreen.classList.remove('active');
-                if (classScreen) classScreen.classList.add('active');
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(screenId);
+            if (target) target.classList.add('active');
+        }
+
+        function selectClassPreview(classId) {
+            const normalized = normalizeClassId(classId);
+            selectedClass = normalized;
+            document.querySelectorAll('#class-cards-list .class-card').forEach(card => {
+                const isMatch = card.dataset.classId === normalized;
+                card.classList.toggle('is-selected', isMatch);
+                card.classList.toggle('selected', isMatch);
+                card.setAttribute('aria-pressed', String(isMatch));
+            });
+            const lbl = document.getElementById('enter-class-label');
+            if (lbl && CLASSES[normalized]) {
+                lbl.textContent = CLASSES[normalized].name;
             }
         }
 
-        function syncClassSelectionUi(classId) {
-            const norm = normalizeClassId(classId);
-            selectedClass = norm;
-            const cls = CLASSES[norm];
-
-            document.querySelectorAll('#class-cards-list .class-card').forEach(card => {
-                const isSel = card.getAttribute('data-class-id') === norm;
-                card.classList.toggle('is-selected', isSel);
-                card.classList.toggle('selected', isSel);
-                card.setAttribute('aria-pressed', isSel ? 'true' : 'false');
-            });
-
-            const lbl = document.getElementById('enter-class-label');
-            if (lbl && cls) lbl.textContent = cls.name;
-        }
-
         function launchGameWithClass(classId) {
-            const norm = normalizeClassId(classId);
-            state.classId = norm;
+            const chosen = normalizeClassId(classId || selectedClass || state.classId);
+            state.classId = chosen;
             state.startingClassChosen = true;
-            selectedClass = norm;
+            selectedClass = chosen;
 
             const stats = computeStats();
             if (!Number.isFinite(state.heroHp) || state.heroHp <= 0 || state.heroHp > stats.maxHp) {
@@ -4330,577 +4306,455 @@
         }
 
         function bindEvents() {
-            document.querySelectorAll('#class-cards-list .class-card').forEach(card => {
-                card.addEventListener('click', () => {
-                    const cid = card.getAttribute('data-class-id');
-                    syncClassSelectionUi(cid);
-                });
+            document.getElementById('class-cards-list')?.addEventListener('click', e => {
+                const card = e.target.closest('.class-card');
+                if (!card) return;
+                const clsId = card.dataset.classId;
+                if (clsId) {
+                    selectClassPreview(clsId);
+                }
             });
 
-            const enterBtn = document.getElementById('enter-game-btn');
-            if (enterBtn) {
-                enterBtn.addEventListener('click', () => {
-                    launchGameWithClass(selectedClass);
-                });
-            }
+            document.getElementById('enter-game-btn')?.addEventListener('click', () => {
+                launchGameWithClass(selectedClass);
+            });
 
-            const hudHeroBtn = document.getElementById('btn-hud-hero');
-            if (hudHeroBtn) {
-                hudHeroBtn.addEventListener('click', () => {
-                    renderHeroModal();
-                    openModalById('hero-modal');
-                });
-            }
+            document.getElementById('btn-open-cloud')?.addEventListener('click', () => {
+                syncCloudModalInputs();
+                openModalById('cloud-modal');
+            });
 
-            const cloudHudBtn = document.getElementById('btn-open-cloud');
-            if (cloudHudBtn) {
-                cloudHudBtn.addEventListener('click', () => {
-                    syncCloudModalInputs();
-                    openModalById('cloud-modal');
-                });
-            }
+            document.getElementById('btn-cloud-connect')?.addEventListener('click', () => {
+                connectGoogleCloud();
+            });
 
-            const cidInput = document.getElementById('cloud-client-id-input');
-            if (cidInput) {
-                cidInput.addEventListener('change', () => {
-                    cloudPrefs.clientId = cidInput.value.trim();
-                    saveCloudPrefs();
-                    updateCloudHudUi();
-                });
-            }
+            document.getElementById('btn-cloud-disconnect')?.addEventListener('click', () => {
+                disconnectGoogleCloud();
+            });
 
-            const epInput = document.getElementById('cloud-endpoint-input');
-            if (epInput) {
-                epInput.addEventListener('change', () => {
-                    cloudPrefs.endpointUrl = epInput.value.trim();
-                    saveCloudPrefs();
-                    updateCloudHudUi();
-                });
-            }
+            document.getElementById('btn-cloud-save-now')?.addEventListener('click', () => {
+                const cidInput = document.getElementById('cloud-client-id-input');
+                const epInput = document.getElementById('cloud-endpoint-input');
+                if (cidInput) cloudPrefs.clientId = cidInput.value.trim();
+                if (epInput) cloudPrefs.endpointUrl = epInput.value.trim();
+                saveCloudPrefs();
+                saveToGoogleCloud(false);
+            });
 
-            const autoSyncChk = document.getElementById('chk-cloud-autosync');
-            if (autoSyncChk) {
-                autoSyncChk.addEventListener('change', () => {
-                    cloudPrefs.autoSync = Boolean(autoSyncChk.checked);
-                    saveCloudPrefs();
-                    updateCloudHudUi();
-                    if (cloudPrefs.autoSync && state.startingClassChosen) {
-                        saveToGoogleCloud(true).catch(() => {});
-                    }
-                });
-            }
+            document.getElementById('btn-cloud-load-now')?.addEventListener('click', () => {
+                const cidInput = document.getElementById('cloud-client-id-input');
+                const epInput = document.getElementById('cloud-endpoint-input');
+                if (cidInput) cloudPrefs.clientId = cidInput.value.trim();
+                if (epInput) cloudPrefs.endpointUrl = epInput.value.trim();
+                saveCloudPrefs();
+                loadFromGoogleCloud(false);
+            });
 
-            const btnCloudConnect = document.getElementById('btn-cloud-connect');
-            if (btnCloudConnect) {
-                btnCloudConnect.addEventListener('click', () => {
-                    connectGoogleCloud();
-                });
-            }
-
-            const btnCloudDisconnect = document.getElementById('btn-cloud-disconnect');
-            if (btnCloudDisconnect) {
-                btnCloudDisconnect.addEventListener('click', () => {
-                    disconnectGoogleCloud();
-                });
-            }
-
-            const btnCloudSaveNow = document.getElementById('btn-cloud-save-now');
-            if (btnCloudSaveNow) {
-                btnCloudSaveNow.addEventListener('click', () => {
-                    saveToGoogleCloud(false);
-                });
-            }
-
-            const btnCloudLoadNow = document.getElementById('btn-cloud-load-now');
-            if (btnCloudLoadNow) {
-                btnCloudLoadNow.addEventListener('click', () => {
-                    loadFromGoogleCloud(false);
-                });
-            }
+            document.getElementById('chk-cloud-autosync')?.addEventListener('change', e => {
+                cloudPrefs.autoSync = Boolean(e.target.checked);
+                saveCloudPrefs();
+                if (cloudPrefs.autoSync) {
+                    saveToGoogleCloud(true);
+                }
+                showToast(cloudPrefs.autoSync ? '🔄 Sauvegarde auto activée.' : 'Sauvegarde auto désactivée.');
+            });
 
             document.querySelectorAll('[data-open-modal]').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const modalId = btn.getAttribute('data-open-modal');
+                    const modalId = btn.dataset.openModal;
                     if (!modalId) return;
+                    if (modalId === 'hero-modal') renderHeroModal();
                     if (modalId === 'bag-modal') renderBagModal();
-                    else if (modalId === 'hero-modal') renderHeroModal();
-                    else if (modalId === 'codex-modal') renderCodexModal();
-                    else if (modalId === 'missions-modal') renderMissionsModal();
-                    else if (modalId === 'achievements-modal') renderAchievementsModal();
-                    else if (modalId === 'sphere-modal') renderSphereModal();
+                    if (modalId === 'sphere-modal') {
+                        sphereOffset = { x: 0, y: 0 };
+                        renderSphereModal();
+                    }
+                    if (modalId === 'codex-modal') renderCodexModal();
+                    if (modalId === 'missions-modal') renderMissionsModal();
+                    if (modalId === 'achievements-modal') renderAchievementsModal();
                     openModalById(modalId);
                 });
             });
 
+            document.getElementById('btn-hud-hero')?.addEventListener('click', () => {
+                renderHeroModal();
+                openModalById('hero-modal');
+            });
+
             document.querySelectorAll('[data-close-modal]').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const modalId = btn.getAttribute('data-close-modal');
-                    if (modalId) closeModalById(modalId);
+                    const mId = btn.dataset.closeModal;
+                    if (mId) closeModalById(mId);
                 });
             });
 
             document.querySelectorAll('.modal-overlay').forEach(overlay => {
                 overlay.addEventListener('click', e => {
-                    if (e.target === overlay) overlay.classList.remove('active');
+                    if (e.target === overlay) {
+                        overlay.classList.remove('active');
+                    }
                 });
             });
 
-            const openChestBtn = document.getElementById('btn-open-chest');
-            if (openChestBtn) {
-                openChestBtn.addEventListener('click', () => {
-                    openSingleChest(false);
-                });
-            }
-
-            const autoOpenBtn = document.getElementById('btn-auto-open');
-            if (autoOpenBtn) {
-                autoOpenBtn.addEventListener('click', () => {
-                    if (autoOpenEnabled) stopAutoOpen();
-                    else startAutoOpen();
-                });
-            }
-
-            const autoSettingsBtn = document.getElementById('btn-auto-settings');
-            if (autoSettingsBtn) {
-                autoSettingsBtn.addEventListener('click', () => {
-                    const cBetter = document.getElementById('chk-pause-better');
-                    const sMinTier = document.getElementById('sel-pause-min-tier');
-                    const cSet = document.getElementById('chk-pause-set');
-                    const cUniq = document.getElementById('chk-pause-unique');
-                    if (cBetter) cBetter.checked = Boolean(state.autoPause.betterPower);
-                    if (sMinTier) sMinTier.value = String(state.autoPause.minTier);
-                    if (cSet) cSet.checked = Boolean(state.autoPause.setOrHigher);
-                    if (cUniq) cUniq.checked = Boolean(state.autoPause.uniqueOnly);
-                    openModalById('auto-modal');
-                });
-            }
-
-            ['chk-pause-better', 'sel-pause-min-tier', 'chk-pause-set', 'chk-pause-unique'].forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.addEventListener('change', () => {
-                    state.autoPause.betterPower = Boolean(document.getElementById('chk-pause-better')?.checked);
-                    state.autoPause.minTier = toNum(document.getElementById('sel-pause-min-tier')?.value, 9);
-                    state.autoPause.setOrHigher = Boolean(document.getElementById('chk-pause-set')?.checked);
-                    state.autoPause.uniqueOnly = Boolean(document.getElementById('chk-pause-unique')?.checked);
-                    saveStateSafe();
-                });
+            document.getElementById('btn-open-chest')?.addEventListener('click', () => {
+                openSingleChest(false);
             });
 
-            const upgradeChestBtn = document.getElementById('btn-upgrade-chest');
-            if (upgradeChestBtn) {
-                upgradeChestBtn.addEventListener('click', () => {
-                    upgradeChestLevel();
-                });
-            }
+            document.getElementById('btn-auto-open')?.addEventListener('click', () => {
+                if (autoOpenEnabled) {
+                    stopAutoOpen();
+                    showToast('⏸️ Auto-ouverture arrêtée.');
+                } else {
+                    startAutoOpen();
+                }
+            });
 
-            const ratesBtn = document.getElementById('btn-open-rates');
-            if (ratesBtn) {
-                ratesBtn.addEventListener('click', () => {
-                    renderRatesModal();
-                    openModalById('rates-modal');
-                });
-            }
+            document.getElementById('btn-auto-settings')?.addEventListener('click', () => {
+                const chkBetter = document.getElementById('chk-pause-better');
+                const selMin = document.getElementById('sel-pause-min-tier');
+                const chkSet = document.getElementById('chk-pause-set');
+                const chkUniq = document.getElementById('chk-pause-unique');
+                if (chkBetter) chkBetter.checked = Boolean(state.autoPause.betterPower);
+                if (selMin) selMin.value = String(state.autoPause.minTier);
+                if (chkSet) chkSet.checked = Boolean(state.autoPause.setOrHigher);
+                if (chkUniq) chkUniq.checked = Boolean(state.autoPause.uniqueOnly);
+                openModalById('auto-modal');
+            });
 
-            const lootEquipBtn = document.getElementById('btn-loot-equip');
-            if (lootEquipBtn) {
-                lootEquipBtn.addEventListener('click', () => {
-                    if (!pendingLoot) return;
-                    const item = pendingLoot;
-                    pendingLoot = null;
-                    const res = equipItemAutoSellRule(item);
-                    closeModalById('loot-modal');
-                    renderMainHUD();
-                    saveStateSafe();
-                    if (res.soldGold > 0) {
-                        showToast(`⚔️ ${item.name} équipé • Ancien objet vendu +${formatCompact(res.soldGold)} 🪙.`);
-                    } else {
-                        showToast(`⚔️ ${item.name} équipé !`);
-                    }
-                });
-            }
+            document.getElementById('chk-pause-better')?.addEventListener('change', e => {
+                state.autoPause.betterPower = Boolean(e.target.checked);
+                saveStateSafe();
+            });
+            document.getElementById('sel-pause-min-tier')?.addEventListener('change', e => {
+                state.autoPause.minTier = Math.max(2, Math.min(9, parseInt(e.target.value, 10) || 9));
+                saveStateSafe();
+            });
+            document.getElementById('chk-pause-set')?.addEventListener('change', e => {
+                state.autoPause.setOrHigher = Boolean(e.target.checked);
+                saveStateSafe();
+            });
+            document.getElementById('chk-pause-unique')?.addEventListener('change', e => {
+                state.autoPause.uniqueOnly = Boolean(e.target.checked);
+                saveStateSafe();
+            });
 
-            const lootBagBtn = document.getElementById('btn-loot-bag');
-            if (lootBagBtn) {
-                lootBagBtn.addEventListener('click', () => {
-                    if (!pendingLoot) return;
-                    if (state.bag.length >= state.bagMax) {
-                        showToast('🎒 Sac plein ! Vendez un objet ou agrandissez le Sac.');
-                        return;
-                    }
-                    const item = pendingLoot;
-                    pendingLoot = null;
+            document.getElementById('btn-upgrade-chest')?.addEventListener('click', upgradeChestLevel);
+
+            document.getElementById('btn-open-rates')?.addEventListener('click', () => {
+                renderRatesModal();
+                openModalById('rates-modal');
+            });
+
+            document.getElementById('btn-loot-equip')?.addEventListener('click', () => {
+                if (!pendingLoot) return;
+                const item = pendingLoot;
+                pendingLoot = null;
+                const res = equipItemAutoSellRule(item);
+                const st = computeStats();
+                state.heroHp = Math.min(st.maxHp, state.heroHp + Math.round(st.maxHp * 0.1));
+                closeModalById('loot-modal');
+                renderMainHUD();
+                saveStateSafe();
+                if (res.soldGold > 0) {
+                    showToast(`⚔️ ${item.name} équipé ! Ancien objet vendu +${formatCompact(res.soldGold)} 🪙.`);
+                } else if (res.returnedToBag) {
+                    showToast(`⚔️ ${item.name} équipé ! Ancien objet (Palier ≥7) placé au Sac.`);
+                } else {
+                    showToast(`⚔️ ${item.name} équipé !`);
+                }
+            });
+
+            document.getElementById('btn-loot-bag')?.addEventListener('click', () => {
+                if (!pendingLoot) return;
+                const item = pendingLoot;
+                pendingLoot = null;
+                if (state.bag.length >= state.bagMax) {
+                    const gain = getSellPrice(item);
+                    earnGold(gain);
+                    state.counters.sold += 1;
+                    showToast(`🎒 Sac plein ! ${item.name} vendu +${formatCompact(gain)} 🪙.`);
+                } else {
                     state.bag.push(item);
-                    closeModalById('loot-modal');
-                    renderMainHUD();
-                    saveStateSafe();
                     showToast(`🎒 ${item.name} ajouté au Sac.`);
-                });
-            }
+                }
+                closeModalById('loot-modal');
+                renderMainHUD();
+                saveStateSafe();
+            });
 
-            const lootSellBtn = document.getElementById('btn-loot-sell');
-            if (lootSellBtn) {
-                lootSellBtn.addEventListener('click', () => {
-                    if (!pendingLoot) return;
-                    const item = pendingLoot;
-                    pendingLoot = null;
-                    const gain = getSellPrice(item);
-                    earnGold(gain);
-                    state.counters.sold += 1;
-                    const leveled = addChestXp(Math.max(2, getEffectiveTier(item) * 2));
-                    closeModalById('loot-modal');
-                    renderMainHUD();
-                    saveStateSafe();
-                    showToast(`🪙 Vendu +${formatCompact(gain)} Or${leveled ? ' • Coffre Niv.UP !' : ''}`);
-                });
-            }
+            document.getElementById('btn-loot-sell')?.addEventListener('click', () => {
+                if (!pendingLoot) return;
+                const item = pendingLoot;
+                pendingLoot = null;
+                const gain = getSellPrice(item);
+                earnGold(gain);
+                state.counters.sold += 1;
+                const leveled = addChestXp(3);
+                closeModalById('loot-modal');
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`🪙 Vendu +${formatCompact(gain)} Or${leveled ? ` • Coffre Niv.${state.chestLevel} !` : ''}.`);
+            });
 
-            const slotsGrid = document.getElementById('equipped-slots-grid');
-            if (slotsGrid) {
-                slotsGrid.addEventListener('click', e => {
-                    const btn = e.target.closest('[data-inspect-slot]');
-                    if (!btn) return;
-                    const slotId = btn.getAttribute('data-inspect-slot');
-                    if (slotId && state.equipped[slotId]) openInspectModal(slotId);
-                });
-            }
+            document.getElementById('equipped-slots-grid')?.addEventListener('click', e => {
+                const btn = e.target.closest('[data-inspect-slot]');
+                if (!btn) return;
+                openInspectModal(btn.dataset.inspectSlot);
+            });
 
-            const inspectLockBtn = document.getElementById('btn-inspect-lock');
-            if (inspectLockBtn) {
-                inspectLockBtn.addEventListener('click', () => {
-                    if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
-                    state.equipped[inspectedSlot].locked = !state.equipped[inspectedSlot].locked;
-                    openInspectModal(inspectedSlot);
-                    renderMainHUD();
-                    saveStateSafe();
-                });
-            }
+            document.getElementById('btn-inspect-lock')?.addEventListener('click', () => {
+                if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
+                const it = state.equipped[inspectedSlot];
+                it.locked = !it.locked;
+                openInspectModal(inspectedSlot);
+                renderMainHUD();
+                saveStateSafe();
+            });
 
-            const inspectUnequipBtn = document.getElementById('btn-inspect-unequip');
-            if (inspectUnequipBtn) {
-                inspectUnequipBtn.addEventListener('click', () => {
-                    if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
-                    if (state.bag.length >= state.bagMax) {
-                        showToast('🎒 Sac plein !');
-                        return;
+            document.getElementById('btn-inspect-unequip')?.addEventListener('click', () => {
+                if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
+                if (state.bag.length >= state.bagMax) {
+                    showToast('🎒 Sac plein !');
+                    return;
+                }
+                const it = state.equipped[inspectedSlot];
+                state.equipped[inspectedSlot] = null;
+                state.bag.push(it);
+                closeModalById('inspect-modal');
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`🎒 ${it.name} rangé dans le Sac.`);
+            });
+
+            document.getElementById('btn-inspect-sell')?.addEventListener('click', () => {
+                if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
+                const it = state.equipped[inspectedSlot];
+                if (it.locked) {
+                    showToast('🔒 Déverrouillez cet objet avant de le vendre.');
+                    return;
+                }
+                const gain = getSellPrice(it);
+                state.equipped[inspectedSlot] = null;
+                earnGold(gain);
+                state.counters.sold += 1;
+                closeModalById('inspect-modal');
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`🪙 Vendu +${formatCompact(gain)} Or.`);
+            });
+
+            document.getElementById('bag-filter-slot')?.addEventListener('change', renderBagModal);
+            document.getElementById('bag-filter-tier')?.addEventListener('change', renderBagModal);
+
+            document.getElementById('btn-bag-expand')?.addEventListener('click', () => {
+                const cost = 120;
+                if (state.gold < cost) {
+                    showToast(`🪙 ${cost} Or requis pour +6 places.`);
+                    return;
+                }
+                state.gold -= cost;
+                state.bagMax += 6;
+                renderBagModal();
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`🎒 Sac agrandi (${state.bagMax} places) !`);
+            });
+
+            document.getElementById('btn-bag-sell-all-lt7')?.addEventListener('click', () => {
+                let soldCount = 0;
+                let totalGold = 0;
+                const kept = [];
+                for (const it of state.bag) {
+                    if (!it.locked && getEffectiveTier(it) < PALIER_SET) {
+                        totalGold += getSellPrice(it);
+                        soldCount += 1;
+                    } else {
+                        kept.push(it);
                     }
-                    const item = state.equipped[inspectedSlot];
-                    state.equipped[inspectedSlot] = null;
-                    state.bag.push(item);
-                    inspectedSlot = null;
-                    closeModalById('inspect-modal');
+                }
+                state.bag = kept;
+                if (soldCount > 0) {
+                    earnGold(totalGold);
+                    state.counters.sold += soldCount;
+                    addChestXp(Math.min(25, soldCount * 2));
+                }
+                renderBagModal();
+                renderMainHUD();
+                saveStateSafe();
+                showToast(soldCount > 0 ? `🪙 ${soldCount} objet(s) (<P7) vendu(s) pour +${formatCompact(totalGold)} Or.` : 'Aucun objet <P7 déverrouillé à vendre.');
+            });
+
+            document.getElementById('bag-modal-body')?.addEventListener('click', e => {
+                const equipBtn = e.target.closest('[data-equip-bag-id]');
+                if (equipBtn) {
+                    const id = equipBtn.dataset.equipBagId;
+                    const idx = state.bag.findIndex(x => x.id === id);
+                    if (idx === -1) return;
+                    const [item] = state.bag.splice(idx, 1);
+                    equipItemAutoSellRule(item);
+                    renderBagModal();
                     renderMainHUD();
                     saveStateSafe();
-                    showToast(`🎒 ${item.name} rangé dans le Sac.`);
-                });
-            }
+                    showToast(`⚔️ ${item.name} équipé !`);
+                    return;
+                }
 
-            const inspectSellBtn = document.getElementById('btn-inspect-sell');
-            if (inspectSellBtn) {
-                inspectSellBtn.addEventListener('click', () => {
-                    if (!inspectedSlot || !state.equipped[inspectedSlot]) return;
-                    const item = state.equipped[inspectedSlot];
+                const lockBtn = e.target.closest('[data-lock-bag-id]');
+                if (lockBtn) {
+                    const id = lockBtn.dataset.lockBagId;
+                    const item = state.bag.find(x => x.id === id);
+                    if (!item) return;
+                    item.locked = !item.locked;
+                    renderBagModal();
+                    saveStateSafe();
+                    return;
+                }
+
+                const sellBtn = e.target.closest('[data-sell-bag-id]');
+                if (sellBtn) {
+                    const id = sellBtn.dataset.sellBagId;
+                    const idx = state.bag.findIndex(x => x.id === id);
+                    if (idx === -1) return;
+                    const [item] = state.bag.splice(idx, 1);
                     if (item.locked) {
-                        showToast('🔒 Objet verrouillé ! Déverrouillez-le d\'abord.');
+                        state.bag.splice(idx, 0, item);
+                        showToast('🔒 Objet verrouillé.');
                         return;
                     }
                     const gain = getSellPrice(item);
                     earnGold(gain);
                     state.counters.sold += 1;
-                    addChestXp(Math.max(2, getEffectiveTier(item) * 2));
-                    state.equipped[inspectedSlot] = null;
-                    inspectedSlot = null;
-                    closeModalById('inspect-modal');
+                    renderBagModal();
                     renderMainHUD();
                     saveStateSafe();
                     showToast(`🪙 Vendu +${formatCompact(gain)} Or.`);
-                });
-            }
-
-            ['bag-filter-slot', 'bag-filter-tier'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.addEventListener('change', renderBagModal);
-            });
-
-            const bagExpandBtn = document.getElementById('btn-bag-expand');
-            if (bagExpandBtn) {
-                bagExpandBtn.addEventListener('click', () => {
-                    if (state.gold < 120) {
-                        showToast('🪙 120 Or requis.');
-                        return;
-                    }
-                    state.gold -= 120;
-                    state.bagMax += 6;
-                    renderBagModal();
-                    renderMainHUD();
-                    saveStateSafe();
-                    showToast('🎒 +6 places ajoutées au Sac.');
-                });
-            }
-
-            const bagSellLt7Btn = document.getElementById('btn-bag-sell-all-lt7');
-            if (bagSellLt7Btn) {
-                bagSellLt7Btn.addEventListener('click', () => {
-                    let soldCount = 0;
-                    let totalGold = 0;
-                    const kept = [];
-                    for (const it of state.bag) {
-                        if (!it.locked && getEffectiveTier(it) < PALIER_SET) {
-                            soldCount += 1;
-                            totalGold += getSellPrice(it);
-                            state.counters.sold += 1;
-                        } else {
-                            kept.push(it);
-                        }
-                    }
-                    if (soldCount === 0) {
-                        showToast('Aucun objet < Palier 7 déverrouillé à vendre.');
-                        return;
-                    }
-                    state.bag = kept;
-                    earnGold(totalGold);
-                    addChestXp(soldCount * 2);
-                    renderBagModal();
-                    renderMainHUD();
-                    saveStateSafe();
-                    showToast(`🪙 ${soldCount} objet(s) vendu(s) pour +${formatCompact(totalGold)} Or.`);
-                });
-            }
-
-            const bagBody = document.getElementById('bag-modal-body');
-            if (bagBody) {
-                bagBody.addEventListener('click', e => {
-                    const eqBtn = e.target.closest('[data-equip-bag-id]');
-                    if (eqBtn) {
-                        const id = eqBtn.getAttribute('data-equip-bag-id');
-                        const idx = state.bag.findIndex(x => x.id === id);
-                        if (idx === -1) return;
-                        const [picked] = state.bag.splice(idx, 1);
-                        equipItemAutoSellRule(picked);
-                        renderBagModal();
-                        renderMainHUD();
-                        saveStateSafe();
-                        showToast(`⚔️ ${picked.name} équipé !`);
-                        return;
-                    }
-
-                    const lkBtn = e.target.closest('[data-lock-bag-id]');
-                    if (lkBtn) {
-                        const id = lkBtn.getAttribute('data-lock-bag-id');
-                        const item = state.bag.find(x => x.id === id);
-                        if (!item) return;
-                        item.locked = !item.locked;
-                        renderBagModal();
-                        saveStateSafe();
-                        return;
-                    }
-
-                    const slBtn = e.target.closest('[data-sell-bag-id]');
-                    if (slBtn) {
-                        const id = slBtn.getAttribute('data-sell-bag-id');
-                        const idx = state.bag.findIndex(x => x.id === id);
-                        if (idx === -1) return;
-                        const item = state.bag[idx];
-                        if (item.locked) {
-                            showToast('🔒 Objet verrouillé !');
-                            return;
-                        }
-                        state.bag.splice(idx, 1);
-                        const gain = getSellPrice(item);
-                        earnGold(gain);
-                        state.counters.sold += 1;
-                        addChestXp(Math.max(2, getEffectiveTier(item) * 2));
-                        renderBagModal();
-                        renderMainHUD();
-                        saveStateSafe();
-                        showToast(`🪙 Vendu +${formatCompact(gain)} Or.`);
-                    }
-                });
-            }
-
-            const heroBody = document.getElementById('hero-modal-body');
-            if (heroBody) {
-                heroBody.addEventListener('click', e => {
-                    if (e.target.closest('#btn-open-class-switcher')) {
-                        renderClassSwitcherModal();
-                        openModalById('class-switcher-modal');
-                        return;
-                    }
-                    if (e.target.closest('#btn-trigger-rebirth')) {
-                        executeRebirth();
-                        return;
-                    }
-                    if (e.target.closest('#btn-new-run-reset')) {
-                        stopCombat();
-                        stopAutoOpen();
-                        state = createInitialState();
-                        selectedClass = 'warrior';
-                        pendingLoot = null;
-                        inspectedSlot = null;
-                        try {
-                            localStorage.removeItem(STORAGE_KEY);
-                        } catch (_) {}
-                        saveToGoogleCloud(true).catch(() => {});
-                        closeAllModals();
-                        syncClassSelectionUi('warrior');
-                        showScreen('class-screen');
-                        showToast('🔄 Nouvelle partie démarrée.');
-                    }
-                });
-            }
-
-            const classSwitchBody = document.getElementById('class-switcher-modal-body');
-            if (classSwitchBody) {
-                classSwitchBody.addEventListener('click', e => {
-                    const pickBtn = e.target.closest('[data-pick-class]');
-                    if (!pickBtn) return;
-                    const nextClass = normalizeClassId(pickBtn.getAttribute('data-pick-class'));
-                    state.classId = nextClass;
-                    selectedClass = nextClass;
-                    const st = computeStats();
-                    state.heroHp = st.maxHp;
-                    closeModalById('class-switcher-modal');
-                    renderHeroModal();
-                    renderMainHUD();
-                    startCombat();
-                    saveStateSafe();
-                    showToast(`✨ Classe changée : ${st.cls.name} !`);
-                });
-            }
-
-            document.querySelectorAll('.codex-tab').forEach(tabBtn => {
-                tabBtn.addEventListener('click', () => {
-                    const t = tabBtn.getAttribute('data-codex-tab');
-                    if (t) setCodexTab(t);
-                });
-            });
-
-            const codexBody = document.getElementById('codex-modal-body');
-            if (codexBody) {
-                codexBody.addEventListener('change', e => {
-                    if (e.target && e.target.id === 'codex-unique-slot') {
-                        codexUniqueSlotFilter = e.target.value;
-                        renderCodexModal();
-                    } else if (e.target && e.target.id === 'codex-unique-class') {
-                        codexUniqueClassFilter = e.target.value;
-                        renderCodexModal();
-                    }
-                });
-            }
-
-            const missionsBody = document.getElementById('missions-modal-body');
-            if (missionsBody) {
-                missionsBody.addEventListener('click', e => {
-                    const btn = e.target.closest('[data-claim-mission]');
-                    if (!btn || btn.disabled) return;
-                    const spec = btn.getAttribute('data-claim-mission') || '';
-                    const [kind, id] = spec.split(':');
-                    const defs = getMissionDefs();
-                    const list = kind === 'weekly' ? defs.weekly : defs.daily;
-                    const m = list.find(x => x.id === id);
-                    if (!m || m.prog < m.target) return;
-
-                    if (kind === 'weekly') {
-                        if (state.weeklyClaimed[id]) return;
-                        state.weeklyClaimed[id] = true;
-                    } else {
-                        if (state.dailyClaimed[id]) return;
-                        state.dailyClaimed[id] = true;
-                    }
-
-                    earnGold(m.rewardGold);
-                    state.gems += m.rewardGems;
-                    state.keys += m.rewardKeys;
-                    renderMissionsModal();
-                    renderMainHUD();
-                    saveStateSafe();
-                    showToast(`📜 Récompense réclamée : +${formatCompact(m.rewardGold)} 🪙, +${formatCompact(m.rewardGems)} 💎, +${formatCompact(m.rewardKeys)} 🔑 !`);
-                });
-            }
-
-            const achBody = document.getElementById('achievements-modal-body');
-            if (achBody) {
-                achBody.addEventListener('click', e => {
-                    const btn = e.target.closest('[data-claim-ach]');
-                    if (!btn || btn.disabled) return;
-                    const key = btn.getAttribute('data-claim-ach');
-                    const row = getAchievementRows().find(r => r.key === key);
-                    if (!row || !row.ready) return;
-                    const gemsGain = row.rewardGems;
-                    claimSingleAchievement(key);
-                    renderAchievementsModal();
-                    renderMainHUD();
-                    saveStateSafe();
-                    showToast(`🏆 Succès réclamé (+${formatCompact(gemsGain)} 💎) !`);
-                });
-            }
-
-            const claimAllAchBtn = document.getElementById('btn-claim-all-achievements');
-            if (claimAllAchBtn) {
-                claimAllAchBtn.addEventListener('click', () => {
-                    claimAllAchievements();
-                });
-            }
-
-            const sphereNodesLayer = document.getElementById('sphere-nodes-container');
-            if (sphereNodesLayer) {
-                sphereNodesLayer.addEventListener('click', e => {
-                    const btn = e.target.closest('[data-sphere-node]');
-                    if (!btn) return;
-                    selectedSphereNode = btn.getAttribute('data-sphere-node') || 'center';
-                    renderSphereModal();
-                });
-            }
-
-            const sphereInspector = document.getElementById('sphere-inspector');
-            if (sphereInspector) {
-                sphereInspector.addEventListener('click', e => {
-                    if (e.target.closest('#btn-unlock-sphere-node')) {
-                        unlockSelectedSphereNode();
-                    }
-                });
-            }
-
-            const sphereRecenterBtn = document.getElementById('btn-sphere-recenter');
-            if (sphereRecenterBtn) {
-                sphereRecenterBtn.addEventListener('click', () => {
-                    sphereOffset = { x: 0, y: 0 };
-                    renderSphereModal();
-                });
-            }
-
-            const sphereCanvas = document.getElementById('sphere-canvas');
-            if (sphereCanvas) {
-                let dragging = false;
-                let lastX = 0;
-                let lastY = 0;
-                sphereCanvas.addEventListener('pointerdown', e => {
-                    if (e.target.closest('[data-sphere-node]') || e.target.closest('#btn-sphere-recenter')) return;
-                    dragging = true;
-                    lastX = e.clientX;
-                    lastY = e.clientY;
-                });
-                window.addEventListener('pointermove', e => {
-                    if (!dragging) return;
-                    sphereOffset.x += e.clientX - lastX;
-                    sphereOffset.y += e.clientY - lastY;
-                    lastX = e.clientX;
-                    lastY = e.clientY;
-                    renderSphereModal();
-                });
-                window.addEventListener('pointerup', () => {
-                    dragging = false;
-                });
-            }
-
-            window.addEventListener('resize', () => {
-                if (!isInitialized) return;
-                const sphereModal = document.getElementById('sphere-modal');
-                if (sphereModal && sphereModal.classList.contains('active')) {
-                    renderSphereModal();
                 }
-                if (state.startingClassChosen) {
-                    renderEquippedVignettes();
+            });
+
+            document.getElementById('hero-modal-body')?.addEventListener('click', e => {
+                if (e.target.closest('#btn-open-class-switcher')) {
+                    renderClassSwitcherModal();
+                    openModalById('class-switcher-modal');
+                } else if (e.target.closest('#btn-trigger-rebirth')) {
+                    executeRebirth();
+                }
+            });
+
+            document.getElementById('class-switcher-modal-body')?.addEventListener('click', e => {
+                const btn = e.target.closest('[data-switch-class]');
+                if (!btn) return;
+                const nextCls = normalizeClassId(btn.dataset.switchClass);
+                state.classId = nextCls;
+                selectedClass = nextCls;
+                const st = computeStats();
+                state.heroHp = st.maxHp;
+                closeModalById('class-switcher-modal');
+                renderHeroModal();
+                renderMainHUD();
+                startCombat();
+                saveStateSafe();
+                showToast(`✨ Classe changée en ${CLASSES[nextCls].name} !`);
+            });
+
+            document.querySelectorAll('.codex-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    codexTab = btn.dataset.codexTab || 'sets';
+                    renderCodexModal();
+                });
+            });
+
+            document.getElementById('codex-modal-body')?.addEventListener('change', e => {
+                if (e.target && e.target.id === 'codex-unique-slot-filter') {
+                    codexUniqueSlotFilter = e.target.value || 'all';
+                    renderCodexModal();
+                } else if (e.target && e.target.id === 'codex-unique-class-filter') {
+                    codexUniqueClassFilter = e.target.value || 'all';
+                    renderCodexModal();
+                }
+            });
+
+            document.getElementById('missions-modal-body')?.addEventListener('click', e => {
+                const btn = e.target.closest('[data-claim-mission]');
+                if (!btn) return;
+                const [scope, id] = btn.dataset.claimMission.split(':');
+                const list = scope === 'w' ? getWeeklyMissionsList() : getDailyMissionsList();
+                const m = list.find(x => x.id === id);
+                if (!m || m.prog < m.target) return;
+
+                if (scope === 'w') {
+                    if (state.weeklyClaimed[id]) return;
+                    state.weeklyClaimed[id] = true;
+                } else {
+                    if (state.dailyClaimed[id]) return;
+                    state.dailyClaimed[id] = true;
+                }
+
+                earnGold(m.rewardGold);
+                state.gems += m.rewardGems;
+                renderMissionsModal();
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`🎁 +${formatCompact(m.rewardGold)} 🪙 & +${formatCompact(m.rewardGems)} 💎 réclamés !`);
+            });
+
+            document.getElementById('achievements-modal-body')?.addEventListener('click', e => {
+                const btn = e.target.closest('[data-claim-ach]');
+                if (!btn) return;
+                const key = btn.dataset.claimAch;
+                const ach = getInfiniteAchievementsList().find(x => x.key === key);
+                if (!ach || !ach.ready) return;
+
+                state.achRanks[key] = (state.achRanks[key] || 0) + 1;
+                state.gems += ach.rewardGems;
+                renderAchievementsModal();
+                renderMainHUD();
+                saveStateSafe();
+                showToast(`🏆 Succès réclamé : +${formatCompact(ach.rewardGems)} 💎 !`);
+            });
+
+            document.getElementById('btn-claim-all-achievements')?.addEventListener('click', claimAllAchievements);
+
+            let draggingSphere = false;
+            let dragStart = { x: 0, y: 0 };
+            let movedPx = 0;
+            const sphereCanvas = document.getElementById('sphere-canvas');
+
+            sphereCanvas?.addEventListener('pointerdown', e => {
+                if (e.target.closest('[data-sphere-node]') || e.target.closest('#btn-sphere-recenter')) return;
+                draggingSphere = true;
+                movedPx = 0;
+                dragStart = { x: e.clientX - sphereOffset.x, y: e.clientY - sphereOffset.y };
+            });
+
+            window.addEventListener('pointermove', e => {
+                if (!draggingSphere) return;
+                const nx = e.clientX - dragStart.x;
+                const ny = e.clientY - dragStart.y;
+                movedPx += Math.hypot(nx - sphereOffset.x, ny - sphereOffset.y);
+                sphereOffset = { x: nx, y: ny };
+                renderSphereModal();
+            });
+
+            window.addEventListener('pointerup', () => {
+                draggingSphere = false;
+            });
+
+            document.getElementById('sphere-nodes-container')?.addEventListener('click', e => {
+                if (movedPx > 8) return;
+                const btn = e.target.closest('[data-sphere-node]');
+                if (!btn) return;
+                selectedSphereNode = btn.dataset.sphereNode;
+                renderSphereModal();
+            });
+
+            document.getElementById('btn-sphere-recenter')?.addEventListener('click', () => {
+                sphereOffset = { x: 0, y: 0 };
+                renderSphereModal();
+            });
+
+            document.getElementById('sphere-inspector')?.addEventListener('click', e => {
+                if (e.target.closest('#btn-unlock-sphere-node')) {
+                    unlockSelectedSphereNode();
                 }
             });
 
@@ -4910,29 +4764,33 @@
         }
 
         /* =====================================================================
-           14. INITIALIZATION (ALWAYS STARTS ON #class-screen UNLESS CHOSEN)
+           13. INITIALIZATION (ALWAYS OPENS #class-screen FIRST ON FRESH START)
         ====================================================================== */
-        function init() {
+        function initApp() {
+            if (isInitialized) return;
+            isInitialized = true;
+
             closeAllModals();
             loadCloudPrefs();
             loadStateSafe();
-            selectedClass = state.classId || 'warrior';
-            syncClassSelectionUi(selectedClass);
-            bindEvents();
-            isInitialized = true;
 
-            if (state.startingClassChosen) {
-                launchGameWithClass(state.classId);
-            } else {
+            if (!state.startingClassChosen) {
+                stopCombat();
+                stopAutoOpen();
+                selectClassPreview('warrior');
                 showScreen('class-screen');
-                renderMainHUD();
+                updateCloudHudUi();
+            } else {
+                launchGameWithClass(state.classId);
             }
+
+            bindEvents();
         }
 
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
+            document.addEventListener('DOMContentLoaded', initApp, { once: true });
         } else {
-            init();
+            initApp();
         }
     })();
     </script>
